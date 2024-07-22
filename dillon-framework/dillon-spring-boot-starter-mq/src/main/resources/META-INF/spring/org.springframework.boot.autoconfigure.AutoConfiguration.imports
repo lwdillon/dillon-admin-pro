@@ -1,0 +1,3 @@
+com.lw.dillon.admin.framework.mq.redis.config.DillonRedisMQProducerAutoConfiguration
+com.lw.dillon.admin.framework.mq.redis.config.DillonRedisMQConsumerAutoConfiguration
+com.lw.dillon.admin.framework.mq.rabbitmq.config.DillonRabbitMQAutoConfiguration

@@ -1,0 +1,323 @@
+/*
+ * Created by JFormDesigner on Fri Jun 14 15:12:51 CST 2024
+ */
+
+package com.lw.swing.view.system.role;
+
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
+import com.jidesoft.swing.CheckBoxTree;
+import com.jidesoft.tree.TreeUtils;
+import com.lw.dillon.admin.framework.common.pojo.CommonResult;
+import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
+import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.lw.dillon.admin.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
+import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.lw.dillon.admin.module.system.enums.permission.DataScopeEnum;
+import com.lw.swing.request.Request;
+import com.lw.swing.store.AppStore;
+import com.lw.ui.request.api.system.DeptFeign;
+import com.lw.ui.utils.DictTypeEnum;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import javax.swing.tree.*;
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+/**
+ * @author wenli
+ */
+public class DataPermissionPane extends JPanel {
+    private Long id;
+
+    public DataPermissionPane() {
+        initComponents();
+        initListeners();
+    }
+
+    private void initComponents() {
+        // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
+        // Generated using JFormDesigner non-commercial license
+        label1 = new JLabel();
+        nameTextField = new JTextField();
+        label2 = new JLabel();
+        codeTextField = new JTextField();
+        label3 = new JLabel();
+        perComboBox = new JComboBox();
+        treePane = new JPanel();
+        toolBar = new JToolBar();
+        allCheckBox = new JCheckBox();
+        unfoldCheckBox = new JCheckBox();
+        scrollPane1 = new JScrollPane();
+        deptTree = new CheckBoxTree();
+
+        //======== this ========
+        setLayout(new MigLayout(
+            "fill,hidemode 3",
+            // columns
+            "[right]" +
+            "[380:n,grow,fill]",
+            // rows
+            "[]" +
+            "[]" +
+            "[]" +
+            "[320:320,grow]"));
+
+        //---- label1 ----
+        label1.setText("\u89d2\u8272\u540d\u79f0");
+        add(label1, "cell 0 0");
+
+        //---- nameTextField ----
+        nameTextField.setEditable(false);
+        add(nameTextField, "cell 1 0");
+
+        //---- label2 ----
+        label2.setText("\u89d2\u8272\u6807\u8bc6");
+        add(label2, "cell 0 1");
+
+        //---- codeTextField ----
+        codeTextField.setEditable(false);
+        add(codeTextField, "cell 1 1");
+
+        //---- label3 ----
+        label3.setText("\u6743\u9650\u8303\u56f4");
+        add(label3, "cell 0 2");
+        add(perComboBox, "cell 1 2");
+
+        //======== treePane ========
+        {
+            treePane.setLayout(new BorderLayout());
+
+            //======== toolBar ========
+            {
+                toolBar.setFloatable(false);
+
+                //---- allCheckBox ----
+                allCheckBox.setText("\u5168\u9009/\u5168\u4e0d\u9009");
+                toolBar.add(allCheckBox);
+
+                //---- unfoldCheckBox ----
+                unfoldCheckBox.setText("\u5168\u90e8\u5c55\u5f00/\u6298\u53e0");
+                toolBar.add(unfoldCheckBox);
+            }
+            treePane.add(toolBar, BorderLayout.NORTH);
+
+            //======== scrollPane1 ========
+            {
+                scrollPane1.setViewportView(deptTree);
+            }
+            treePane.add(scrollPane1, BorderLayout.CENTER);
+        }
+        add(treePane, "cell 1 3,grow");
+        // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
+
+        deptTree.setCellRenderer(new DefaultTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                if (value instanceof DefaultMutableTreeNode) {
+                    Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
+
+                    if (userObject instanceof DeptSimpleRespVO) {
+                        value = ((DeptSimpleRespVO) userObject).getName();
+                    }
+                }
+                return super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            }
+        });
+        List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_DATA_SCOPE);
+        treePane.setVisible(false);
+        perComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof DictDataSimpleRespVO) {
+                    value = ((DictDataSimpleRespVO) value).getLabel();
+                }
+                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            }
+        });
+        for (DictDataSimpleRespVO dictDataSimpleRespVO : dictDataSimpleRespVOList) {
+            perComboBox.addItem(dictDataSimpleRespVO);
+        }
+
+    }
+
+
+    private void initListeners() {
+
+        allCheckBox.addActionListener(e -> {
+            if (deptTree.getCheckBoxTreeSelectionModel().isDigIn()) {
+                if (allCheckBox.isSelected()) {
+                    deptTree.getCheckBoxTreeSelectionModel().setSelectionPath(new TreePath(deptTree.getModel().getRoot()));
+                } else {
+                    deptTree.getCheckBoxTreeSelectionModel().clearSelection();
+                }
+
+            }
+        });
+        unfoldCheckBox.addActionListener(e -> {
+            if (unfoldCheckBox.isSelected()) {
+                TreeUtils.expandAll(deptTree);
+            } else {
+                for (int i = deptTree.getRowCount() - 1; i >= 0; i--) {
+                    deptTree.collapseRow(i);
+                }
+            }
+
+        });
+        perComboBox.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+
+                if (perComboBox.getSelectedItem() instanceof DictDataSimpleRespVO) {
+
+                    if (StrUtil.equals(((DictDataSimpleRespVO) perComboBox.getSelectedItem()).getValue(), DataScopeEnum.DEPT_CUSTOM.getScope() + "")) {
+                        treePane.setVisible(true);
+                    } else {
+                        treePane.setVisible(false);
+                    }
+                }
+            }
+        });
+    }
+
+
+    public PermissionAssignRoleDataScopeReqVO getValue() {
+        PermissionAssignRoleDataScopeReqVO permissionAssignRoleDataScopeReqVO = new PermissionAssignRoleDataScopeReqVO();
+        permissionAssignRoleDataScopeReqVO.setRoleId(id);
+        permissionAssignRoleDataScopeReqVO.setDataScope(Convert.toInt(((DictDataSimpleRespVO) perComboBox.getSelectedItem()).getValue(), 0));
+        if (perComboBox.getSelectedIndex() == 1) {
+
+            TreePath[] treePaths = deptTree.getCheckBoxTreeSelectionModel().getSelectionPaths();
+            Set<Long> deptIdlist = new HashSet<>();
+
+
+            if (treePaths != null) {
+                for (TreePath path : treePaths) {
+
+                    Object obj = path.getLastPathComponent();
+                    if (obj instanceof DefaultMutableTreeNode) {
+                        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) obj;
+                        treeDataScopeDeptIds(treeNode, deptIdlist);
+                    }
+                }
+                permissionAssignRoleDataScopeReqVO.setDataScopeDeptIds(deptIdlist);
+            }
+        }
+
+        return permissionAssignRoleDataScopeReqVO;
+    }
+
+
+    private void treeDataScopeDeptIds(DefaultMutableTreeNode treeNode, Set<Long> deptIdlist) {
+
+
+        if (treeNode.getUserObject() instanceof DeptSimpleRespVO) {
+            DeptSimpleRespVO deptSimpleRespVO = (DeptSimpleRespVO) treeNode.getUserObject();
+            deptIdlist.add(deptSimpleRespVO.getId());
+        }
+
+
+        for (int i = 0; i < treeNode.getChildCount(); i++) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode.getChildAt(i);
+            if (node.getUserObject() instanceof DeptSimpleRespVO) {
+                DeptSimpleRespVO deptSimpleRespVO = (DeptSimpleRespVO) node.getUserObject();
+                deptIdlist.add(deptSimpleRespVO.getId());
+            }
+            treeDataScopeDeptIds(node,deptIdlist);
+        }
+    }
+
+
+    public void updateData(RoleRespVO roleRespVO) {
+
+        this.id = roleRespVO.getId();
+
+        nameTextField.setText(roleRespVO.getName());
+        codeTextField.setText(roleRespVO.getCode());
+        List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_DATA_SCOPE);
+
+        for (DictDataSimpleRespVO dictDataSimpleRespVO : dictDataSimpleRespVOList) {
+            if (StrUtil.equals(dictDataSimpleRespVO.getValue(), roleRespVO.getDataScope() + "")) {
+                perComboBox.setSelectedItem(dictDataSimpleRespVO);
+                break;
+            }
+
+        }
+
+
+        SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
+            @Override
+            protected Map<String, Object> doInBackground() throws Exception {
+                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.buildApiClient(DeptFeign.class).getSimpleDeptList();
+
+                DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
+                // Build the tree
+                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                nodeMap.put(0l, deptRoot); // Root node
+
+                List<TreePath> selTreePth = new ArrayList<>();
+                for (DeptSimpleRespVO simpleRespVO : deptResult.getData()) {
+                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                    nodeMap.put(simpleRespVO.getId(), node);
+
+                }
+
+                deptResult.getData().forEach(deptSimpleRespVO -> {
+                    DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+                    DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
+                    if (parentNode != null) {
+                        parentNode.add(childNode);
+                    }
+                    if (roleRespVO.getDataScopeDeptIds().contains(deptSimpleRespVO.getId())) {
+                        selTreePth.add(new TreePath(nodeMap.get(deptSimpleRespVO.getId()).getPath()));
+                    }
+
+                });
+
+                Map<String, Object> resultMap = new HashMap<>();
+                resultMap.put("deptRoot", deptRoot);
+                resultMap.put("selTreePth", selTreePth);
+
+                return resultMap;
+            }
+
+            @Override
+            protected void done() {
+                try {
+
+                    deptTree.setModel(new DefaultTreeModel((TreeNode) get().get("deptRoot")));
+                    List<TreePath> selTreePth = (List<TreePath>) get().get("selTreePth");
+                    if (selTreePth != null) {
+                        deptTree.getCheckBoxTreeSelectionModel().setSelectionPaths(selTreePth.toArray(new TreePath[0]));
+                    }
+                    TreeUtils.expandAll(deptTree);
+
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        swingWorker.execute();
+    }
+
+    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
+    // Generated using JFormDesigner non-commercial license
+    private JLabel label1;
+    private JTextField nameTextField;
+    private JLabel label2;
+    private JTextField codeTextField;
+    private JLabel label3;
+    private JComboBox perComboBox;
+    private JPanel treePane;
+    private JToolBar toolBar;
+    private JCheckBox allCheckBox;
+    private JCheckBox unfoldCheckBox;
+    private JScrollPane scrollPane1;
+    private CheckBoxTree deptTree;
+    // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
+}

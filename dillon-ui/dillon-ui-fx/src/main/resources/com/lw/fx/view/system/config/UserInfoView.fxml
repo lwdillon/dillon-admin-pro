@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.PasswordTextField?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<?import java.lang.String?>
+<HBox prefHeight="499.0" prefWidth="768.0" spacing="10.0" styleClass="tab-center-pane"
+      xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.lw.fx.view.system.config.UserInfoView">
+    <children>
+        <VBox fx:id="root" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="400.0" prefHeight="380.0"
+              prefWidth="400.0" styleClass="sample">
+            <children>
+                <Label styleClass="title-3" text="个人信息"/>
+                <Separator prefWidth="200.0"/>
+                <Button fx:id="iconBut" alignment="CENTER" contentDisplay="CENTER" maxHeight="120.0" maxWidth="120.0"
+                        minHeight="120.0" minWidth="120.0" prefHeight="120.0" prefWidth="120.0">
+                    <graphic>
+                        <FontIcon iconLiteral="fth-user"/>
+                    </graphic>
+                    <VBox.margin>
+                        <Insets bottom="10.0"/>
+                    </VBox.margin>
+                </Button>
+                <Label fx:id="nickName" styleClass="title-2" text="Label"/>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="用户名称">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-user"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="userName" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" text="admin"
+                               HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="手机号码">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-smartphone"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="phonenumber" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="185xxxxxx99" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="用户邮箱">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-mail"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="email" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="admin@163.com" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="所属部门">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-users"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="dept" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="董事长/研发部门" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="所属岗位">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-users"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="post" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="董事长/研发部门" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="所属角色">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-user-check"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="roles" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="超级管理员" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+                <HBox alignment="CENTER_LEFT" prefHeight="38.0" prefWidth="286.0">
+                    <children>
+                        <Label text="创建日期">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-calendar"/>
+                            </graphic>
+                        </Label>
+                        <Label fx:id="createDate" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308"
+                               text="2022-09-25 12:08" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <Separator prefWidth="200.0"/>
+            </children>
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+        </VBox>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" styleClass="sample" HBox.hgrow="ALWAYS">
+            <children>
+                <Label styleClass="title-3" text="基本信息"/>
+                <Separator prefWidth="200.0"/>
+                <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                    <tabs>
+                        <Tab text="基本资料">
+                            <content>
+                                <VBox alignment="TOP_CENTER" maxHeight="250.0" maxWidth="1.7976931348623157E308"
+                                      minHeight="250.0" prefHeight="250.0">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*用户昵称"/>
+                                                <TextField fx:id="nicknameField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*手机号码"/>
+                                                <TextField fx:id="mobileField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*用户邮箱"/>
+                                                <TextField fx:id="emailField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*性别"/>
+                                                <ComboBox fx:id="sexComboBox" maxWidth="1.7976931348623157E308"
+                                                          HBox.hgrow="ALWAYS">
+                                                    <items>
+                                                        <FXCollections fx:factory="observableArrayList">
+                                                            <String fx:value="男"/>
+                                                            <String fx:value="女"/>
+                                                            <String fx:value="未知"/>
+                                                        </FXCollections>
+                                                    </items>
+                                                </ComboBox>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                            <children>
+                                                <Button fx:id="saveUserProfileBut" mnemonicParsing="false"
+                                                        styleClass="accent" text="保存"/>
+                                                <Button fx:id="restUserProfileBut" mnemonicParsing="false"
+                                                        styleClass="danger" text="重置"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                    <padding>
+                                        <Insets left="50.0" right="50.0" top="30.0"/>
+                                    </padding>
+                                </VBox>
+                            </content>
+                        </Tab>
+                        <Tab text="修改密码">
+                            <content>
+                                <VBox maxHeight="250.0" prefHeight="253.0" prefWidth="333.0">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*旧密码"/>
+                                                <PasswordTextField fx:id="oldPwdTextField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*新密码"/>
+                                                <PasswordTextField fx:id="newPwdField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                              spacing="10.0">
+                                            <children>
+                                                <Label alignment="CENTER_RIGHT" prefWidth="80.0" text="*确认密码"/>
+                                                <PasswordTextField fx:id="verifyPwdField" HBox.hgrow="ALWAYS"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                            <children>
+                                                <Button fx:id="savePwdBut" mnemonicParsing="false" styleClass="accent"
+                                                        text="保存"/>
+                                                <Button fx:id="restPwdBut" mnemonicParsing="false" styleClass="danger"
+                                                        text="重置"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                    <padding>
+                                        <Insets left="50.0" right="50.0" top="30.0"/>
+                                    </padding>
+                                </VBox>
+                            </content>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+            </children>
+            <HBox.margin>
+                <Insets/>
+            </HBox.margin>
+            <padding>
+                <Insets top="10.0"/>
+            </padding>
+        </VBox>
+    </children>
+</HBox>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
+<VBox fx:id="rootPane" prefHeight="464.0" prefWidth="640.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.user.UserFormView">
+    <children>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="*用户昵称" />
+                <TextField fx:id="nickNameField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="*用户名称" />
+                <TextField fx:id="userNameField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="pwdBox" alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="*密码">
+                    <padding>
+                        <Insets left="10.0" />
+                    </padding>
+                </Label>
+                <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="手机号码" />
+                <TextField fx:id="phonenumberField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="邮箱">
+                    <padding>
+                        <Insets left="10.0" />
+                    </padding>
+                </Label>
+                <TextField fx:id="emailField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="性别" />
+                <ComboBox fx:id="sexCombo" maxWidth="1.7976931348623157E308" prefWidth="150.0">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="男" />
+                            <String fx:value="女" />
+                            <String fx:value="未知" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="归属部门">
+                    <padding>
+                        <Insets left="10.0" />
+                    </padding>
+                </Label>
+                <TextField fx:id="deptField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="岗位" />
+            <TextField fx:id="postField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="备注" />
+                <TextArea fx:id="remarkArea" prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+    </children>
+</VBox>

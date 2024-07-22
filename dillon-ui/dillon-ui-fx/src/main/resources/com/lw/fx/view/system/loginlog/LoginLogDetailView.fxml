@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="498.0" prefWidth="617.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.loginlog.LoginLogDetailView">
+    <children>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="日志编号" />
+                <TextField fx:id="idField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作类型" />
+            <Button fx:id="logTypeBut" mnemonicParsing="false" text="Button" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="用户名称" />
+                <TextField fx:id="usernameField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="登录地址" />
+                <TextField fx:id="userIpField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="浏览器" />
+                <TextField fx:id="userAgentField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="登陆结果" />
+            <Button fx:id="resultBut" mnemonicParsing="false" text="Button" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="登录日期" />
+                <TextField fx:id="createTimeField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+
+    </children>
+    <padding>
+        <Insets bottom="10.0" right="10.0" top="10.0" />
+    </padding>
+</VBox>

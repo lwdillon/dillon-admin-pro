@@ -1,0 +1,3 @@
+com.lw.dillon.admin.framework.security.config.DillonSecurityAutoConfiguration
+com.lw.dillon.admin.framework.security.config.DillonWebSecurityConfigurerAdapter
+com.lw.dillon.admin.framework.operatelog.config.DillonOperateLogConfiguration

@@ -1,0 +1,3 @@
+com.lw.dillon.admin.framework.datasource.config.DillonDataSourceAutoConfiguration
+com.lw.dillon.admin.framework.mybatis.config.DillonMybatisAutoConfiguration
+com.lw.dillon.admin.framework.translate.config.DillonTranslateAutoConfiguration

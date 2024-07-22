@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600px" height="600px" viewBox="0 0 600 600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>画板</title>
+    <defs>
+        <linearGradient x1="73.3820089%" y1="23.197102%" x2="9.89105625%" y2="70.4996104%" id="linearGradient-1">
+            <stop stop-color="#009CFF" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#3DE6F5" offset="48.8537454%"></stop>
+            <stop stop-color="#0063FF" offset="100%"></stop>
+        </linearGradient>
+        <filter x="-14.4%" y="-14.4%" width="128.8%" height="128.8%" filterUnits="objectBoundingBox" id="filter-2">
+            <feGaussianBlur stdDeviation="25" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+    </defs>
+    <g id="画板" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" fill-opacity="0.6" opacity="0.2">
+        <circle id="椭圆形" fill="url(#linearGradient-1)" filter="url(#filter-2)" cx="300" cy="300" r="260"></circle>
+    </g>
+</svg>

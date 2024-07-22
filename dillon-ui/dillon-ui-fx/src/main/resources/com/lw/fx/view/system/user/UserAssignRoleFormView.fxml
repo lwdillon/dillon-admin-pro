@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="134.0" prefWidth="463.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.user.UserAssignRoleFormView">
+   <children>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="用户名称" />
+            <TextField fx:id="usernameField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="用户昵称" />
+            <TextField fx:id="nicknameField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="角色" />
+            <TextField fx:id="roleField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+   </children>
+</VBox>

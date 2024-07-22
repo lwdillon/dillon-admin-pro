@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lw.dillon</groupId>
+        <artifactId>dillon-admin-pro</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>dillon-ui</artifactId>
+    <packaging>pom</packaging>
+
+
+    <name>${project.artifactId}</name> <!-- 3. 新增 name 为 ${project.artifactId} -->
+    <description> <!-- 4. 新增 description 为该模块的描述 -->
+        UI 模块，主要实现 Swing、JavaFx界面功能。
+    </description>
+    <modules>
+        <module>dillon-ui-swing</module>
+        <module>dillon-ui-common</module>
+        <module>dillon-ui-fx</module>
+    </modules>
+
+
+</project>

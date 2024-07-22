@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.dlsc.gemsfx.AvatarView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane fx:id="rootPane" prefHeight="511.0" prefWidth="833.0" styleClass="main-pane" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.main.MainView">
+    <bottom>
+        <HBox fx:id="statusBarBox" prefHeight="40.0" prefWidth="200.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: -color-border-default;" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets top="1.0" />
+            </BorderPane.margin>
+        </HBox>
+    </bottom>
+    <top>
+        <VBox style="-fx-border-width: 0 0 1 0; -fx-border-color: -color-border-default;" BorderPane.alignment="CENTER">
+            <children>
+                <HBox fx:id="titleBox" alignment="CENTER_LEFT" maxHeight="45.0" maxWidth="1.7976931348623157E308" minHeight="45.0" minWidth="200.0" prefHeight="45.0" prefWidth="600.0" spacing="7.0">
+                    <children>
+                        <Button fx:id="logoBut" style="-fx-text-fill: linear-gradient(to right, #e00db4, #0d6bde);" />
+                        <ToggleButton fx:id="menuButton" mnemonicParsing="false" />
+                        <HBox fx:id="rightBox" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Button id="decorator-button" fx:id="themeBut" contentDisplay="GRAPHIC_ONLY">
+                                </Button>
+                                <AvatarView fx:id="userBut" size="35.0" />
+                                <Button id="decorator-button" fx:id="minimizeBut" contentDisplay="GRAPHIC_ONLY" />
+                                <Button id="decorator-button" fx:id="maximizeBut" contentDisplay="GRAPHIC_ONLY" />
+                                <Button id="decorator-button-close" fx:id="closeBut" contentDisplay="GRAPHIC_ONLY" />
+                            </children>
+                        </HBox>
+                    </children>
+                    <padding>
+                        <Insets left="7.0" right="7.0" />
+                    </padding>
+
+                </HBox>
+            </children>
+            <BorderPane.margin>
+                <Insets bottom="1.0" />
+            </BorderPane.margin>
+        </VBox>
+    </top>
+    <center>
+        <TabPane fx:id="tabPane" maxWidth="1.7976931348623157E308" prefHeight="424.0" prefWidth="622.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
+    </center>
+    <left>
+        <VBox id="sidebar" fx:id="sideBox" prefHeight="200.0" prefWidth="250.0" BorderPane.alignment="CENTER" />
+    </left>
+
+</BorderPane>

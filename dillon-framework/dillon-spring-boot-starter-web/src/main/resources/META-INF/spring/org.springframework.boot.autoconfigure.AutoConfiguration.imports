@@ -1,0 +1,6 @@
+com.lw.dillon.admin.framework.apilog.config.DillonApiLogAutoConfiguration
+com.lw.dillon.admin.framework.jackson.config.DillonJacksonAutoConfiguration
+com.lw.dillon.admin.framework.swagger.config.DillonSwaggerAutoConfiguration
+com.lw.dillon.admin.framework.web.config.DillonWebAutoConfiguration
+com.lw.dillon.admin.framework.xss.config.DillonXssAutoConfiguration
+com.lw.dillon.admin.framework.banner.config.DillonBannerAutoConfiguration
