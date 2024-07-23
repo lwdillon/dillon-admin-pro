@@ -246,7 +246,7 @@ public class DictDataManagementPanel extends JPanel {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(DictDataFeign.class).createDictData(saveReqVO);
+                return Request.connector(DictDataFeign.class).createDictData(saveReqVO);
             }
 
             @Override
@@ -272,7 +272,7 @@ public class DictDataManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(DictDataFeign.class).updateDictData(saveReqVO);
+                return Request.connector(DictDataFeign.class).updateDictData(saveReqVO);
             }
 
             @Override
@@ -313,7 +313,7 @@ public class DictDataManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(DictDataFeign.class).deleteDictData(finalId);
+                return Request.connector(DictDataFeign.class).deleteDictData(finalId);
             }
 
             @Override
@@ -353,7 +353,7 @@ public class DictDataManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<DictDataRespVO>> result = Request.buildApiClient(DictDataFeign.class).getDictTypePage(queryMap);
+                CommonResult<PageResult<DictDataRespVO>> result = Request.connector(DictDataFeign.class).getDictTypePage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

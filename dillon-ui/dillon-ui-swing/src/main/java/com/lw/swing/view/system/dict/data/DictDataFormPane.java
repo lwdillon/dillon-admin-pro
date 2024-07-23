@@ -184,7 +184,7 @@ public class DictDataFormPane extends JPanel {
             protected Map<String, Object> doInBackground() throws Exception {
                 DictDataRespVO respVO = null;
                 if (id != null) {
-                    CommonResult<DictDataRespVO> userResult = Request.buildApiClient(DictDataFeign.class).getDictData(id);
+                    CommonResult<DictDataRespVO> userResult = Request.connector(DictDataFeign.class).getDictData(id);
                     respVO = userResult.getData();
                 }
 

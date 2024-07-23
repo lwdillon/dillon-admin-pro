@@ -185,7 +185,7 @@ public class NoticeView implements FxmlView<NoticeViewModel>, Initializable {
                 };
             }
         });
-        
+
         statusCol.setCellFactory(col -> {
             return new TableCell<>() {
                 @Override
@@ -234,7 +234,12 @@ public class NoticeView implements FxmlView<NoticeViewModel>, Initializable {
                             delBut.setOnAction(actionEvent -> showDelDialog(getTableRow().getItem()));
                             delBut.setGraphic(FontIcon.of(Feather.TRASH));
                             delBut.getStyleClass().addAll(FLAT, DANGER);
-                            HBox box = new HBox(editBut, delBut);
+
+                            Button pushBut = new Button("推送");
+                            pushBut.setOnAction(actionEvent -> push(getTableRow().getItem().getId()));
+                            pushBut.setGraphic(FontIcon.of(Feather.MESSAGE_SQUARE));
+                            pushBut.getStyleClass().addAll(FLAT, ACCENT);
+                            HBox box = new HBox(editBut, delBut, pushBut);
                             box.setAlignment(Pos.CENTER);
 //                            box.setSpacing(7);
                             setGraphic(box);
@@ -272,7 +277,7 @@ public class NoticeView implements FxmlView<NoticeViewModel>, Initializable {
         dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
-                    ProcessChain.create().addRunnableInPlatformThread(()->load.getViewModel().commitHtmText())
+                    ProcessChain.create().addRunnableInPlatformThread(() -> load.getViewModel().commitHtmText())
                             .addSupplierInExecutor(() -> {
                                 return load.getViewModel().saveUser(isAdd);
                             })
@@ -295,7 +300,6 @@ public class NoticeView implements FxmlView<NoticeViewModel>, Initializable {
         dialog.show(rootPane.getScene());
 
     }
-
 
 
     private void showDelDialog(NoticeRespVO respVO) {
@@ -323,5 +327,20 @@ public class NoticeView implements FxmlView<NoticeViewModel>, Initializable {
 
         dialog.setContent(new Label("是否确认删除名称为" + respVO.getTitle() + "的数据项？"));
         dialog.show(rootPane.getScene());
+    }
+
+    private void push(Long id) {
+        ProcessChain.create()
+                .addSupplierInExecutor(() -> {
+                    return Request.connector(NoticeFeign.class).push(id);
+                })
+                .addConsumerInPlatformThread(r -> {
+                    if (r.isSuccess()) {
+                        MvvmFX.getNotificationCenter().publish("message", "推送成功", MessageType.SUCCESS);
+
+                        viewModel.loadTableData();
+                    }
+                }).onException(e -> e.printStackTrace())
+                .run();
     }
 }

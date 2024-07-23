@@ -325,7 +325,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(UserFeign.class).createUser(userSaveReqVO);
+                return Request.connector(UserFeign.class).createUser(userSaveReqVO);
             }
 
             @Override
@@ -351,7 +351,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(UserFeign.class).updateUser(userSaveReqVO);
+                return Request.connector(UserFeign.class).updateUser(userSaveReqVO);
             }
 
             @Override
@@ -392,7 +392,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(UserFeign.class).deleteUser(finalUserId);
+                return Request.connector(UserFeign.class).deleteUser(finalUserId);
             }
 
             @Override
@@ -430,7 +430,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(UserFeign.class).updateUserPassword(userUpdatePasswordReqVO);
+                return Request.connector(UserFeign.class).updateUserPassword(userUpdatePasswordReqVO);
             }
 
             @Override
@@ -456,7 +456,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(PermissionFeign.class).assignUserRole(permissionAssignUserRoleReqVO);
+                return Request.connector(PermissionFeign.class).assignUserRole(permissionAssignUserRoleReqVO);
             }
 
             @Override
@@ -482,7 +482,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<DefaultMutableTreeNode, Object> swingWorker = new SwingWorker<DefaultMutableTreeNode, Object>() {
             @Override
             protected DefaultMutableTreeNode doInBackground() throws Exception {
-                CommonResult<List<DeptSimpleRespVO>> result = Request.buildApiClient(DeptFeign.class).getSimpleDeptList();
+                CommonResult<List<DeptSimpleRespVO>> result = Request.connector(DeptFeign.class).getSimpleDeptList();
 
                 DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
                 // Build the tree
@@ -563,7 +563,7 @@ public class UserManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<UserRespVO>> result = Request.buildApiClient(UserFeign.class).getUserPage(queryMap);
+                CommonResult<PageResult<UserRespVO>> result = Request.connector(UserFeign.class).getUserPage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

@@ -198,8 +198,8 @@ public class RoleAssignMenuPane extends JPanel {
         SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
             @Override
             protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<java.util.List<MenuSimpleRespVO>> menuResult = Request.buildApiClient(MenuFeign.class).getSimpleMenuList();
-                CommonResult<Set<Long>> roleMenuResult = Request.buildApiClient(PermissionFeign.class).getRoleMenuList(id);
+                CommonResult<java.util.List<MenuSimpleRespVO>> menuResult = Request.connector(MenuFeign.class).getSimpleMenuList();
+                CommonResult<Set<Long>> roleMenuResult = Request.connector(PermissionFeign.class).getRoleMenuList(id);
 
                 DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
                 // Build the tree

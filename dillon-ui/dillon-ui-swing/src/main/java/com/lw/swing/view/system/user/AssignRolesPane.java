@@ -160,8 +160,8 @@ public class AssignRolesPane extends JPanel {
         SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
             @Override
             protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<List<RoleRespVO>> roleResult = Request.buildApiClient(RoleFeign.class).getSimpleRoleList();
-                CommonResult<Set<Long>> listAdminRoleResult = Request.buildApiClient(PermissionFeign.class).listAdminRoles(id);
+                CommonResult<List<RoleRespVO>> roleResult = Request.connector(RoleFeign.class).getSimpleRoleList();
+                CommonResult<Set<Long>> listAdminRoleResult = Request.connector(PermissionFeign.class).listAdminRoles(id);
 
                 Vector<Object> selRoles = new Vector<>();
                 DefaultListModel listModel = new DefaultListModel();

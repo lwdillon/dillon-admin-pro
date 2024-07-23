@@ -1,100 +1,104 @@
 package com.lw.swing.request;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.lw.swing.request.interceptor.ForwardedForInterceptor;
 import com.lw.swing.request.interceptor.OkHttpInterceptor;
-import com.lw.ui.request.api.system.AuthFeign;
+import com.lw.ui.request.api.BaseFeignApi;
 import com.lw.ui.request.gson.LocalDateTimeTypeAdapter;
 import com.lw.ui.request.gson.LocalDateTypeAdapter;
 import com.lw.ui.request.gson.ZonedDateTimeTypeAdapter;
-import feign.Client;
+import feign.AsyncFeign;
 import feign.Feign;
 import feign.Logger;
 import feign.Retryer;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import feign.okhttp.OkHttpClient;
 import feign.querymap.BeanQueryMapEncoder;
+import feign.slf4j.Slf4jLogger;
 import okhttp3.ConnectionPool;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Request {
 
-    private final static String SERVICE_LIST = "http://127.0.0.1:48080/";
-    private static Client feignClient;
-    private static ObjectMapper objectMapper;
-    private static GsonDecoder gsonDecoder;
-    private static GsonEncoder gsonEncoder;
-    static {
+    private static final Map<String, BaseFeignApi> CONNECTORS = new ConcurrentHashMap<>();
+    private static final int READ_TIME_OUT_MILLIS = 90000;
 
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        feignClient = new feign.okhttp.OkHttpClient(createOkHttpClient());
+    // Gson 实例和解码器、编码器
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+            .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeTypeAdapter())
+            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .create();
+
+    private static final Decoder GSON_DECODER = new GsonDecoder(GSON);
+    private static final Encoder GSON_ENCODER = new GsonEncoder(GSON);
+
+    private static final okhttp3.OkHttpClient OK_HTTP_CLIENT = createOkHttpClient();
+    private static final Feign.Builder BUILDER = createFeignBuilder();
+    private static final AsyncFeign.AsyncBuilder ASYNC_BUILDER = createAsyncFeignBuilder();
+
+    private Request() {
+        // 防止实例化
     }
 
-    public static <T> T buildApiClient(Class<T> apiInterface) {
+    public static <T extends BaseFeignApi> T connector(Class<T> connectorClass, int readTimeOut) {
+        final String key = connectorClass.getSimpleName() + readTimeOut;
+        return (T) CONNECTORS.computeIfAbsent(key, k -> BUILDER.target(connectorClass, System.getProperty("app.server.url")));
+    }
 
-        return Feign.builder().queryMapEncoder(new BeanQueryMapEncoder())
-                .decoder(getGsonDecoder())
-                .encoder(getGsonEncoder())
-                .logger(new Logger.JavaLogger(apiInterface.getSimpleName() + ".Logger")
-                        .appendToFile("logs/http.log"))
-                .logLevel(Logger.Level.FULL)
-                .client(feignClient)
-                .requestInterceptor(new ForwardedForInterceptor())
-                .retryer(new Retryer.Default()) // 默认重试策略
+    public static <T extends BaseFeignApi> T connector(Class<T> connectorClass) {
+        return connector(connectorClass, READ_TIME_OUT_MILLIS);
+    }
 
-                .target(apiInterface, SERVICE_LIST);
+
+    public static <T extends BaseFeignApi> T asyncConnector(Class<T> connectorClass, int readTimeOut) {
+        final String key = connectorClass.getSimpleName() + readTimeOut;
+        return (T) CONNECTORS.computeIfAbsent(key, k -> (BaseFeignApi) ASYNC_BUILDER.target(connectorClass, System.getProperty("app.server.url")));
+    }
+
+    public static <T extends BaseFeignApi> T asyncConnector(Class<T> connectorClass) {
+        return asyncConnector(connectorClass, READ_TIME_OUT_MILLIS);
     }
 
     private static okhttp3.OkHttpClient createOkHttpClient() {
-        return new okhttp3.OkHttpClient.Builder().connectionPool(new ConnectionPool())
+        return new okhttp3.OkHttpClient.Builder()
+                .connectionPool(new ConnectionPool())
                 .addInterceptor(new OkHttpInterceptor())
                 .build();
     }
 
-    public static GsonDecoder getGsonDecoder() {
-        if (gsonDecoder == null) {
-            Gson gson = new GsonBuilder().setPrettyPrinting()
-                    .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
-                    .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeTypeAdapter())
-                    .setDateFormat("yyyy-MM-dd HH:mm:ss").create();
-            gsonDecoder = new GsonDecoder(gson);
-        }
-        return gsonDecoder;
+    private static Feign.Builder createFeignBuilder() {
+        return Feign.builder()
+                .queryMapEncoder(new BeanQueryMapEncoder())
+                .decoder(GSON_DECODER)
+                .encoder(GSON_ENCODER)
+                .logger(new Slf4jLogger())
+                .logLevel(Logger.Level.FULL)
+                .client(new OkHttpClient(OK_HTTP_CLIENT))
+                .requestInterceptor(new ForwardedForInterceptor())
+                .retryer(new Retryer.Default()); // 默认重试策略
     }
 
-    public static GsonEncoder getGsonEncoder() {
-        if (gsonEncoder == null) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
-                    .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeTypeAdapter()).setDateFormat("yyyy-MM-dd HH:mm:ss").create();
-
-            gsonEncoder = new GsonEncoder(gson);
-        }
-
-        return gsonEncoder;
-    }
-    public static void main(String[] args) {
-
-//        Map<String, Object> map = new HashMap<>();
-//        map.put("tenantName", "DKY-源码");
-//        map.put("username", "admin");
-//        map.put("password", "admin123");
-//        map.put("rememberMe", true);
-
-        AuthLoginReqVO authLoginReqVO = new AuthLoginReqVO();
-        authLoginReqVO.setUsername("admin");
-        authLoginReqVO.setPassword("admin123");
-        CommonResult commonResult = Request.buildApiClient(AuthFeign.class).login(authLoginReqVO);
-        System.err.println(commonResult);
+    private static AsyncFeign.AsyncBuilder createAsyncFeignBuilder() {
+        return AsyncFeign.builder()
+                .queryMapEncoder(new BeanQueryMapEncoder())
+                .decoder(GSON_DECODER)
+                .encoder(GSON_ENCODER)
+                .logger(new Slf4jLogger())
+                .logLevel(Logger.Level.FULL)
+                .client(new OkHttpClient(OK_HTTP_CLIENT))
+                .requestInterceptor(new ForwardedForInterceptor())
+                .retryer(new Retryer.Default()); // 默认重试策略
     }
 }

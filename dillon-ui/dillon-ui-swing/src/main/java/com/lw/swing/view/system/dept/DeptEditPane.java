@@ -218,7 +218,7 @@ public class DeptEditPane extends JPanel {
             protected Map<String, Object> doInBackground() throws Exception {
                 DeptRespVO deptRespVO = null;
                 if (id != null) {
-                    CommonResult<DeptRespVO> deptRespVOCommonResult = Request.buildApiClient(DeptFeign.class).getDept(id);
+                    CommonResult<DeptRespVO> deptRespVOCommonResult = Request.connector(DeptFeign.class).getDept(id);
 
                     if (deptRespVOCommonResult.isSuccess() && deptRespVOCommonResult.getData() != null) {
                         deptRespVO = deptRespVOCommonResult.getData();
@@ -236,8 +236,8 @@ public class DeptEditPane extends JPanel {
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
                 nodeMap.put(0l, deptRootNode); // Root node
 
-                CommonResult<java.util.List<DeptSimpleRespVO>> deptSimpleRespVOList = Request.buildApiClient(DeptFeign.class).getSimpleDeptList();
-                CommonResult<java.util.List<UserSimpleRespVO>> userSimpleRespVOList = Request.buildApiClient(UserFeign.class).getSimpleUserList();
+                CommonResult<java.util.List<DeptSimpleRespVO>> deptSimpleRespVOList = Request.connector(DeptFeign.class).getSimpleDeptList();
+                CommonResult<java.util.List<UserSimpleRespVO>> userSimpleRespVOList = Request.connector(UserFeign.class).getSimpleUserList();
 
 
                 if (userSimpleRespVOList.isSuccess()) {

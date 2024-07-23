@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
-package com.lw.fx;
+package com.lw.swing;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -10,19 +10,19 @@ import java.util.prefs.Preferences;
 
 public final class Resources {
 
-    public static final String MODULE_DIR = "/com/lw/fx/";
+    public static final String MODULE_DIR = "com/lw/swing";
 
     public static InputStream getResourceAsStream(String resource) {
         String path = resolve(resource);
         return Objects.requireNonNull(
-                AppStart.class.getResourceAsStream(resolve(path)),
+                DillonSwingUiApplication.class.getResourceAsStream(resolve(path)),
                 "Resource not found: " + path
         );
     }
 
     public static URI getResource(String resource) {
         String path = resolve(resource);
-        URL url = Objects.requireNonNull(AppStart.class.getResource(resolve(path)), "Resource not found: " + path);
+        URL url = Objects.requireNonNull(DillonSwingUiApplication.class.getResource(resolve(path)), "Resource not found: " + path);
         return URI.create(url.toExternalForm());
     }
 
@@ -36,6 +36,6 @@ public final class Resources {
     }
 
     public static Preferences getPreferences() {
-        return Preferences.userRoot().node("dillon-ui-fx");
+        return Preferences.userRoot().node("dillon-ui-swing");
     }
 }

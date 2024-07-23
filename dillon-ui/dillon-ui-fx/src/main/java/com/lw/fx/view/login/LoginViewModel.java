@@ -3,6 +3,7 @@ package com.lw.fx.view.login;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
+import com.lw.fx.websocket.SSLWebSocketClient;
 import com.lw.ui.request.api.system.AuthFeign;
 import de.saxsys.mvvmfx.MvvmFX;
 import de.saxsys.mvvmfx.ViewModel;
@@ -41,6 +42,7 @@ public class LoginViewModel implements ViewModel {
 
                     if (r.isSuccess()) {
                         AppStore.setToken(r.getData().getAccessToken());
+                        SSLWebSocketClient.getInstance().start();
                         MvvmFX.getNotificationCenter().publish("showMainView", "显示主界面");
                         msgProperty.set("");
                         AppStore.loadDictData();

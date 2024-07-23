@@ -149,7 +149,7 @@ public class NoticeFormPane extends JPanel {
             protected NoticeRespVO doInBackground() throws Exception {
                 NoticeRespVO postRespVO = new NoticeRespVO();
                 if (id != null) {
-                    CommonResult<NoticeRespVO> userResult = Request.buildApiClient(NoticeFeign.class).getNotice(id);
+                    CommonResult<NoticeRespVO> userResult = Request.connector(NoticeFeign.class).getNotice(id);
                     postRespVO = userResult.getData();
                 }
 

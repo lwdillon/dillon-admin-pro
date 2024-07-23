@@ -266,13 +266,13 @@ public class UserEditPane extends JPanel {
             protected Map<String, Object> doInBackground() throws Exception {
                 UserRespVO userRespVO = null;
                 if (id != null) {
-                    CommonResult<UserRespVO> userResult = Request.buildApiClient(UserFeign.class).getUser(id);
+                    CommonResult<UserRespVO> userResult = Request.connector(UserFeign.class).getUser(id);
                     userRespVO = userResult.getData();
                     publish(userRespVO);
                 }
 
-                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.buildApiClient(DeptFeign.class).getSimpleDeptList();
-                CommonResult<List<PostSimpleRespVO>> postResult = Request.buildApiClient(PostFeign.class).getSimplePostList();
+                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.connector(DeptFeign.class).getSimpleDeptList();
+                CommonResult<List<PostSimpleRespVO>> postResult = Request.connector(PostFeign.class).getSimplePostList();
 
                 DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("主类目");
                 DefaultMutableTreeNode selectNode = null;

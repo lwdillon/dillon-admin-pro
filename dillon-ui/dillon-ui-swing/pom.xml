@@ -105,6 +105,7 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>
         </dependency>
+
     </dependencies>
 
 

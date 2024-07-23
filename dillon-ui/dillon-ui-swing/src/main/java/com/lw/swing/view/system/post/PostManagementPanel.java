@@ -229,7 +229,7 @@ public class PostManagementPanel extends JPanel {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(PostFeign.class).createPost(saveReqVO);
+                return Request.connector(PostFeign.class).createPost(saveReqVO);
             }
 
             @Override
@@ -254,7 +254,7 @@ public class PostManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(PostFeign.class).updatePost(saveReqVO);
+                return Request.connector(PostFeign.class).updatePost(saveReqVO);
             }
 
             @Override
@@ -295,7 +295,7 @@ public class PostManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(PostFeign.class).deletePost(finalPostId);
+                return Request.connector(PostFeign.class).deletePost(finalPostId);
             }
 
             @Override
@@ -345,7 +345,7 @@ public class PostManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<PostRespVO>> result = Request.buildApiClient(PostFeign.class).getPostPage(queryMap);
+                CommonResult<PageResult<PostRespVO>> result = Request.connector(PostFeign.class).getPostPage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

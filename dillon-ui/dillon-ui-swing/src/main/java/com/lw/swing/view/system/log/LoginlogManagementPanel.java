@@ -229,7 +229,7 @@ public class LoginlogManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(LoginLogFeign.class).deleteLoginLog(finalUserId);
+                return Request.connector(LoginLogFeign.class).deleteLoginLog(finalUserId);
             }
 
             @Override
@@ -258,7 +258,7 @@ public class LoginlogManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(LoginLogFeign.class).clearLoginLog();
+                return Request.connector(LoginLogFeign.class).clearLoginLog();
             }
 
             @Override
@@ -303,7 +303,7 @@ public class LoginlogManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<LoginLogRespVO>> result = Request.buildApiClient(LoginLogFeign.class).getLoginLogPage(queryMap);
+                CommonResult<PageResult<LoginLogRespVO>> result = Request.connector(LoginLogFeign.class).getLoginLogPage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

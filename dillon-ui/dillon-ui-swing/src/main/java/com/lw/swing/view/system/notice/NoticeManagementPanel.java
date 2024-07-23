@@ -153,6 +153,7 @@ public class NoticeManagementPanel extends JPanel {
             table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
         }
     }
+
     private JToolBar creatBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
@@ -169,7 +170,7 @@ public class NoticeManagementPanel extends JPanel {
 
         JButton push = new JButton("推送");
         push.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
-        push.addActionListener(e -> del());
+        push.addActionListener(e -> push());
         push.setForeground(UIManager.getColor("App.accentColor"));
 
 
@@ -229,14 +230,14 @@ public class NoticeManagementPanel extends JPanel {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(NoticeFeign.class).createNotice(saveReqVO);
+                return Request.connector(NoticeFeign.class).createNotice(saveReqVO);
             }
 
             @Override
             protected void done() {
                 try {
                     if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
 
                         updateData();
                     }
@@ -255,14 +256,14 @@ public class NoticeManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(NoticeFeign.class).updateNotice(saveReqVO);
+                return Request.connector(NoticeFeign.class).updateNotice(saveReqVO);
             }
 
             @Override
             protected void done() {
                 try {
                     if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
 
                         updateData();
                     }
@@ -296,16 +297,46 @@ public class NoticeManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(NoticeFeign.class).deleteNotice(finaId);
+                return Request.connector(NoticeFeign.class).deleteNotice(finaId);
             }
 
             @Override
             protected void done() {
                 try {
                     if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
 
                         updateData();
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        swingWorker.execute();
+
+    }
+
+    private void push() {
+
+        int selRow = table.getSelectedRow();
+        Long id = Convert.toLong(table.getValueAt(selRow, 0));
+
+
+        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
+            @Override
+            protected CommonResult<Boolean> doInBackground() throws Exception {
+                return Request.connector(NoticeFeign.class).push(id);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    if (get().isSuccess()) {
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "发布成功！");
+
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -334,7 +365,7 @@ public class NoticeManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<NoticeRespVO>> result = Request.buildApiClient(NoticeFeign.class).getNoticePage(queryMap);
+                CommonResult<PageResult<NoticeRespVO>> result = Request.connector(NoticeFeign.class).getNoticePage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

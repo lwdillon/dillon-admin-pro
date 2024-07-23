@@ -130,7 +130,7 @@ public class RoleEditPane extends JPanel {
             protected RoleRespVO doInBackground() throws Exception {
                 RoleRespVO roleRespVO = new RoleRespVO();
                 if (id != null) {
-                    CommonResult<RoleRespVO> userResult = Request.buildApiClient(RoleFeign.class).getRole(id);
+                    CommonResult<RoleRespVO> userResult = Request.connector(RoleFeign.class).getRole(id);
                     roleRespVO = userResult.getData();
                 }
 

@@ -351,7 +351,7 @@ public class MenuEditPane extends JPanel {
 
             @Override
             protected DefaultMutableTreeNode doInBackground() throws Exception {
-                CommonResult<MenuRespVO> menuRespVO = Request.buildApiClient(MenuFeign.class).getMenu(id);
+                CommonResult<MenuRespVO> menuRespVO = Request.connector(MenuFeign.class).getMenu(id);
 
                 if (menuRespVO.isSuccess() && menuRespVO.getData() != null) {
                     publish(menuRespVO.getData());
@@ -363,7 +363,7 @@ public class MenuEditPane extends JPanel {
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
                 nodeMap.put(0l, root); // Root node
 
-                CommonResult<List<MenuSimpleRespVO>> menuSimpleRespVOList = Request.buildApiClient(MenuFeign.class).getSimpleMenuList();
+                CommonResult<List<MenuSimpleRespVO>> menuSimpleRespVOList = Request.connector(MenuFeign.class).getSimpleMenuList();
 
                 if (menuSimpleRespVOList.isSuccess()) {
                     for (MenuSimpleRespVO menu : menuSimpleRespVOList.getData()) {

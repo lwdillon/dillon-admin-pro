@@ -30,7 +30,7 @@ public interface NoticeFeign extends BaseFeignApi {
     @RequestLine("GET /admin-api/system/notice/get?id={id}")
     CommonResult<NoticeRespVO> getNotice(@Param("id") Long id);
 
-    @RequestLine("POST /admin-api/system/notice/push")
-    CommonResult<Boolean> push(Long id);
+    @RequestLine("POST /admin-api/system/notice/push?id={id}")
+    CommonResult<Boolean> push(@Param("id")Long id);
 
 }

@@ -122,7 +122,7 @@ public class PostFormPane extends JPanel {
             protected PostRespVO doInBackground() throws Exception {
                 PostRespVO postRespVO = new PostRespVO();
                 if (id != null) {
-                    CommonResult<PostRespVO> userResult = Request.buildApiClient(PostFeign.class).getPost(id);
+                    CommonResult<PostRespVO> userResult = Request.connector(PostFeign.class).getPost(id);
                     postRespVO = userResult.getData();
                 }
 

@@ -251,7 +251,7 @@ public class DataPermissionPane extends JPanel {
         SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
             @Override
             protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.buildApiClient(DeptFeign.class).getSimpleDeptList();
+                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.connector(DeptFeign.class).getSimpleDeptList();
 
                 DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
                 // Build the tree

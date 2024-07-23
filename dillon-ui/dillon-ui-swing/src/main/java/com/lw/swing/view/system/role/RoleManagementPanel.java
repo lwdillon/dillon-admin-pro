@@ -303,7 +303,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(RoleFeign.class).createRole(roleSaveReqVO);
+                return Request.connector(RoleFeign.class).createRole(roleSaveReqVO);
             }
 
             @Override
@@ -328,7 +328,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(RoleFeign.class).updateRole(roleSaveReqVO);
+                return Request.connector(RoleFeign.class).updateRole(roleSaveReqVO);
             }
 
             @Override
@@ -368,7 +368,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(RoleFeign.class).deleteRole(finalId);
+                return Request.connector(RoleFeign.class).deleteRole(finalId);
             }
 
             @Override
@@ -395,7 +395,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(PermissionFeign.class).assignRoleMenu(permissionAssignRoleMenuReqVO);
+                return Request.connector(PermissionFeign.class).assignRoleMenu(permissionAssignRoleMenuReqVO);
             }
 
             @Override
@@ -422,7 +422,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(PermissionFeign.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO);
+                return Request.connector(PermissionFeign.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO);
             }
 
             @Override
@@ -468,7 +468,7 @@ public class RoleManagementPanel extends JPanel {
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<RoleRespVO>> result = Request.buildApiClient(RoleFeign.class).getRolePage(queryMap);
+                CommonResult<PageResult<RoleRespVO>> result = Request.connector(RoleFeign.class).getRolePage(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

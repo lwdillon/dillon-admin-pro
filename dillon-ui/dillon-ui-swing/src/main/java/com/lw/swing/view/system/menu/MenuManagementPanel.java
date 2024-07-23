@@ -231,7 +231,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
             @Override
             protected Tree<Long> doInBackground() throws Exception {
 
-                List<MenuRespVO> sysMenuModelList = Request.buildApiClient(MenuFeign.class).getMenuList(sysMenuModel).getData();
+                List<MenuRespVO> sysMenuModelList = Request.connector(MenuFeign.class).getMenuList(sysMenuModel).getData();
                 long min = sysMenuModelList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
                 TreeNodeConfig config = new TreeNodeConfig();
                 config.setWeightKey("orderNum");
@@ -356,7 +356,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(MenuFeign.class).createMenu(menuSaveVO);
+                return Request.connector(MenuFeign.class).createMenu(menuSaveVO);
             }
 
             @Override
@@ -382,7 +382,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(MenuFeign.class).updateMenu(menuSaveVO);
+                return Request.connector(MenuFeign.class).updateMenu(menuSaveVO);
             }
 
             @Override
@@ -428,7 +428,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(MenuFeign.class).deleteMenu(finalMenuId);
+                return Request.connector(MenuFeign.class).deleteMenu(finalMenuId);
             }
 
             @Override

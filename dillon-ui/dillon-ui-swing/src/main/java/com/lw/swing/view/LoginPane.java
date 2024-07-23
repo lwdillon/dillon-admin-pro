@@ -14,6 +14,7 @@ import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginRespV
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.swing.request.Request;
 import com.lw.swing.store.AppStore;
+import com.lw.swing.websocket.SSLWebSocketClient;
 import com.lw.ui.request.api.system.AuthFeign;
 import net.miginfocom.swing.MigLayout;
 
@@ -352,12 +353,12 @@ public class LoginPane extends JPanel {
             @Override
             protected CommonResult doInBackground() throws Exception {
 
-                CommonResult<AuthLoginRespVO> commonResult = Request.buildApiClient(AuthFeign.class).login(authLoginReqVO);
+                CommonResult<AuthLoginRespVO> commonResult = Request.connector(AuthFeign.class).login(authLoginReqVO);
 
                 if (commonResult.isSuccess()) {
                     AppStore.setAuthLoginRespVO(commonResult.getData());
 
-                    CommonResult<AuthPermissionInfoRespVO> permissionInfoRespVOCommonResult = Request.buildApiClient(AuthFeign.class).getPermissionInfo();
+                    CommonResult<AuthPermissionInfoRespVO> permissionInfoRespVOCommonResult = Request.connector(AuthFeign.class).getPermissionInfo();
 
                     if (permissionInfoRespVOCommonResult.isSuccess()) {
                         AppStore.setAuthPermissionInfoRespVO(permissionInfoRespVOCommonResult.getData());
@@ -373,6 +374,8 @@ public class LoginPane extends JPanel {
 
                 try {
                     if (get().isSuccess()) {
+
+                        SSLWebSocketClient.getInstance().start();
                         msgLabel.setVisible(false);
                         msgLabel.setText("");
                         if (rememberPwd.isSelected()) {

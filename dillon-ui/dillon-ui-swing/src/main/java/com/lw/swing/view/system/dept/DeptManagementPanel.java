@@ -224,11 +224,11 @@ public class DeptManagementPanel extends JPanel implements Observer {
         SwingWorker<Tree<Long>, Object> worker = new SwingWorker<Tree<Long>, Object>() {
             @Override
             protected Tree<Long> doInBackground() throws Exception {
-                List<UserSimpleRespVO> userSimpleRespVOList=  Request.buildApiClient(UserFeign.class).getSimpleUserList().getData();
+                List<UserSimpleRespVO> userSimpleRespVOList=  Request.connector(UserFeign.class).getSimpleUserList().getData();
                 Map<Long, UserSimpleRespVO> userMap = userSimpleRespVOList.stream()
                         .collect(Collectors.toMap(UserSimpleRespVO::getId, Function.identity()));
 
-                List<DeptRespVO> sysDeptModelList = Request.buildApiClient(DeptFeign.class).getDeptList(deptListReqVO).getData();
+                List<DeptRespVO> sysDeptModelList = Request.connector(DeptFeign.class).getDeptList(deptListReqVO).getData();
                 long min = sysDeptModelList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
                 TreeNodeConfig config = new TreeNodeConfig();
                 config.setWeightKey("sort");
@@ -327,7 +327,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
             @Override
             protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.buildApiClient(DeptFeign.class).createDept(saveVO);
+                return Request.connector(DeptFeign.class).createDept(saveVO);
             }
 
             @Override
@@ -353,7 +353,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(DeptFeign.class).updateDept(saveReqVO);
+                return Request.connector(DeptFeign.class).updateDept(saveReqVO);
             }
 
             @Override
@@ -395,7 +395,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(DeptFeign.class).deleteDept(finalDeptId);
+                return Request.connector(DeptFeign.class).deleteDept(finalDeptId);
             }
 
             @Override

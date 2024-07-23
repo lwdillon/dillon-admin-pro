@@ -27,6 +27,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -230,7 +231,7 @@ public class OperatelogManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(OperateLogFeign.class).clearOperateLog();
+                return Request.connector(OperateLogFeign.class).clearOperateLog();
             }
 
             @Override
@@ -270,7 +271,7 @@ public class OperatelogManagementPanel extends JPanel {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(OperateLogFeign.class).deleteOperateLog(finalUserId);
+                return Request.connector(OperateLogFeign.class).deleteOperateLog(finalUserId);
             }
 
             @Override
@@ -320,10 +321,11 @@ public class OperatelogManagementPanel extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
+
         SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
             @Override
             protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<OperateLogRespVO>> result = Request.buildApiClient(OperateLogFeign.class).pageOperateLog(queryMap);
+                CommonResult<PageResult<OperateLogRespVO>> result = Request.connector(OperateLogFeign.class).pageOperateLog(queryMap);
 
                 Vector<Vector> tableData = new Vector<>();
 

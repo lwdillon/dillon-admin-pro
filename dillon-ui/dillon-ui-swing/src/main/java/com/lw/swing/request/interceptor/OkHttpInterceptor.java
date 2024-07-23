@@ -1,9 +1,11 @@
 package com.lw.swing.request.interceptor;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.lw.dillon.admin.framework.common.exception.enums.GlobalErrorCodeConstants;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
+import com.lw.dillon.admin.framework.common.util.number.NumberUtils;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.view.MainFrame;
 import okhttp3.*;
@@ -71,13 +73,12 @@ public class OkHttpInterceptor implements Interceptor {
 
             SwingUtilities.invokeLater(() -> {
 
-                if (commonResult.getCode() == GlobalErrorCodeConstants.UNAUTHORIZED.getCode()) {
+                if (NumberUtil.equals(commonResult.getCode(), GlobalErrorCodeConstants.UNAUTHORIZED.getCode())) {
 
                     MainFrame.getInstance().showLogin();
-                } else {
-                    WMessage.showMessageError(MainFrame.getInstance(), commonResult.getMsg());
-
                 }
+                WMessage.showMessageError(MainFrame.getInstance(), commonResult.getMsg());
+
 
             });
         }

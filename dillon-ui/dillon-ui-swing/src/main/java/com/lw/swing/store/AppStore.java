@@ -173,7 +173,7 @@ public class AppStore {
         SwingWorker<Map<String, List<DictDataSimpleRespVO>>, Object> swingWorker = new SwingWorker<Map<String, List<DictDataSimpleRespVO>>, Object>() {
             @Override
             protected Map<String, List<DictDataSimpleRespVO>> doInBackground() throws Exception {
-                CommonResult<List<DictDataSimpleRespVO>> commonResult = Request.buildApiClient(DictDataFeign.class).getSimpleDictDataList();
+                CommonResult<List<DictDataSimpleRespVO>> commonResult = Request.connector(DictDataFeign.class).getSimpleDictDataList();
 
                 // 按 type 属性分组
                 Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.getData().stream()

@@ -9,13 +9,14 @@ import feign.QueryMap;
 import feign.RequestLine;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 public interface OperateLogFeign extends BaseFeignApi {
 
 
     @RequestLine("GET /admin-api/system/operate-log/page")
-    CommonResult<PageResult<OperateLogRespVO>> pageOperateLog(@QueryMap Map<String,Object> map);
+    CommonResult<PageResult<OperateLogRespVO>> pageOperateLog(@QueryMap Map<String, Object> map);
 
 
     @RequestLine("DELETE /admin-api/system/operate-log/delete?id={id}")

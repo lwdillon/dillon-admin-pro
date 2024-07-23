@@ -19,6 +19,7 @@ import com.lw.swing.theme.GlazzedTheme;
 import com.lw.swing.theme.LightTheme;
 import com.lw.swing.utils.IconLoader;
 import com.lw.swing.view.system.user.PersonalCenterPanel;
+import com.lw.swing.websocket.SSLWebSocketClient;
 import com.lw.ui.request.api.system.AuthFeign;
 
 import javax.swing.*;
@@ -517,7 +518,7 @@ public class MainFrame extends JFrame {
         SwingWorker<CommonResult<Boolean>,Object> swingWorker=new SwingWorker< CommonResult<Boolean>, Object>() {
             @Override
             protected  CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(AuthFeign.class).logout();
+                return Request.connector(AuthFeign.class).logout();
 
             }
 
@@ -525,6 +526,7 @@ public class MainFrame extends JFrame {
             protected void done() {
                 try {
                     if (get().isSuccess()) {
+                        SSLWebSocketClient.getInstance().loginOut();
                         showLogin();
                     }
                 } catch (InterruptedException e) {

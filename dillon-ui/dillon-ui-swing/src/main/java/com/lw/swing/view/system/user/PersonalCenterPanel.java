@@ -247,7 +247,7 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<UserProfileRespVO>, Object> swingWorker = new SwingWorker<CommonResult<UserProfileRespVO>, Object>() {
             @Override
             protected CommonResult<UserProfileRespVO> doInBackground() throws Exception {
-                return Request.buildApiClient(UserProfileFeign.class).getUserProfile();
+                return Request.connector(UserProfileFeign.class).getUserProfile();
             }
 
             @Override
@@ -295,7 +295,7 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(UserProfileFeign.class).updateUserProfile(sysUser);
+                return Request.connector(UserProfileFeign.class).updateUserProfile(sysUser);
             }
 
             @Override
@@ -348,7 +348,7 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
             protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.buildApiClient(UserProfileFeign.class).updateUserProfilePassword(reqVO);
+                return Request.connector(UserProfileFeign.class).updateUserProfilePassword(reqVO);
             }
 
             @Override

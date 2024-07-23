@@ -11,11 +11,16 @@ import org.jfree.chart.StandardChartTheme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Properties;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DillonSwingUiApplication {
 
     public static void main(String[] args) {
-
+        loadApplicationProperties();
         SwingUtilities.invokeLater(() -> {
             try {
                 TimingSource ts = new SwingTimerTimingSource();
@@ -38,6 +43,21 @@ public class DillonSwingUiApplication {
             frame.setTitle("Dillon-Pro-管理系统");
             frame.showLogin();
         });
+    }
+
+
+    private static void loadApplicationProperties() {
+        Properties properties = new Properties();
+        try (InputStreamReader in = new InputStreamReader(Resources.getResourceAsStream("/application.properties"),
+                UTF_8)) {
+            properties.load(in);
+            properties.forEach((key, value) -> System.setProperty(
+                    String.valueOf(key),
+                    String.valueOf(value)
+            ));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

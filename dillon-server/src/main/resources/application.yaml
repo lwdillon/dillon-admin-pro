@@ -1,6 +1,6 @@
 spring:
   application:
-    name: dillon-server
+    name: dillon-admin-pro-server
 
   profiles:
     active: local

@@ -109,7 +109,7 @@ public class DictTypeFormPane extends JPanel {
             protected DictTypeRespVO doInBackground() throws Exception {
                 DictTypeRespVO postRespVO = new DictTypeRespVO();
                 if (id != null) {
-                    CommonResult<DictTypeRespVO> userResult = Request.buildApiClient(DictTypeFeign.class).getDictType(id);
+                    CommonResult<DictTypeRespVO> userResult = Request.connector(DictTypeFeign.class).getDictType(id);
                     postRespVO = userResult.getData();
                 }
 

@@ -125,6 +125,7 @@
             <artifactId>tika-core</artifactId> <!-- 文件客户端：文件类型的识别 -->
         </dependency>
 
+
     </dependencies>
 
 </project>
