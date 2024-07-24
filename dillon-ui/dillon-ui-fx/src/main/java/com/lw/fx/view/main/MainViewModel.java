@@ -1,10 +1,12 @@
 package com.lw.fx.view.main;
 
+import cn.hutool.core.convert.Convert;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
 import com.lw.fx.util.MessageType;
 import com.lw.ui.request.api.system.AuthFeign;
+import com.lw.ui.request.api.system.NotifyMessageFeign;
 import de.saxsys.mvvmfx.MvvmFX;
 import de.saxsys.mvvmfx.SceneLifecycle;
 import de.saxsys.mvvmfx.ViewModel;
@@ -23,13 +25,18 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
     private SimpleObjectProperty theme = new SimpleObjectProperty();
     private SimpleBooleanProperty showNavigationBar = new SimpleBooleanProperty(true);
 
+
     private StringProperty title = new SimpleStringProperty(System.getProperty("app.name"));
     private StringProperty nickName = new SimpleStringProperty();
+    private StringProperty unreadCount = new SimpleStringProperty();
 
 
     public void initialize() {
 
         getPermissionInfo();
+
+        MvvmFX.getNotificationCenter().subscribe("notify", (key, payload) -> getPermissionInfo());
+        MvvmFX.getNotificationCenter().subscribe("updateMenu", (key, payload) -> getPermissionInfo());
     }
 
     public String getTitle() {
@@ -134,7 +141,15 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
 
                     }
                 })
+                .addSupplierInExecutor(() -> Request.connector(NotifyMessageFeign.class).getUnreadNotifyMessageCount())
+                .addConsumerInPlatformThread(rel -> {
+                    if (rel.isSuccess()) {
+                        unreadCount.set(rel.getData() == 0 ? "" : rel.getData() + "");
+                    }
+
+                })
                 .onException(e -> {
+                    unreadCount.set("");
                     e.printStackTrace();
                 })
                 .withFinal(() -> {
@@ -164,5 +179,13 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
 
     public StringProperty nickNameProperty() {
         return nickName;
+    }
+
+    public String getUnreadCount() {
+        return unreadCount.get();
+    }
+
+    public StringProperty unreadCountProperty() {
+        return unreadCount;
     }
 }

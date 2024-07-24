@@ -35,7 +35,7 @@ public class MenuFromViewModel implements ViewModel, SceneLifecycle {
 
 
     public void initialize() {
-
+        sortProperty().set(-1);
     }
 
 
@@ -50,14 +50,15 @@ public class MenuFromViewModel implements ViewModel, SceneLifecycle {
         if (isEdit) {
             return Request.connector(MenuFeign.class).updateMenu(wrapper.get());
         } else {
-            return   Request.connector(MenuFeign.class).createMenu(wrapper.get());
+            return Request.connector(MenuFeign.class).createMenu(wrapper.get());
         }
 
     }
+
     public void updateData(MenuRespVO sysMenu, boolean isAdd) {
 
         MenuSaveVO saveVO = new MenuSaveVO();
-        BeanUtil.copyProperties(sysMenu,saveVO);
+        BeanUtil.copyProperties(sysMenu, saveVO);
         ProcessChain.create()
                 .addRunnableInPlatformThread(() -> wrapper.set(saveVO))
                 .addSupplierInExecutor(() -> Request.connector(MenuFeign.class).getSimpleMenuList())

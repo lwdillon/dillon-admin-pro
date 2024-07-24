@@ -99,13 +99,14 @@
     -fx-background-color: -color-danger-emphasis;
   }
 
-  #userBut .ikonli-font-icon {
-    -fx-icon-size: 90px;
+  #decorator-button .ikonli-font-icon {
+    -fx-icon-size: 28px;
   }
+
 
   .theme-icon {
     -fx-background-color: -color-fg-default;
-    -size: 16;
+    -size: 25px;
     -fx-min-height: -size;
     -fx-min-width: -size;
     -fx-max-height: -size;
@@ -283,7 +284,14 @@
     -fx-background-color: linear-gradient(to right, #FF7D05, #FFD422);
   }
 
-
+  .tag {
+    -fx-min-width: 16;
+    -fx-padding: 4px 4px 4px 4px;
+    -fx-background-radius: 5px;
+    -fx-font-size: 0.75em;
+    -fx-background-color:  -color-danger-emphasis;
+    -fx-text-fill: #ffffff;
+  }
 
 
 }

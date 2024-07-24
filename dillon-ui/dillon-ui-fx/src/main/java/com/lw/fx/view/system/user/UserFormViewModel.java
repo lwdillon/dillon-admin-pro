@@ -214,7 +214,7 @@ public class UserFormViewModel implements ViewModel, SceneLifecycle {
         return selectPostItems;
     }
 
-    public CommonResult saveUser(boolean isAdd) {
+    public CommonResult save(boolean isAdd) {
 
         if (isAdd) {
             return Request.connector(UserFeign.class).createUser(getUserSaveReqVO());

@@ -247,7 +247,7 @@ public class DictDataView implements FxmlView<DictDataViewModel>, Initializable 
                 Map.entry(new Button("确定"), event -> {
                     ProcessChain.create()
                             .addSupplierInExecutor(() -> {
-                                return load.getViewModel().saveUser(isAdd);
+                                return load.getViewModel().save(isAdd);
                             })
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {

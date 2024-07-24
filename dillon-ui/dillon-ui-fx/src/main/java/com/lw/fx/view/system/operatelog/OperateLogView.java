@@ -198,7 +198,7 @@ public class OperateLogView implements FxmlView<OperateLogViewModel>, Initializa
 
 
                             Button editBut = new Button("详情");
-                            editBut.setOnAction(event -> showDictTypeFormView(getTableRow().getItem()));
+                            editBut.setOnAction(event -> showFormView(getTableRow().getItem()));
                             editBut.setGraphic(FontIcon.of(Feather.EDIT));
                             editBut.getStyleClass().addAll(FLAT, ACCENT);
 
@@ -243,7 +243,7 @@ public class OperateLogView implements FxmlView<OperateLogViewModel>, Initializa
     /**
      * 显示编辑对话框
      */
-    private void showDictTypeFormView(OperateLogRespVO operateLogRespVO) {
+    private void showFormView(OperateLogRespVO operateLogRespVO) {
         WFXGenericDialog dialog = new WFXGenericDialog();
 
         ViewTuple<OperateLogDetailView, OperateLogDetailViewModel> load = FluentViewLoader.fxmlView(OperateLogDetailView.class).load();

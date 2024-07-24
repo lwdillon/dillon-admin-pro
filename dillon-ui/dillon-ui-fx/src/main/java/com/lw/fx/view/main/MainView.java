@@ -5,6 +5,7 @@ import animatefx.animation.AnimationFX;
 import animatefx.animation.FadeIn;
 import animatefx.animation.FadeOut;
 import animatefx.util.ParallelAnimationFX;
+import atlantafx.base.controls.Popover;
 import atlantafx.base.theme.Tweaks;
 import cn.hutool.core.util.StrUtil;
 import com.dlsc.gemsfx.AvatarView;
@@ -23,6 +24,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
@@ -35,8 +37,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.javafx.Icon;
+import org.kordamp.ikonli.material2.Material2AL;
+import org.kordamp.ikonli.material2.Material2MZ;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -56,6 +62,10 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
     @FXML
     private Button maximizeBut;
     @FXML
+    private Button noticeBut;
+    @FXML
+    private Label tagLabel;
+    @FXML
     private Button closeBut;
     @FXML
     private Button logoBut;
@@ -65,6 +75,8 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
     private TabPane tabPane;
     @FXML
     private VBox sideBox;
+
+    private Popover popover;
 
     private NavTree<AuthPermissionInfoRespVO.MenuVO> sideMenu;
 
@@ -78,6 +90,10 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        popover = new Popover();
+        popover.setHeaderAlwaysVisible(false);
+        popover.setArrowLocation(Popover.ArrowLocation.TOP_CENTER);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
         rootPane.getStyleClass().add("main-view");
         sideMenu = new NavTree<>();
@@ -131,11 +147,9 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         logoBut.textProperty().bindBidirectional(mainViewModel.titleProperty());
         logoBut.getStyleClass().addAll(BUTTON_OUTLINED, FLAT, "title-1");
         userBut.initialsProperty().bind(mainViewModel.nickNameProperty());
-
         themeBut.setGraphic(theme);
         themeBut.setOnAction(e -> openThemeDialog());
         userBut.setOnMouseClicked(event -> showPersonalInformation());
-
         minimizeBut.setOnAction(actionEvent -> {
 
             if (minimizeBut.getScene() instanceof BorderlessScene) {
@@ -167,21 +181,33 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         initListeners();
 
 
+        noticeBut.setOnMouseClicked(actionEvent ->{
+            ViewTuple<MessageView, MessageViewModel> viewTuple = FluentViewLoader.fxmlView(MessageView.class).load();
+            popover.setContentNode(viewTuple.getView());
+            popover.show(noticeBut);
+        } );
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(400), rootPane);
         fadeTransition.setFromValue(0);
         fadeTransition.setToValue(1);
         fadeTransition.play();
 
         ViewTuple<DashboardView, DashboardViewModel> viewTuple = FluentViewLoader.fxmlView(DashboardView.class).load();
-        loddTab( "主页", "home",false, viewTuple.getView());
+        loddTab("主页", Material2AL.HOME, false, viewTuple.getView());
         MvvmFX.getNotificationCenter().subscribe("showThemePage", (key, payload) -> {
             // trigger some actions
             Platform.runLater(() -> {
-                loddTab("个性化设置", "home",true, new ThemePage());
+                loddTab("个性化设置", Material2AL.APP_SETTINGS_ALT, true, new ThemePage());
 
             });
         });
         toggleStyleClass(sideMenu, Tweaks.ALT_ICON);
+
+        tagLabel.visibleProperty().bind(Bindings.createBooleanBinding( () -> {
+                    String text = mainViewModel.unreadCountProperty().get();
+                    return text != null && !text.isEmpty();
+                },
+                mainViewModel.unreadCountProperty()));
+        tagLabel.textProperty().bindBidirectional(mainViewModel.unreadCountProperty());
     }
 
 
@@ -221,7 +247,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
 
             // trigger some actions
             Platform.runLater(() -> {
-                loddTab((String) payload[0], (String) payload[1], true,(Parent) payload[2]);
+                loddTab((String) payload[0], (Ikon) payload[1], true, (Parent) payload[2]);
 
             });
 
@@ -320,7 +346,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         fadeTransition.play();
     }
 
-    private void loddTab(String title, String icon, Boolean colse, Parent node) {
+    private void loddTab(String title, Ikon icon, Boolean colse, Parent node) {
         Tab tab = null;
         var tabOptional = tabPane.getTabs().stream()
                 .filter(t -> StrUtil.equals(t.getText(), title))
@@ -333,7 +359,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         tab = new Tab(title);
         tab.setClosable(colse);
         tab.setId("main-tab");
-        FontIcon fontIcon = new FontIcon(Feather.STAR);
+        FontIcon fontIcon = new FontIcon(icon);
         fontIcon.setIconSize(24);
         tab.setGraphic(fontIcon);
         tabPane.getTabs().add(tab);
@@ -365,7 +391,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         menuItem1.setOnAction(actionEvent -> {
 
             ViewTuple<UserInfoView, UserInfoViewModel> viewTuple = FluentViewLoader.fxmlView(UserInfoView.class).load();
-            MvvmFX.getNotificationCenter().publish("addTab", "个人中心", "", viewTuple.getView());
+            MvvmFX.getNotificationCenter().publish("addTab", "个人中心", Feather.USER, viewTuple.getView());
         });
 
 

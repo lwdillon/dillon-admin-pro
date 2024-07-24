@@ -166,11 +166,13 @@ public class MenuFromView implements FxmlView<MenuFromViewModel>, Initializable 
             }
         });
 
-        sortNumFeild.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0));
+
         viewModel.sortProperty().addListener((observable, oldValue, newValue) -> {
             sortNumFeild.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, newValue.intValue()));
         });
-
+        sortNumFeild.valueProperty().addListener((observableValue, integer, t1) -> {
+            viewModel.sortProperty().set(t1);
+        });
         viewModel.sortProperty().addListener((observable, oldValue, newValue) -> viewModel.sortProperty().setValue(newValue));
         viewModel.statusProperty().addListener((observableValue, number, t1) -> statusToggleBut.setSelected(NumberUtil.equals(t1, 0)));
         statusToggleBut.selectedProperty().addListener((observableValue, aBoolean, t1) -> viewModel.statusProperty().set(t1 ? 0 : 1));

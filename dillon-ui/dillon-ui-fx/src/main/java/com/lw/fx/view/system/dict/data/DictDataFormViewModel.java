@@ -63,7 +63,7 @@ public class DictDataFormViewModel implements ViewModel {
         wrapper.reload();
     }
 
-    public CommonResult saveUser(boolean isAdd) {
+    public CommonResult save(boolean isAdd) {
 
         if (isAdd) {
             return Request.connector(DictDataFeign.class).createDictData(getUserSaveReqVO());

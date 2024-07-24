@@ -1,5 +1,3 @@
-
-
 # Dillon-Admin-Pro
 
 java权限管理系统桌面客户端
@@ -7,7 +5,6 @@ java权限管理系统桌面客户端
 ## 简介
 
 本项目是一套权限管理系统的用户界面(UI)实现，分别使用java图形化JavaFX和Java Swing技术实现了两套桌面客户端界面，同时也可支持web的界面使用
-
 
 以下是本项目使用的技术栈和相关组件：
 
@@ -23,13 +20,11 @@ java权限管理系统桌面客户端
 
 HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响应处理功能，用于与后端服务器进行通信和数据交互。
 
-本项目的目标是提供一套完整的、易于使用的权限管理系统UI，适用于个人用户和企业用户。界面设计参考了若依前端基于 RuoYi-Vue
+本项目的目标是提供一套完整的、易于使用的权限管理系统UI，适用于个人用户和企业用户。界面设计参考了若依前端基于 [芋道源码/yudao-ui-admin-vue3](https://github.com/yudaocode/yudao-ui-admin-vue3/)
 的设计，以提供现代化、直观的用户界面。同时，使用了多种技术和组件来增强用户体验，包括数据绑定、主题化、图标和动画等方面。
 
-请注意，本项目仅提供用户界面(UI)部分的实现，后端采用了若依/RuoYi-Cloud 框架作为后台支持。如果需要完整的权限管理系统，需要结合后端框架使用。
-
-* 界面参考若依前端(基于 [RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue))
-* 后端采用[若依/RuoYi-Cloud](https://gitee.com/y_project/RuoYi-Cloud)
+* 界面基于 [芋道源码/yudao-ui-admin-vue3](https://github.com/yudaocode/yudao-ui-admin-vue3/)
+* 后端采用[芋道源码/ruoyi-vue-pro](https://github.com/YunaiV/ruoyi-vue-pro)
 * 前端技术栈:
     * 应用程序结构 [mvvmFX](https://github.com/sialcasa/mvvmFX) ([文档](https://github.com/sialcasa/mvvmFX/wiki))
     * 主题 [atlantafx](https://github.com/mkpaz/atlantafx) ([文档](https://mkpaz.github.io/atlantafx/))
@@ -39,6 +34,7 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
     * http库 [OpenFeign](https://github.com/OpenFeign/feign)
 
 ## mvvmfx包找不到的话请使用Sonatype快照存储库，将此存储库添加到 pom.xml 的 <repositorys> 部分
+
 ```agsl
 <repository>
 		<id>sonatype-snapshots</id>
@@ -48,14 +44,52 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
 		</snapshots>
 </repository>
 ```
+
 ## 启动说明
 
+## 快速启动（后端项目）
+
+### 1 初始化 Redis
+
+项目使用 Redis 缓存数据，所以需要启动一个 Redis 服务。
+> 不会安装的胖友，可以选择阅读下文
+> * Windows 安装 Redis 指南：http://www.iocoder.cn/Redis/windows-install
+> * Mac 安装 Redis 指南：http://www.iocoder.cn/Redis/mac-install
+
+默认配置下，Redis 启动在 6379 端口，不设置账号密码。如果不一致，需要修改 application-local.yaml 配置文件。
+
+```agsl
+  # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优
+  redis:
+    host: 127.0.0.1 # 地址
+    port: 6379 # 端口
+    database: 0 # 数据库索引
+```
+
+### 2 启动后端项目
+
+> 执行 com.lw.dillon.admin.server.DillonServerApplication 类，进行启动。
+
+启动完成后，使用浏览器访问 http://127.0.0.1:48080地址，返回如下 JSON 字符串，说明成功。
+
+```agsl
+{
+    "code": 401,
+    "data": null,
+    "msg": "账号未登录"
+}
+
+```
+
 ## javafx
+
 ```agsl
     1 在idea右侧栏找到Maven，展开并点击Plugins->sass-cli:run，会编译出index.css
     2 运行主类com.lw.fx.AppStart即可
 ```
+
 ## javaSwing
+
 ```agsl
     1 运行主类com.lw.swing.DillonSwingUiApplication即可
 ```
@@ -63,7 +97,6 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
 > 友情提示：本项目基于 芋道源码/ruoyi-vue-pro <https://gitee.com/zhijiantianya/ruoyi-vue-pro> 修改
 >
 > * 后端只修改了system_menu表，增加了component_swing和component_fx两个字段，分别对应javaSwing和javaFx的界面类
-
 
 ## 🐶 新手必读
 
@@ -73,24 +106,25 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
 
 ### 系统功能
 
-|     | 功能    | 描述                              |
-|-----|-------|---------------------------------|
-|     | 用户管理  | 用户是系统操作者，该功能主要完成系统用户配置          |
-| ⭐️  | 在线用户  | 当前系统中活跃用户状态监控，支持手动踢下线           |
-|     | 角色管理  | 角色菜单权限分配、设置角色按机构进行数据范围权限划分      |
-|     | 菜单管理  | 配置系统菜单、操作权限、按钮权限标识等，本地缓存提供性能    |
-|     | 部门管理  | 配置系统组织机构（公司、部门、小组），树结构展现支持数据权限  |
-|     | 岗位管理  | 配置系统用户所属担任职务                    |
-|     | 字典管理  | 对系统中经常使用的一些较为固定的数据进行维护          |
-| 🚀  | 操作日志  | 系统正常操作日志记录和查询，集成 Swagger 生成日志内容 |
-| ⭐️  | 登录日志  | 系统登录日志记录查询，包含登录异常               |
-|     | 通知公告  | 系统通知公告信息发布维护                    |
+|    | 功能   | 描述                              |
+|----|------|---------------------------------|
+|    | 用户管理 | 用户是系统操作者，该功能主要完成系统用户配置          |
+| ⭐️ | 在线用户 | 当前系统中活跃用户状态监控，支持手动踢下线           |
+|    | 角色管理 | 角色菜单权限分配、设置角色按机构进行数据范围权限划分      |
+|    | 菜单管理 | 配置系统菜单、操作权限、按钮权限标识等，本地缓存提供性能    |
+|    | 部门管理 | 配置系统组织机构（公司、部门、小组），树结构展现支持数据权限  |
+|    | 岗位管理 | 配置系统用户所属担任职务                    |
+|    | 字典管理 | 对系统中经常使用的一些较为固定的数据进行维护          |
+| 🚀 | 操作日志 | 系统正常操作日志记录和查询，集成 Swagger 生成日志内容 |
+| ⭐️ | 登录日志 | 系统登录日志记录查询，包含登录异常               |
+|    | 通知公告 | 系统通知公告信息发布维护                    |
 
 ## 🐷 演示图
 
 ### 系统功能
 
 ### JavaFX
+
 | 模块   | 浅色                                 | 深色                                 | 玻璃                                 |
 |------|------------------------------------|------------------------------------|------------------------------------|
 | 登录   | ![登录](/.image/javafx/登录.png)       | -                                  | -                                  |
@@ -104,12 +138,15 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
 | 字典管理 | ![字典管理](/.image/javafx/字典管理1.png)  | ![字典管理](/.image/javafx/字典管理2.png)  | ![字典管理](/.image/javafx/字典管理3.png)  | 
 | 字典数据 | ![字典数据](/.image/javafx/字典数据1.png)  | ![字典数据](/.image/javafx/字典数据2.png)  | ![字典数据](/.image/javafx/字典数据3.png)  | 
 | 通知公告 | ![通知公告](/.image/javafx/通知公告1.png)  | ![通知公告](/.image/javafx/通知公告2.png)  | ![通知公告](/.image/javafx/通知公告3.png)  | 
+| 消息模板 | ![消息模板](/.image/javafx/消息模板1.png)  | ![消息模板](/.image/javafx/消息模板2.png)  | ![消息模板](/.image/javafx/消息模板3.png)  | 
+| 消息记录 | ![消息记录](/.image/javafx/消息记录1.png)  | ![消息记录](/.image/javafx/消息记录2.png)  | ![消息记录](/.image/javafx/消息记录3.png)  | 
+| 我的消息 | ![我的消息](/.image/javafx/我的消息1.png)  | ![我的消息](/.image/javafx/我的消息2.png)  | ![我的消息](/.image/javafx/我的消息3.png)  | 
 | 操作日志 | ![操作日志](/.image/javafx/操作日志1.png)  | ![操作日志](/.image/javafx/操作日志2.png)  | ![操作日志](/.image/javafx/操作日志3.png)  | 
 | 登录日志 | ![登录日志](/.image/javafx/登录日志1.png)  | ![登录日志](/.image/javafx/登录日志2.png)  | ![登录日志](/.image/javafx/登录日志3.png)  | 
 | 令牌管理 | ![令牌管理](/.image/javafx/令牌管理1.png)  | ![令牌管理](/.image/javafx/令牌管理2.png)  | ![令牌管理](/.image/javafx/令牌管理3.png)  | 
 
-
 ### Java Swing
+
 | 模块   | 浅色                                | 深色                                | 玻璃                                |
 |------|-----------------------------------|-----------------------------------|-----------------------------------|
 | 登录   | ![登录](/.image/swing/登录.png)       | -                                 | -                                 |

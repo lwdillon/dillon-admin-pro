@@ -192,14 +192,14 @@ public class DictTypeView implements FxmlView<DictTypeViewModel>, Initializable 
                             dataBut.setOnAction(event -> {
                                 ViewTuple<DictDataView, DictDataViewModel> viewTuple = FluentViewLoader.fxmlView(DictDataView.class).load();
                                 viewTuple.getViewModel().loadDictTypeData(getTableRow().getItem().getType());
-                                MvvmFX.getNotificationCenter().publish("addTab", "字典数据", "", viewTuple.getView());
+                                MvvmFX.getNotificationCenter().publish("addTab", "字典数据", Feather.DATABASE, viewTuple.getView());
                             });
                             dataBut.setGraphic(FontIcon.of(Feather.EDIT));
                             dataBut.getStyleClass().addAll(FLAT, ACCENT);
 
 
                             Button editBut = new Button("修改");
-                            editBut.setOnAction(event -> showDictTypeFormView(getTableRow().getItem().getId()));
+                            editBut.setOnAction(event -> showFormView(getTableRow().getItem().getId()));
                             editBut.setGraphic(FontIcon.of(Feather.EDIT));
                             editBut.getStyleClass().addAll(FLAT, ACCENT);
 
@@ -235,25 +235,25 @@ public class DictTypeView implements FxmlView<DictTypeViewModel>, Initializable 
         startDatePicker.valueProperty().bindBidirectional(viewModel.beginDateProperty());
         endDatePicker.valueProperty().bindBidirectional(viewModel.endDateProperty());
 
-        addBut.setOnAction(actionEvent -> showDictTypeFormView(null));
+        addBut.setOnAction(actionEvent -> showFormView(null));
     }
 
 
     /**
      * 显示编辑对话框
      */
-    private void showDictTypeFormView(Long roleId) {
+    private void showFormView(Long id) {
         WFXGenericDialog dialog = new WFXGenericDialog();
 
-        boolean isAdd = (roleId == null);
+        boolean isAdd = (id == null);
         ViewTuple<DictTypeFormView, DictTypeFormViewModel> load = FluentViewLoader.fxmlView(DictTypeFormView.class).load();
-        load.getViewModel().query(roleId);
+        load.getViewModel().query(id);
         dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
                     ProcessChain.create()
                             .addSupplierInExecutor(() -> {
-                                return load.getViewModel().saveUser(isAdd);
+                                return load.getViewModel().save(isAdd);
                             })
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {
@@ -268,7 +268,7 @@ public class DictTypeView implements FxmlView<DictTypeViewModel>, Initializable 
         );
 
         dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-        dialog.setHeaderText(roleId != null ? "编辑角色" : "添加角色");
+        dialog.setHeaderText(id != null ? "编辑角色" : "添加角色");
         dialog.setContent(load.getView());
         dialog.show(rootPane.getScene());
 

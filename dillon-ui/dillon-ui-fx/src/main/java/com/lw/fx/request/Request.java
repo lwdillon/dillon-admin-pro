@@ -85,7 +85,7 @@ public class Request {
                 .decoder(GSON_DECODER)
                 .encoder(GSON_ENCODER)
                 .logger(new Slf4jLogger())
-                .logLevel(Logger.Level.FULL)
+                .logLevel(Logger.Level.BASIC)
                 .client(new OkHttpClient(OK_HTTP_CLIENT))
                 .requestInterceptor(new ForwardedForInterceptor())
                 .retryer(new Retryer.Default()); // 默认重试策略

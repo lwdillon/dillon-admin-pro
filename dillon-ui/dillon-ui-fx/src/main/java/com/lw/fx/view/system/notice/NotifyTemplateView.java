@@ -1,17 +1,18 @@
-package com.lw.fx.view.system.loginlog;
+package com.lw.fx.view.system.notice;
 
 import cn.hutool.core.date.DateUtil;
 import com.dlsc.gemsfx.DialogPane;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.dillon.admin.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
+import com.lw.dillon.admin.module.system.controller.admin.notify.vo.template.NotifyTemplateRespVO;
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
 import com.lw.fx.util.MessageType;
 import com.lw.fx.view.control.PagingControl;
 import com.lw.fx.view.control.WFXGenericDialog;
-import com.lw.ui.request.api.system.LoginLogFeign;
+import com.lw.ui.request.api.system.NotifyTemplateFeign;
 import de.saxsys.mvvmfx.*;
 import io.datafx.core.concurrent.ProcessChain;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -31,39 +32,49 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import static atlantafx.base.theme.Styles.*;
-import static com.lw.ui.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
-import static com.lw.ui.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
+import static com.lw.ui.utils.DictTypeEnum.COMMON_STATUS;
+import static com.lw.ui.utils.DictTypeEnum.SYSTEM_NOTIFY_TEMPLATE_TYPE;
 
-public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable {
+public class NotifyTemplateView implements FxmlView<NotifyTemplateViewModel>, Initializable {
 
     @InjectViewModel
-    private LoginLogViewModel viewModel;
+    private NotifyTemplateViewModel viewModel;
+
+    @FXML
+    private Button addBut;
+
+    @FXML
+    private TextField codeField;
+
+    @FXML
+    private TableColumn<NotifyTemplateRespVO, ?> contentCol;
+
     @FXML
     private VBox contentPane;
 
     @FXML
-    private TableColumn<LoginLogRespVO, LocalDateTime> createTimeCol;
+    private TableColumn<NotifyTemplateRespVO, LocalDateTime> createTimeCol;
 
     @FXML
-    private Button emptyBut;
+    private TableColumn<NotifyTemplateRespVO, ?> idCol;
 
     @FXML
-    private DatePicker endDatePicker;
+    private TableColumn<NotifyTemplateRespVO, ?> nameCol;
 
     @FXML
-    private TableColumn<LoginLogRespVO, Long> idCol;
+    private TextField nameField;
 
     @FXML
-    private TableColumn<LoginLogRespVO, Integer> logTypeCol;
+    private TableColumn<NotifyTemplateRespVO, ?> nicknameCol;
 
     @FXML
-    private TableColumn<LoginLogRespVO, Long> optCol;
+    private TableColumn<NotifyTemplateRespVO, Long> optCol;
+
+    @FXML
+    private TableColumn<NotifyTemplateRespVO, ?> remarkCol;
 
     @FXML
     private Button resetBut;
-
-    @FXML
-    private TableColumn<LoginLogRespVO, Integer> resultCol;
 
     @FXML
     private StackPane rootPane;
@@ -72,25 +83,16 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
     private Button searchBut;
 
     @FXML
-    private DatePicker startDatePicker;
+    private TableColumn<NotifyTemplateRespVO, Integer> statusCol;
 
     @FXML
-    private TableView<LoginLogRespVO> tableView;
+    private ComboBox<DictDataSimpleRespVO> statusCombo;
 
     @FXML
-    private TableColumn<LoginLogRespVO, String> userAgentCol;
+    private TableView<NotifyTemplateRespVO> tableView;
 
     @FXML
-    private TableColumn<LoginLogRespVO, String> userIpCol;
-
-    @FXML
-    private TextField userIpField;
-
-    @FXML
-    private TableColumn<LoginLogRespVO, String> usernameCol;
-
-    @FXML
-    private TextField usernameField;
+    private TableColumn<NotifyTemplateRespVO, Integer> typeCol;
 
     private PagingControl pagingControl;
 
@@ -99,6 +101,7 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
+        statusCombo.setItems(FXCollections.observableArrayList(AppStore.getDictDataList(COMMON_STATUS)));
         dialogPane = new DialogPane();
         rootPane.getChildren().add(dialogPane);
         pagingControl = new PagingControl();
@@ -114,28 +117,38 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
         pagingControl.pageSizeProperty().addListener((observable, oldValue, newValue) -> {
             viewModel.loadTableData();
         });
+
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setStyle("-fx-alignment: CENTER");
 
-        usernameCol.setCellValueFactory(new PropertyValueFactory<>("username"));
-        usernameCol.setStyle("-fx-alignment: CENTER");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setStyle("-fx-alignment: CENTER");
 
-        logTypeCol.setCellValueFactory(new PropertyValueFactory<>("logType"));
-        logTypeCol.setStyle("-fx-alignment: CENTER");
-        logTypeCol.setCellFactory(new Callback<TableColumn<LoginLogRespVO, Integer>, TableCell<LoginLogRespVO, Integer>>() {
+        nicknameCol.setCellValueFactory(new PropertyValueFactory<>("nickname"));
+        nicknameCol.setStyle("-fx-alignment: CENTER");
+
+        contentCol.setCellValueFactory(new PropertyValueFactory<>("content"));
+        contentCol.setStyle("-fx-alignment: CENTER");
+
+        remarkCol.setCellValueFactory(new PropertyValueFactory<>("remark"));
+        remarkCol.setStyle("-fx-alignment: CENTER");
+
+        typeCol.setCellValueFactory(new PropertyValueFactory<>("type"));
+        typeCol.setStyle("-fx-alignment: CENTER");
+        typeCol.setCellFactory(new Callback<TableColumn<NotifyTemplateRespVO, Integer>, TableCell<NotifyTemplateRespVO, Integer>>() {
             @Override
-            public TableCell<LoginLogRespVO, Integer> call(TableColumn<LoginLogRespVO, Integer> param) {
+            public TableCell<NotifyTemplateRespVO, Integer> call(TableColumn<NotifyTemplateRespVO, Integer> param) {
                 return new TableCell<>() {
                     @Override
                     protected void updateItem(Integer item, boolean empty) {
                         super.updateItem(item, empty);
-                        if (empty) {
+                        if (item == null || empty) {
                             setText(null);
                             setGraphic(null);
                         } else {
 
 
-                            DictDataSimpleRespVO dict = AppStore.getDictDataValueMap(SYSTEM_LOGIN_TYPE).get(item + "");
+                            DictDataSimpleRespVO dict = AppStore.getDictDataValueMap(SYSTEM_NOTIFY_TEMPLATE_TYPE).get(item + "");
                             Button state = new Button(dict.getLabel());
                             switch (dict.getColorType()) {
                                 case "primary":
@@ -164,33 +177,30 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
 
 
                         }
+
 
                     }
                 };
             }
         });
 
-        userIpCol.setCellValueFactory(new PropertyValueFactory<>("userIp"));
-        userIpCol.setStyle("-fx-alignment: CENTER");
 
-        userAgentCol.setCellValueFactory(new PropertyValueFactory<>("userAgent"));
-        userAgentCol.setStyle("-fx-alignment: CENTER");
-
-        resultCol.setCellValueFactory(new PropertyValueFactory<>("result"));
-        resultCol.setStyle("-fx-alignment: CENTER");
-        resultCol.setCellFactory(new Callback<TableColumn<LoginLogRespVO, Integer>, TableCell<LoginLogRespVO, Integer>>() {
+        statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusCol.setStyle("-fx-alignment: CENTER");
+        statusCol.setCellFactory(new Callback<TableColumn<NotifyTemplateRespVO, Integer>, TableCell<NotifyTemplateRespVO, Integer>>() {
             @Override
-            public TableCell<LoginLogRespVO, Integer> call(TableColumn<LoginLogRespVO, Integer> param) {
+            public TableCell<NotifyTemplateRespVO, Integer> call(TableColumn<NotifyTemplateRespVO, Integer> param) {
                 return new TableCell<>() {
                     @Override
                     protected void updateItem(Integer item, boolean empty) {
                         super.updateItem(item, empty);
-                        if (empty) {
+                        if (item == null || empty) {
                             setText(null);
                             setGraphic(null);
                         } else {
 
-                            DictDataSimpleRespVO dict = AppStore.getDictDataValueMap(SYSTEM_LOGIN_RESULT).get(item + "");
+
+                            DictDataSimpleRespVO dict = AppStore.getDictDataValueMap(COMMON_STATUS).get(item + "");
                             Button state = new Button(dict.getLabel());
                             switch (dict.getColorType()) {
                                 case "primary":
@@ -217,7 +227,9 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                             box.setAlignment(Pos.CENTER);
                             setGraphic(box);
 
+
                         }
+
 
                     }
                 };
@@ -226,9 +238,10 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
 
         createTimeCol.setCellValueFactory(new PropertyValueFactory<>("createTime"));
         createTimeCol.setStyle("-fx-alignment: CENTER");
-        createTimeCol.setCellFactory(new Callback<TableColumn<LoginLogRespVO, LocalDateTime>, TableCell<LoginLogRespVO, LocalDateTime>>() {
+
+        createTimeCol.setCellFactory(new Callback<TableColumn<NotifyTemplateRespVO, LocalDateTime>, TableCell<NotifyTemplateRespVO, LocalDateTime>>() {
             @Override
-            public TableCell<LoginLogRespVO, LocalDateTime> call(TableColumn<LoginLogRespVO, LocalDateTime> param) {
+            public TableCell<NotifyTemplateRespVO, LocalDateTime> call(TableColumn<NotifyTemplateRespVO, LocalDateTime> param) {
                 return new TableCell<>() {
                     @Override
                     protected void updateItem(LocalDateTime item, boolean empty) {
@@ -236,8 +249,6 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                         if (empty) {
                             setText(null);
                         } else {
-
-
                             if (item != null) {
                                 this.setText(DateUtil.format(item, "yyyy-MM-dd HH:mm:ss"));
                             }
@@ -248,12 +259,13 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
             }
         });
 
-        optCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        optCol.setCellFactory(new Callback<TableColumn<LoginLogRespVO, Long>, TableCell<LoginLogRespVO, Long>>() {
-            @Override
-            public TableCell<LoginLogRespVO, Long> call(TableColumn<LoginLogRespVO, Long> param) {
 
-                TableCell cell = new TableCell<LoginLogRespVO, Long>() {
+        optCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+        optCol.setCellFactory(new Callback<TableColumn<NotifyTemplateRespVO, Long>, TableCell<NotifyTemplateRespVO, Long>>() {
+            @Override
+            public TableCell<NotifyTemplateRespVO, Long> call(TableColumn<NotifyTemplateRespVO, Long> param) {
+
+                TableCell cell = new TableCell<NotifyTemplateRespVO, Long>() {
                     @Override
                     protected void updateItem(Long item, boolean empty) {
                         super.updateItem(item, empty);
@@ -262,9 +274,8 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                             setGraphic(null);
                         } else {
 
-
-                            Button editBut = new Button("详情");
-                            editBut.setOnAction(event -> showFormView(getTableRow().getItem()));
+                            Button editBut = new Button("修改");
+                            editBut.setOnAction(event -> showFormView(getTableRow().getItem().getId()));
                             editBut.setGraphic(FontIcon.of(Feather.EDIT));
                             editBut.getStyleClass().addAll(FLAT, ACCENT);
 
@@ -272,7 +283,12 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                             delBut.setOnAction(actionEvent -> showDelDialog(getTableRow().getItem()));
                             delBut.setGraphic(FontIcon.of(Feather.TRASH));
                             delBut.getStyleClass().addAll(FLAT, DANGER);
-                            HBox box = new HBox(editBut, delBut);
+
+                            Button pushBut = new Button("推送");
+                            pushBut.setOnAction(actionEvent -> push(getTableRow().getItem().getId()));
+                            pushBut.setGraphic(FontIcon.of(Feather.MESSAGE_SQUARE));
+                            pushBut.getStyleClass().addAll(FLAT, ACCENT);
+                            HBox box = new HBox(editBut, delBut, pushBut);
                             box.setAlignment(Pos.CENTER);
 //                            box.setSpacing(7);
                             setGraphic(box);
@@ -284,47 +300,60 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
         });
         tableView.itemsProperty().bind(viewModel.tableItemsProperty());
 
-        usernameField.textProperty().bindBidirectional(viewModel.userNameProperty());
-        userIpField.textProperty().bindBidirectional(viewModel.userIpProperty());
+        codeField.textProperty().bindBidirectional(viewModel.codeProperty());
+        nameField.textProperty().bindBidirectional(viewModel.nameProperty());
 
+        statusCombo.getSelectionModel().selectedIndexProperty().addListener((observableValue, number, t1) -> viewModel.statusProperty().set(t1.intValue()));
 
         searchBut.setOnAction(actionEvent -> viewModel.loadTableData());
         resetBut.setOnAction(actionEvent -> {
-            usernameField.setText(null);
-            userIpField.setText(null);
-            startDatePicker.setValue(null);
-            endDatePicker.setValue(null);
+            codeField.setText(null);
+            nameField.setText(null);
+            statusCombo.getSelectionModel().select(null);
         });
-        startDatePicker.valueProperty().bindBidirectional(viewModel.beginDateProperty());
-        endDatePicker.valueProperty().bindBidirectional(viewModel.endDateProperty());
 
+        addBut.setOnAction(actionEvent -> showFormView(null));
     }
 
 
     /**
      * 显示编辑对话框
      */
-    private void showFormView(LoginLogRespVO operateLogRespVO) {
+    private void showFormView(Long id) {
         WFXGenericDialog dialog = new WFXGenericDialog();
 
-        ViewTuple<LoginLogDetailView, LoginLogDetailViewModel> load = FluentViewLoader.fxmlView(LoginLogDetailView.class).load();
-        load.getViewModel().queryDictType(operateLogRespVO);
+        boolean isAdd = (id == null);
+        ViewTuple<NotifyTemplateFormView, NotifyTemplateFormViewModel> load = FluentViewLoader.fxmlView(NotifyTemplateFormView.class).load();
+        load.getViewModel().query(id);
         dialog.addActions(
-
+                Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
-                    dialog.close();
+                    ProcessChain.create()
+                            .addSupplierInExecutor(() -> {
+                                return load.getViewModel().save(isAdd);
+                            })
+                            .addConsumerInPlatformThread(r -> {
+                                if (r.isSuccess()) {
+                                    dialog.close();
+                                    MvvmFX.getNotificationCenter().publish("message", "保存成功", MessageType.SUCCESS);
+
+                                    viewModel.loadTableData();
+
+                                }
+                            }).onException(e -> e.printStackTrace())
+                            .run();
                 })
         );
 
         dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-        dialog.setHeaderText("详情");
+        dialog.setHeaderText(id != null ? "编辑" : "添加");
         dialog.setContent(load.getView());
         dialog.show(rootPane.getScene());
 
     }
 
 
-    private void showDelDialog(LoginLogRespVO respVO) {
+    private void showDelDialog(NotifyTemplateRespVO respVO) {
         WFXGenericDialog dialog = new WFXGenericDialog();
         dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
         dialog.setHeaderText("删除");
@@ -333,7 +362,7 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                 Map.entry(new Button("确定"), event -> {
                     ProcessChain.create()
                             .addSupplierInExecutor(() -> {
-                                return Request.connector(LoginLogFeign.class).deleteLoginLog(respVO.getId());
+                                return Request.connector(NotifyTemplateFeign.class).deleteNotifyTemplate(respVO.getId());
                             })
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {
@@ -347,7 +376,38 @@ public class LoginLogView implements FxmlView<LoginLogViewModel>, Initializable 
                 })
         );
 
-        dialog.setContent(new Label("是否确认删除名称为" + respVO.getUsername() + "-" + respVO.getLogType() + "的数据项？"));
+        dialog.setContent(new Label("是否确认删除名称为" + respVO.getName() + "的数据项？"));
+        dialog.show(rootPane.getScene());
+    }
+
+    private void push(Long id) {
+        WFXGenericDialog dialog = new WFXGenericDialog();
+
+        ViewTuple<NotifyTemplateSendFormView, NotifyTemplateSendFormViewModel> load = FluentViewLoader.fxmlView(NotifyTemplateSendFormView.class).load();
+        load.getViewModel().query(id);
+        dialog.addActions(
+                Map.entry(new Button("取消"), event -> dialog.close()),
+                Map.entry(new Button("发送"), event -> {
+                    ProcessChain.create()
+                            .addSupplierInExecutor(() -> {
+                                return load.getViewModel().sendNotify();
+                            })
+                            .addConsumerInPlatformThread(r -> {
+                                if (r.isSuccess()) {
+                                    dialog.close();
+                                    MvvmFX.getNotificationCenter().publish("message", "发送成功", MessageType.SUCCESS);
+
+                                    viewModel.loadTableData();
+
+                                }
+                            }).onException(e -> e.printStackTrace())
+                            .run();
+                })
+        );
+
+        dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
+        dialog.setHeaderText("消息发送");
+        dialog.setContent(load.getView());
         dialog.show(rootPane.getScene());
     }
 }

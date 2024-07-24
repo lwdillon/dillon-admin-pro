@@ -41,7 +41,6 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
     private MenuManageViewModel viewModel;
 
 
-
     @FXML
     private VBox content;
 
@@ -157,7 +156,7 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
                         setGraphic(null);
                     } else {
                         Button state = new Button();
-                        if (item!=null&&item==0) {
+                        if (item != null && item == 0) {
                             state.setText("正常");
                             state.getStyleClass().addAll(BUTTON_OUTLINED, SUCCESS);
                         } else {
@@ -263,17 +262,17 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
         WFXGenericDialog dialog = new WFXGenericDialog();
 
         ViewTuple<MenuFromView, MenuFromViewModel> load = FluentViewLoader.fxmlView(MenuFromView.class).load();
-        MenuRespVO menuRespVO=null;
+        MenuRespVO menuRespVO = null;
         if (isEdit) {
             menuRespVO = sysMenu;
-        }else {
+        } else {
             menuRespVO = new MenuRespVO();
             menuRespVO.setParentId(sysMenu.getId());
             menuRespVO.setType(1);
         }
-        load.getViewModel().updateData(menuRespVO,true);
-       dialog.clearActions();
-       dialog.addActions(
+        load.getViewModel().updateData(menuRespVO, true);
+        dialog.clearActions();
+        dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
 
@@ -283,7 +282,7 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
                                 if (r.isSuccess()) {
                                     dialog.close();
                                     MvvmFX.getNotificationCenter().publish("message", "保存成功", MessageType.SUCCESS);
-
+                                    MvvmFX.getNotificationCenter().publish("updateMenu", "更新菜单");
                                     query();
                                 }
                             }).onException(e -> e.printStackTrace())
@@ -292,14 +291,13 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
         );
 
 
-       dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-       dialog.setHeaderText(isEdit ? "编辑菜单" : "添加菜单");
-       dialog.setContent(load.getView());
-       dialog.show(root.getScene());
+        dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
+        dialog.setHeaderText(isEdit ? "编辑菜单" : "添加菜单");
+        dialog.setContent(load.getView());
+        dialog.show(root.getScene());
 
 
     }
-
 
 
     /**
@@ -309,8 +307,8 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
      */
     private void showDelDialog(MenuRespVO sysMenu) {
         WFXGenericDialog dialog = new WFXGenericDialog();
-       dialog.clearActions();
-       dialog.addActions(
+        dialog.clearActions();
+        dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
 
@@ -327,10 +325,10 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
         );
 
 
-       dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-       dialog.setHeaderText("系统揭示");
-       dialog.setContent(new Label("是否确认删除名称为" + sysMenu.getName() + "的数据项？"));
-       dialog.show(root.getScene());
+        dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
+        dialog.setHeaderText("系统揭示");
+        dialog.setContent(new Label("是否确认删除名称为" + sysMenu.getName() + "的数据项？"));
+        dialog.show(root.getScene());
     }
 
     /**
@@ -339,10 +337,6 @@ public class MenuManageView implements FxmlView<MenuManageViewModel>, Initializa
     private void query() {
         viewModel.query();
     }
-
-
-
-
 
 
 }

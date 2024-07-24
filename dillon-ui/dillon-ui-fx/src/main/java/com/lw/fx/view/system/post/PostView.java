@@ -192,7 +192,7 @@ public class PostView implements FxmlView<PostViewModel>, Initializable {
                         } else {
 
                             Button editBut = new Button("修改");
-                            editBut.setOnAction(event -> showPostFormView(getTableRow().getItem().getId()));
+                            editBut.setOnAction(event -> showFormView(getTableRow().getItem().getId()));
                             editBut.setGraphic(FontIcon.of(Feather.EDIT));
                             editBut.getStyleClass().addAll(FLAT, ACCENT);
 
@@ -228,25 +228,25 @@ public class PostView implements FxmlView<PostViewModel>, Initializable {
         startDatePicker.valueProperty().bindBidirectional(viewModel.beginDateProperty());
         endDatePicker.valueProperty().bindBidirectional(viewModel.endDateProperty());
 
-        addBut.setOnAction(actionEvent -> showPostFormView(null));
+        addBut.setOnAction(actionEvent -> showFormView(null));
     }
 
 
     /**
      * 显示编辑对话框
      */
-    private void showPostFormView(Long roleId) {
+    private void showFormView(Long id) {
         WFXGenericDialog dialog = new WFXGenericDialog();
 
-        boolean isAdd = (roleId == null);
+        boolean isAdd = (id == null);
         ViewTuple<PostFormView, PostFormViewModel> load = FluentViewLoader.fxmlView(PostFormView.class).load();
-        load.getViewModel().query(roleId);
+        load.getViewModel().query(id);
         dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
                     ProcessChain.create()
                             .addSupplierInExecutor(() -> {
-                                return load.getViewModel().saveUser(isAdd);
+                                return load.getViewModel().save(isAdd);
                             })
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {
@@ -262,7 +262,7 @@ public class PostView implements FxmlView<PostViewModel>, Initializable {
         );
 
         dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-        dialog.setHeaderText(roleId != null ? "编辑角色" : "添加角色");
+        dialog.setHeaderText(id != null ? "编辑角色" : "添加角色");
         dialog.setContent(load.getView());
         dialog.show(rootPane.getScene());
 

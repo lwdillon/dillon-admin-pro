@@ -243,18 +243,18 @@ public class RoleView implements FxmlView<RoleViewModel>, Initializable {
     /**
      * 显示编辑对话框
      */
-    private void showRoleFormView(Long roleId) {
+    private void showRoleFormView(Long id) {
         WFXGenericDialog dialog = new WFXGenericDialog();
 
-        boolean isAdd = (roleId == null);
+        boolean isAdd = (id == null);
         ViewTuple<RoleFormView, RoleFormViewModel> load = FluentViewLoader.fxmlView(RoleFormView.class).load();
-        load.getViewModel().query(roleId);
+        load.getViewModel().query(id);
         dialog.addActions(
                 Map.entry(new Button("取消"), event -> dialog.close()),
                 Map.entry(new Button("确定"), event -> {
                     ProcessChain.create()
                             .addSupplierInExecutor(() -> {
-                                return load.getViewModel().saveUser(isAdd);
+                                return load.getViewModel().save(isAdd);
                             })
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {
@@ -270,7 +270,7 @@ public class RoleView implements FxmlView<RoleViewModel>, Initializable {
         );
 
         dialog.setHeaderIcon(FontIcon.of(Feather.INFO));
-        dialog.setHeaderText(roleId != null ? "编辑角色" : "添加角色");
+        dialog.setHeaderText(id != null ? "编辑角色" : "添加角色");
         dialog.setContent(load.getView());
         dialog.show(rootPane.getScene());
 
