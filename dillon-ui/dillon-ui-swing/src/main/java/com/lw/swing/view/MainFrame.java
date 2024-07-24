@@ -26,9 +26,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -72,6 +70,14 @@ public class MainFrame extends JFrame {
         rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, UIManager.getColor("App.titleBarBackground"));
         rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_FOREGROUND, UIManager.getColor("App.titleBarForeground"));
 
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
+                loginOut(true);
+                System.exit(0);
+            }
+        });
 
         installRepaintManager();
 
@@ -130,8 +136,8 @@ public class MainFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 if (StrUtil.equals(UIManager.getLookAndFeel().getName(), DarkTheme.NAME)) {
-                  g2.setColor(UIManager.getColor("App.background"));
-                  g2.fillRect(0,0,getWidth(),getHeight());
+                    g2.setColor(UIManager.getColor("App.background"));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
                 } else if (StrUtil.equals(UIManager.getLookAndFeel().getName(), LightTheme.NAME)) {
                     g2.drawImage(getBackgroundImageLight(), 0, 0, getWidth(), getHeight(), this);
                 } else if (StrUtil.equals(UIManager.getLookAndFeel().getName(), GlazzedTheme.NAME)) {
@@ -421,7 +427,7 @@ public class MainFrame extends JFrame {
 
                     }
                     default: {
-                         UIManager.setLookAndFeel(LightTheme.class.getName());
+                        UIManager.setLookAndFeel(LightTheme.class.getName());
                         break;
 
                     }
@@ -477,7 +483,7 @@ public class MainFrame extends JFrame {
         JMenuItem menuItem11 = new JMenuItem("退出");
         menuItem11.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
 
-        menuItem11.addActionListener(e1 -> loginOut());
+        menuItem11.addActionListener(e1 -> loginOut(false));
         menuItem9.addActionListener(e1 -> {
 
             int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("个人信息");
@@ -514,10 +520,10 @@ public class MainFrame extends JFrame {
         getTitleLabel().setText(title);
     }
 
-    public void loginOut(){
-        SwingWorker<CommonResult<Boolean>,Object> swingWorker=new SwingWorker< CommonResult<Boolean>, Object>() {
+    public void loginOut(boolean exit) {
+        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
             @Override
-            protected  CommonResult<Boolean> doInBackground() throws Exception {
+            protected CommonResult<Boolean> doInBackground() throws Exception {
                 return Request.connector(AuthFeign.class).logout();
 
             }
@@ -527,7 +533,12 @@ public class MainFrame extends JFrame {
                 try {
                     if (get().isSuccess()) {
                         SSLWebSocketClient.getInstance().loginOut();
-                        showLogin();
+                        if (exit) {
+                            System.exit(0);
+                        } else {
+                            showLogin();
+                        }
+
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
