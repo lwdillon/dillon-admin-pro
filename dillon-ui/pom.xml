@@ -19,8 +19,8 @@
         UI 模块，主要实现 Swing、JavaFx界面功能。
     </description>
     <modules>
-        <module>dillon-ui-swing</module>
         <module>dillon-ui-common</module>
+        <module>dillon-ui-swing</module>
         <module>dillon-ui-fx</module>
     </modules>
 

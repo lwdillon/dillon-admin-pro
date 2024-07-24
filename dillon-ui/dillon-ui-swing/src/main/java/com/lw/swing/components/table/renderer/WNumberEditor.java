@@ -1,6 +1,6 @@
 package com.lw.swing.components.table.renderer;
 
-import sun.reflect.misc.ReflectUtil;
+//import sun.reflect.misc.ReflectUtil;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
@@ -84,7 +84,7 @@ public class WNumberEditor extends DefaultCellEditor {
             if (type == Object.class) {
                 type = String.class;
             }
-            ReflectUtil.checkPackageAccess(type);
+//            ReflectUtil.checkPackageAccess(type);
             SwingUtilities2.checkAccess(type.getModifiers());
             constructor = type.getConstructor(argTypes);
         } catch (Exception e) {

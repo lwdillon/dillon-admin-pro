@@ -16,6 +16,14 @@
         swing 模块
     </description>
 
+
+<!--    <properties>-->
+<!--        <java.version>1.8</java.version>-->
+<!--        <maven.compiler.source>${java.version}</maven.compiler.source>-->
+<!--        <maven.compiler.target>${java.version}</maven.compiler.target>-->
+<!--        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>-->
+<!--    </properties>-->
+
     <dependencies>
 
         <!-- flatlaf-->
@@ -38,6 +46,7 @@
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>jide-oss</artifactId>
+            <version>3.7.15</version>
         </dependency>
 
 
@@ -107,7 +116,6 @@
         </dependency>
 
     </dependencies>
-
 
 
     <build>
