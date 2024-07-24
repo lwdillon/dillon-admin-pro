@@ -169,9 +169,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
 
         closeBut.setGraphic(close);
         closeBut.setOnAction(actionEvent -> {
-            Stage stage = (Stage) closeBut.getScene().getWindow();
-
-            stage.close();
+            mainViewModel.loginOut(true);
         });
 
 
@@ -387,7 +385,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         Bounds bounds = userBut.localToScreen(userBut.getBoundsInLocal());
         contextMenu.show(userBut, bounds.getMinX(), bounds.getMinY() + bounds.getHeight());
 
-        menuItem2.setOnAction(actionEvent -> mainViewModel.loginOut());
+        menuItem2.setOnAction(actionEvent -> mainViewModel.loginOut(false));
         menuItem1.setOnAction(actionEvent -> {
 
             ViewTuple<UserInfoView, UserInfoViewModel> viewTuple = FluentViewLoader.fxmlView(UserInfoView.class).load();

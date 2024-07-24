@@ -5,6 +5,7 @@ import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermission
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
 import com.lw.fx.util.MessageType;
+import com.lw.fx.websocket.SSLWebSocketClient;
 import com.lw.ui.request.api.system.AuthFeign;
 import com.lw.ui.request.api.system.NotifyMessageFeign;
 import de.saxsys.mvvmfx.MvvmFX;
@@ -62,7 +63,7 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
     }
 
 
-    public void loginOut() {
+    public void loginOut(boolean exit) {
         ProcessChain.create()
                 .addSupplierInExecutor(() -> {
                     return Request.connector(AuthFeign.class).logout();
@@ -70,8 +71,14 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
                 .addConsumerInPlatformThread(r -> {
 
                     if (r.isSuccess()) {
-                        MvvmFX.getNotificationCenter().publish("showLoginRegister");
-                        MvvmFX.getNotificationCenter().publish("message", "退出成功！", MessageType.SUCCESS);
+                        SSLWebSocketClient.getInstance().loginOut();
+                        if (exit) {
+                            System.exit(0);
+                        } else {
+                            MvvmFX.getNotificationCenter().publish("showLoginRegister");
+                            MvvmFX.getNotificationCenter().publish("message", "退出成功！", MessageType.SUCCESS);
+                        }
+
                     }
                 })
                 .onException(e -> {
@@ -87,6 +94,7 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
      */
     @Override
     public void onViewRemoved() {
+
         System.err.println("------remove");
     }
 

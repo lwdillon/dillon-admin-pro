@@ -75,7 +75,6 @@ public class MainFrame extends JFrame {
             public void windowClosed(WindowEvent e) {
                 super.windowClosed(e);
                 loginOut(true);
-                System.exit(0);
             }
         });
 

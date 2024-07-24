@@ -178,4 +178,10 @@ public class AppUI extends Application {
     private void onBrowseEvent(BrowseEvent event) {
         getHostServices().showDocument(event.getUri().toString());
     }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+
+    }
 }
