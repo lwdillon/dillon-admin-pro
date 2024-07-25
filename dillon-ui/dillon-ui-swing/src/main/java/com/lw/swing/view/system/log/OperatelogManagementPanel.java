@@ -380,6 +380,7 @@ public class OperatelogManagementPanel extends JPanel {
                             label.setIcon(icon);
                             panel.add(label);
                             panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
                             return panel;
                         }
                     });

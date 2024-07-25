@@ -112,7 +112,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
         treeTable.setClosedIcon(null);
         treeTable.setOpenIcon(null);
         treeTable.setShowHorizontalLines(true);
-        treeTable.setIntercellSpacing(new Dimension(1, 1));
+        treeTable.setIntercellSpacing(new Dimension(0, 1));
         treeTable.setOpaque(false);
         treeTable.setHighlighters();
         ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
@@ -137,6 +137,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
             public void run() {
                 ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
                 treeTable.setHighlighters(rollover);
+                treeTable.setIntercellSpacing(new Dimension(0, 1));
             }
         });
         super.updateUI();

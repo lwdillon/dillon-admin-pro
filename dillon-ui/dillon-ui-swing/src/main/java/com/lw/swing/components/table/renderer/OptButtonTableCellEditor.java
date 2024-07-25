@@ -56,12 +56,13 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
     public Component getTableCellEditorComponent(JTable table, Object value,
                                                  boolean isSelected, int row, int column) {
         editor.setBackground(table.getSelectionBackground());
+        editor.setOpaque(true);
         this.setBackground(table.getSelectionBackground());
         this.value = value;
         if (editor instanceof JXHyperlink) {
             ((JXHyperlink) editor).setText(value + "");
         }
-        if (hideCol !=  -1) {
+        if (hideCol != -1) {
             Object v = table.getValueAt(row, hideCol);
             editor.setVisible(!ObjectUtil.equal(v, hideValue));
         }
