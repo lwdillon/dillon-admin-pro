@@ -18,6 +18,7 @@ import com.lw.swing.theme.DarkTheme;
 import com.lw.swing.theme.GlazzedTheme;
 import com.lw.swing.theme.LightTheme;
 import com.lw.swing.utils.IconLoader;
+import com.lw.swing.view.system.notice.MyNotifyMessagePane;
 import com.lw.swing.view.system.user.PersonalCenterPanel;
 import com.lw.swing.websocket.SSLWebSocketClient;
 import com.lw.ui.request.api.system.AuthFeign;
@@ -57,6 +58,7 @@ public class MainFrame extends JFrame {
     private JToolBar tabTrailingBar;
     private JButton themeBut;
     private JButton refreshBut;
+    private JButton noticeBut;
 
 
     private MainFrame() {
@@ -286,9 +288,34 @@ public class MainFrame extends JFrame {
             titleMenuBar.add(Box.createGlue());
             // right
             titleMenuBar.add(getThemeBut());
+            titleMenuBar.add(getNoticeBut());
             titleMenuBar.add(getUserBut());
         }
         return titleMenuBar;
+    }
+
+    public JButton getNoticeBut() {
+        if (noticeBut == null) {
+            noticeBut = new JButton();
+            noticeBut.setIcon( new FlatSVGIcon("icons/bell.svg", 25, 25));
+            noticeBut.putClientProperty("JButton.buttonType", "toolBarButton");
+            noticeBut.setFocusable(false);
+            noticeBut.addActionListener(e -> {
+                int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("我的消息");
+                MyNotifyMessagePane myNotifyMessagePane;
+                if (tabIndex == -1) {
+                    myNotifyMessagePane = new MyNotifyMessagePane();
+                    MainFrame.getInstance().getTabbedPane().addTab("我的消息",new FlatSVGIcon("icons/bell.svg", 25, 25), myNotifyMessagePane);
+                } else {
+                    myNotifyMessagePane = (MyNotifyMessagePane) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
+                }
+                MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("我的消息"));
+                myNotifyMessagePane.updateData();
+
+            });
+
+        }
+        return noticeBut;
     }
 
     public JButton getThemeBut() {

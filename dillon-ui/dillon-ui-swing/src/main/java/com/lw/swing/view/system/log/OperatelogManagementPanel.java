@@ -12,11 +12,14 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
+import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
 import com.lw.swing.request.Request;
+import com.lw.swing.utils.BadgeLabelUtil;
 import com.lw.ui.request.api.system.OperateLogFeign;
+import com.lw.ui.utils.DictTypeEnum;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -27,11 +30,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
+import static com.lw.ui.utils.DictTypeEnum.*;
+import static javax.swing.JOptionPane.*;
 
 /**
  * @author wenli
@@ -193,12 +195,20 @@ public class OperatelogManagementPanel extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
 
+
+        JButton viewBut = new JButton("详情");
+        viewBut.setForeground(UIManager.getColor("App.accentColor"));
+
+        viewBut.setIcon(new FlatSVGIcon("icons/chakan.svg", 15, 15));
+        viewBut.addActionListener(e -> showDetailsDialog());
+
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
         del.setForeground(UIManager.getColor("app-error-color-5"));
 
         optBar.add(Box.createGlue());
+        optBar.add(viewBut);
         optBar.add(del);
         optBar.add(Box.createGlue());
         return optBar;
@@ -212,6 +222,61 @@ public class OperatelogManagementPanel extends JPanel {
         clearBut.addActionListener(e -> clear());
     }
 
+
+    private void showDetailsDialog() {
+
+
+        int selRow = table.getSelectedRow();
+        OperateLogRespVO logRespVO = null;
+        if (selRow != -1) {
+            logRespVO = (OperateLogRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        }
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new MigLayout(
+                "fill,insets 0,hidemode 3",
+                // columns
+                "[fill][grow,fill]",
+                // rows
+                "[][][][][][][][][][][][][]"));
+        panel.setPreferredSize(new Dimension(450,600));
+        addMessageInfo("日志主键", logRespVO.getId(), panel, 0);
+        addMessageInfo("链路追踪",logRespVO.getTraceId(), panel, 1);
+        addMessageInfo("操作人编号", logRespVO.getUserId(), panel, 2);
+        addMessageInfo("操作人名字", logRespVO.getUserName(), panel, 3);
+        addMessageInfo("操作人 IP", logRespVO.getUserIp(), panel, 4);
+        addMessageInfo("操作人 UA", logRespVO.getUserAgent(), panel, 5);
+        addMessageInfo("操作模块", logRespVO.getType(), panel, 6);
+        addMessageInfo("操作名", logRespVO.getSubType(), panel, 7);
+        addMessageInfoArea("操作内容",logRespVO.getAction(), panel, 8);
+        addMessageInfo("操作拓展参数", logRespVO.getExtra(), panel, 9);
+        addMessageInfo("请求 URL", logRespVO.getRequestMethod()+" "+logRespVO.getRequestUrl(), panel, 10);
+        addMessageInfo("操作时间", DateUtil.format(logRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 11);
+        addMessageInfo("业务编号", logRespVO.getBizId(), panel, 12);
+        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+
+    }
+
+    private void addMessageInfo(String text, Object value, JPanel panel, int row) {
+        JLabel label = new JLabel(text);
+        JTextField textField = new JTextField(Convert.toStr(value));
+        textField.setEditable(false);
+
+        panel.add(label, "cell 0 " + row);
+        panel.add(textField, "cell 1 " + row);
+    }
+
+    private void addMessageInfoArea(String text, Object value, JPanel panel, int row) {
+
+
+        JLabel label = new JLabel(text);
+        JTextArea textField = new JTextArea(value+"");
+        textField.setEditable(false);
+        textField.setLineWrap(true);
+
+        panel.add(label, "cell 0 " + row);
+        panel.add(new JScrollPane(textField), "cell 1 " + row+",grow");
+    }
     private void reset() {
         userNameTextField.setText("");
         typeTextField.setText("");
@@ -366,24 +431,7 @@ public class OperatelogManagementPanel extends JPanel {
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                                return label.getForeground();
-                            }));
-                            label.setIcon(icon);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
+
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {

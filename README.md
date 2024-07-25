@@ -158,6 +158,9 @@ HTTP库：使用 OpenFeign HTTP库，该库提供了方便的 HTTP 请求和响�
 | 字典管理 | ![字典管理](/.image/swing/字典管理1.png)  | ![字典管理](/.image/swing/字典管理2.png)  | ![字典管理](/.image/swing/字典管理3.png)  | 
 | 字典数据 | ![字典数据](/.image/swing/字典数据1.png)  | ![字典数据](/.image/swing/字典数据2.png)  | ![字典数据](/.image/swing/字典数据3.png)  | 
 | 通知公告 | ![通知公告](/.image/swing/通知公告1.png)  | ![字典数据](/.image/swing/通知公告2.png)  | ![字典数据](/.image/swing/通知公告3.png)  | 
+| 消息模板 | ![消息模板](/.image/swing/消息模板1.png)  | ![消息模板](/.image/swing/消息模板2.png)  | ![消息模板](/.image/swing/消息模板3.png)  | 
+| 消息记录 | ![消息记录](/.image/swing/消息记录1.png) | ![消息记录](/.image/swing/消息记录2.png)  | ![消息记录](/.image/swing/消息记录3.png)  | 
+| 我的消息 | ![我的消息](/.image/swing/我的消息1.png) | ![我的消息](/.image/swing/我的消息2.png)  | ![我的消息](/.image/swing/我的消息3.png)  |
 | 操作日志 | ![操作日志](/.image/swing/操作日志1.png)  | ![操作日志](/.image/swing/操作日志2.png)  | ![操作日志](/.image/swing/操作日志3.png)  | 
 | 登录日志 | ![登录日志](/.image/swing/登录日志1.png)  | ![登录日志](/.image/swing/登录日志2.png)  | ![登录日志](/.image/swing/登录日志3.png)  | 
 

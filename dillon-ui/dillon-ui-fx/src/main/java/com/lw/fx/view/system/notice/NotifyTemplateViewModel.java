@@ -27,8 +27,6 @@ public class NotifyTemplateViewModel implements ViewModel, SceneLifecycle {
 
     private ObjectProperty<ObservableList<NotifyTemplateRespVO>> tableItems = new SimpleObjectProperty<>();
 
-    private ObjectProperty<LocalDate> beginDate = new SimpleObjectProperty<>();
-    private ObjectProperty<LocalDate> endDate = new SimpleObjectProperty<>();
     private ObjectProperty<Integer> status = new SimpleObjectProperty<>();
     private ObjectProperty<String> name = new SimpleObjectProperty<>();
     private ObjectProperty<String> code = new SimpleObjectProperty<>();
@@ -45,14 +43,9 @@ public class NotifyTemplateViewModel implements ViewModel, SceneLifecycle {
         queryMap.put("pageNo", pageNum.get() + 1);
         queryMap.put("pageSize", pageSize.get());
 
-//        queryMap.put("code", code.get());
-//        queryMap.put("name", name.get());
-//        queryMap.put("status", status.get());
-        if (ObjectUtil.isAllNotEmpty(getBeginDate(), getEndDate())) {
-            String sd = getBeginDate().atTime(0, 0, 0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String ed = getEndDate().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            queryMap.put("createTime", new String[]{sd, ed});
-        }
+        queryMap.put("code", code.get());
+        queryMap.put("name", name.get());
+        queryMap.put("status", status.get());
 
         ProcessChain.create()
                 .addSupplierInExecutor(() -> Request.connector(NotifyTemplateFeign.class).getNotifyTemplatePage(queryMap))
@@ -87,21 +80,7 @@ public class NotifyTemplateViewModel implements ViewModel, SceneLifecycle {
         return tableItems.get();
     }
 
-    public LocalDate getBeginDate() {
-        return beginDate.get();
-    }
 
-    public ObjectProperty<LocalDate> beginDateProperty() {
-        return beginDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate.get();
-    }
-
-    public ObjectProperty<LocalDate> endDateProperty() {
-        return endDate;
-    }
 
     public String getName() {
         return name.get();

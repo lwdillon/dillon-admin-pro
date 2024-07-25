@@ -157,6 +157,16 @@ public class AppStore {
         return dictDataListMap.get(dictType.getType());
     }
 
+    public static Map<String, DictDataSimpleRespVO> getDictDataValueMap(DictTypeEnum dictType) {
+        List<DictDataSimpleRespVO> dictDataSimpleRespVOList = dictDataListMap.get(dictType.getType());
+
+        // 将 List 转换为 Map，使用 id 作为键
+        Map<String, DictDataSimpleRespVO> reultMap = dictDataSimpleRespVOList.stream()
+                .collect(Collectors.toMap(DictDataSimpleRespVO::getValue, item -> item));
+
+        return reultMap;
+    }
+
     public static Map<String, DictDataSimpleRespVO> getDictDataMap(DictTypeEnum dictType) {
         List<DictDataSimpleRespVO> dictDataSimpleRespVOList = dictDataListMap.get(dictType.getType());
 
