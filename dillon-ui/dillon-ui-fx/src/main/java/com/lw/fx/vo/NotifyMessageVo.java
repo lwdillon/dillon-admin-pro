@@ -1,7 +1,5 @@
 package com.lw.fx.vo;
 
-import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
-import io.swagger.v3.oas.annotations.media.Schema;
 import javafx.beans.property.SimpleBooleanProperty;
 import lombok.Data;
 

@@ -82,7 +82,7 @@
         <jfreechart.version>1.5.3</jfreechart.version>
         <!-- pinyin4j -->
         <pinyin4j.version>2.5.1</pinyin4j.version>
-        <openfeign.version>13.2.1</openfeign.version>
+        <openfeign.version>13.3</openfeign.version>
 
     </properties>
 
@@ -686,6 +686,11 @@
                 <version>${openfeign.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.github.openfeign</groupId>
+                <artifactId>feign-form</artifactId>
+                <version>${openfeign.version}</version>
+            </dependency>
 
 
 

@@ -2,9 +2,12 @@ package com.lw.fx.request;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.lw.dillon.admin.module.infra.framework.file.core.client.FileClientConfig;
+import com.lw.fx.request.feign.FileClientConfigAdapter;
 import com.lw.fx.request.feign.interceptor.ForwardedForInterceptor;
 import com.lw.fx.request.feign.interceptor.OkHttpInterceptor;
 import com.lw.ui.request.api.BaseFeignApi;
+import com.lw.ui.request.api.file.FileFeign;
 import com.lw.ui.request.gson.LocalDateTimeTypeAdapter;
 import com.lw.ui.request.gson.LocalDateTypeAdapter;
 import com.lw.ui.request.gson.ZonedDateTimeTypeAdapter;
@@ -14,8 +17,10 @@ import feign.Logger;
 import feign.Retryer;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.form.spring.SpringFormEncoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import feign.jackson.JacksonDecoder;
 import feign.okhttp.OkHttpClient;
 import feign.querymap.BeanQueryMapEncoder;
 import feign.slf4j.Slf4jLogger;
@@ -47,6 +52,7 @@ public class Request {
 
     private static final okhttp3.OkHttpClient OK_HTTP_CLIENT = createOkHttpClient();
     private static final Feign.Builder BUILDER = createFeignBuilder();
+    private static final Feign.Builder FILE_BUILDER = createFileFeignBuilder();
     private static final AsyncFeign.AsyncBuilder ASYNC_BUILDER = createAsyncFeignBuilder();
 
     private Request() {
@@ -60,6 +66,10 @@ public class Request {
 
     public static <T extends BaseFeignApi> T connector(Class<T> connectorClass) {
         return connector(connectorClass, READ_TIME_OUT_MILLIS);
+    }
+
+    public static <T extends BaseFeignApi> T fileConnector(Class<T> connectorClass) {
+       return FILE_BUILDER.target(connectorClass, API_URL);
     }
 
 
@@ -101,5 +111,15 @@ public class Request {
                 .client(new OkHttpClient(OK_HTTP_CLIENT))
                 .requestInterceptor(new ForwardedForInterceptor())
                 .retryer(new Retryer.Default()); // 默认重试策略
+    }
+
+    private static Feign.Builder createFileFeignBuilder() {
+
+
+        return Feign.builder()
+                .encoder(new SpringFormEncoder())
+                .decoder(new JacksonDecoder())
+                .requestInterceptor(new ForwardedForInterceptor());
+
     }
 }

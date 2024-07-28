@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootBox" alignment="TOP_CENTER" prefHeight="323.0" prefWidth="620.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.infra.file.FileConfigFormView">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*配置名" />
+                <TextField fx:id="nameField" promptText="请输入配置名" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="备注" />
+                <TextField fx:id="remarkField" promptText="请输入备注" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*存储器" />
+                <ComboBox fx:id="storageComboBox" maxWidth="1.7976931348623157E308" promptText="请选择存储器" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="basePathBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*基础路径" />
+                <TextField fx:id="basePathField" promptText="请输入基础路径" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="hostBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*主机地址" />
+                <TextField fx:id="hostField" promptText="请输入主机地址" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="portBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*主机端口" />
+                <TextField fx:id="portField" promptText="请输入主机端口" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="usernameBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*用户名" />
+                <TextField fx:id="usernameField" promptText="请输入用户名" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="passwordBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*密码" />
+                <TextField fx:id="passwordField" promptText="请输入密码" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="modeBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*连接模式" />
+                <RadioButton fx:id="modeRadioBut1" mnemonicParsing="false" text="主动模式">
+                    <toggleGroup>
+                        <ToggleGroup fx:id="group" />
+                    </toggleGroup>
+                </RadioButton>
+                <RadioButton fx:id="modeRadioBut2" mnemonicParsing="false" text="被动模式" toggleGroup="$group" />
+            </children>
+        </HBox>
+        <HBox fx:id="endpointBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*节点地址" />
+                <TextField fx:id="endpointField" promptText="请输入节点地址" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="bucketBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*存储 bucket" />
+                <TextField fx:id="bucketField" promptText="请输入 bucket" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="accessKeyBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*accessKey" />
+                <TextField fx:id="accessKeyField" promptText="请输入 accessKey" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="accessSecretBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*accessSecret" />
+                <TextField fx:id="accessSecretField" promptText="请输入 accessSecret" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="domainBox" alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*自定义域名" />
+                <TextField fx:id="domainField" promptText="请输入配置名" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+
+    </children>
+    <padding>
+        <Insets right="10.0" />
+    </padding>
+
+</VBox>

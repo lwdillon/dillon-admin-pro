@@ -10,5 +10,7 @@ public class ForwardedForInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate template) {
 
         template.header("Authorization", AppStore.getToken());
+
+
     }
 }

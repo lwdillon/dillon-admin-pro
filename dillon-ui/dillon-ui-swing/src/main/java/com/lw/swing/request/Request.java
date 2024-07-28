@@ -14,8 +14,10 @@ import feign.Logger;
 import feign.Retryer;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
+import feign.form.spring.SpringFormEncoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import feign.jackson.JacksonDecoder;
 import feign.okhttp.OkHttpClient;
 import feign.querymap.BeanQueryMapEncoder;
 import feign.slf4j.Slf4jLogger;
@@ -46,6 +48,8 @@ public class Request {
 
     private static final okhttp3.OkHttpClient OK_HTTP_CLIENT = createOkHttpClient();
     private static final Feign.Builder BUILDER = createFeignBuilder();
+    private static final Feign.Builder FILE_BUILDER = createFileFeignBuilder();
+
     private static final AsyncFeign.AsyncBuilder ASYNC_BUILDER = createAsyncFeignBuilder();
 
     private Request() {
@@ -100,5 +104,20 @@ public class Request {
                 .client(new OkHttpClient(OK_HTTP_CLIENT))
                 .requestInterceptor(new ForwardedForInterceptor())
                 .retryer(new Retryer.Default()); // 默认重试策略
+    }
+
+
+    public static <T extends BaseFeignApi> T fileConnector(Class<T> connectorClass) {
+        return FILE_BUILDER.target(connectorClass, System.getProperty("app.server.url"));
+    }
+
+    private static Feign.Builder createFileFeignBuilder() {
+
+
+        return Feign.builder()
+                .encoder(new SpringFormEncoder())
+                .decoder(new JacksonDecoder())
+                .requestInterceptor(new ForwardedForInterceptor());
+
     }
 }

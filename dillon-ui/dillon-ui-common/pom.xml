@@ -48,6 +48,16 @@
         </dependency>
 
         <dependency>
+            <groupId>io.github.openfeign.form</groupId>
+            <artifactId>feign-form</artifactId>
+            <version>3.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign.form</groupId>
+            <artifactId>feign-form-spring</artifactId>
+            <version>3.8.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.32</version> <!-- 适当的版本号 -->
@@ -65,6 +75,12 @@
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
             <version>1.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lw.dillon</groupId>
+            <artifactId>dillon-module-infra-biz</artifactId>
+            <version>2.1.0-jdk8-snapshot</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
