@@ -72,11 +72,9 @@ public class SidePane extends WPanel {
                         }else if (StrUtil.contains(icon,":")){
                             icon="icons/menu/"+icon.split(":")[1]+".svg";
                         }
-                        FlatSVGIcon svgIcon =  new FlatSVGIcon(icon, 25, 25);
+                        FlatSVGIcon svgIcon =  IconLoader.getSvgIcon(icon,25,25);
 
-                        svgIcon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                            return component.getForeground();
-                        }));
+
                         ((JLabel) component).setIcon(svgIcon);
 
                     }

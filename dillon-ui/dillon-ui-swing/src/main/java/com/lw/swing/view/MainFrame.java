@@ -59,7 +59,7 @@ public class MainFrame extends JFrame {
     private JButton themeBut;
     private JButton refreshBut;
     private JButton noticeBut;
-
+    private JPopupMenu themePopupMenu;
 
     private MainFrame() {
         MainPrefs.init(PREFS_ROOT_PATH);
@@ -282,7 +282,15 @@ public class MainFrame extends JFrame {
 
     public JMenuBar getTitleMenuBar() {
         if (titleMenuBar == null) {
-            titleMenuBar = new JMenuBar();
+            titleMenuBar = new JMenuBar() {
+                @Override
+                public void updateUI() {
+                    super.updateUI();
+                    if (themePopupMenu != null) {
+                        SwingUtilities.updateComponentTreeUI(themePopupMenu);
+                    }
+                }
+            };
             // left
             titleMenuBar.add(getTitleLabel());
             titleMenuBar.add(Box.createGlue());
@@ -297,7 +305,7 @@ public class MainFrame extends JFrame {
     public JButton getNoticeBut() {
         if (noticeBut == null) {
             noticeBut = new JButton();
-            noticeBut.setIcon( new FlatSVGIcon("icons/bell.svg", 25, 25));
+            noticeBut.setIcon(new FlatSVGIcon("icons/bell.svg", 25, 25));
             noticeBut.putClientProperty("JButton.buttonType", "toolBarButton");
             noticeBut.setFocusable(false);
             noticeBut.addActionListener(e -> {
@@ -305,7 +313,7 @@ public class MainFrame extends JFrame {
                 MyNotifyMessagePane myNotifyMessagePane;
                 if (tabIndex == -1) {
                     myNotifyMessagePane = new MyNotifyMessagePane();
-                    MainFrame.getInstance().getTabbedPane().addTab("我的消息",new FlatSVGIcon("icons/bell.svg", 25, 25), myNotifyMessagePane);
+                    MainFrame.getInstance().getTabbedPane().addTab("我的消息", new FlatSVGIcon("icons/bell.svg", 25, 25), myNotifyMessagePane);
                 } else {
                     myNotifyMessagePane = (MyNotifyMessagePane) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
                 }
@@ -400,25 +408,28 @@ public class MainFrame extends JFrame {
      */
     private void showPopupSkinButtonActionPerformed(ActionEvent e) {
         Component invoker = (Component) e.getSource();
-        JPopupMenu themePopupMenu = new JPopupMenu();
+        if (themePopupMenu == null) {
 
-        ButtonGroup group = new ButtonGroup();
+            themePopupMenu = new JPopupMenu();
+            ButtonGroup group = new ButtonGroup();
 
-        JCheckBoxMenuItem lighterMenuItem = new JCheckBoxMenuItem("白色");
-        group.add(lighterMenuItem);
-        themePopupMenu.add(lighterMenuItem);
-        lighterMenuItem.addActionListener(e1 -> theme("白色"));
+            JCheckBoxMenuItem lighterMenuItem = new JCheckBoxMenuItem("白色");
+            group.add(lighterMenuItem);
+            themePopupMenu.add(lighterMenuItem);
+            lighterMenuItem.addActionListener(e1 -> theme("白色"));
 
 
-        JCheckBoxMenuItem darkMenuItem = new JCheckBoxMenuItem("深色");
-        darkMenuItem.addActionListener(e1 -> theme("深色"));
-        themePopupMenu.add(darkMenuItem);
-        group.add(darkMenuItem);
+            JCheckBoxMenuItem darkMenuItem = new JCheckBoxMenuItem("深色");
+            darkMenuItem.addActionListener(e1 -> theme("深色"));
+            themePopupMenu.add(darkMenuItem);
+            group.add(darkMenuItem);
 
-        JCheckBoxMenuItem glazzedMenuItem = new JCheckBoxMenuItem("玻璃");
-        glazzedMenuItem.addActionListener(e1 -> theme("玻璃"));
-        themePopupMenu.add(glazzedMenuItem);
-        group.add(glazzedMenuItem);
+            JCheckBoxMenuItem glazzedMenuItem = new JCheckBoxMenuItem("玻璃");
+            glazzedMenuItem.addActionListener(e1 -> theme("玻璃"));
+            themePopupMenu.add(glazzedMenuItem);
+            group.add(glazzedMenuItem);
+
+        }
 
 
         themePopupMenu.show(invoker, 0, invoker.getHeight());

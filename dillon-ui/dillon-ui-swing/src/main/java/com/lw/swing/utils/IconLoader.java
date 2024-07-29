@@ -90,7 +90,7 @@ public class IconLoader {
      * @return {@link FlatSVGIcon}
      */
     public static FlatSVGIcon getSvgIcon(String path, int w, int h) {
-        if (StrUtil.isBlank(path)|| !FileUtil.isFile(path)) {
+        if (StrUtil.isBlank(path)||  IconLoader.class.getResourceAsStream("/"+path) == null) {
             path = "icons/item.svg";
         }
         FlatSVGIcon flatSVGIcon = new FlatSVGIcon(path, w, h);
