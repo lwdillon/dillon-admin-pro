@@ -60,6 +60,7 @@ public class MainFrame extends JFrame {
     private JButton refreshBut;
     private JButton noticeBut;
     private JPopupMenu themePopupMenu;
+    private JPopupMenu personalPopupMenu;
 
     private MainFrame() {
         MainPrefs.init(PREFS_ROOT_PATH);
@@ -289,6 +290,9 @@ public class MainFrame extends JFrame {
                     if (themePopupMenu != null) {
                         SwingUtilities.updateComponentTreeUI(themePopupMenu);
                     }
+                    if (personalPopupMenu != null) {
+                        SwingUtilities.updateComponentTreeUI(personalPopupMenu);
+                    }
                 }
             };
             // left
@@ -504,45 +508,48 @@ public class MainFrame extends JFrame {
      * 显示弹出菜单按钮执行操作
      */
     private void showPopupMenuButtonActionPerformed(Component invoker) {
-        JPopupMenu popupMenu = new JPopupMenu();
+        if (personalPopupMenu == null) {
+            personalPopupMenu = new JPopupMenu();
+            JPanel infoPanel = new JPanel(new BorderLayout());
+            JLabel label = new JLabel("", JLabel.CENTER);
+            label.setIcon(new FlatSVGIcon("icons/user.svg", 80, 80));
+            label.setText("admin");
+            label.setVerticalTextPosition(SwingConstants.BOTTOM);  //必须设置文字树直方向位置
+            label.setHorizontalTextPosition(SwingConstants.CENTER);
+            infoPanel.add(label, BorderLayout.CENTER);
+            infoPanel.add(new JLabel("系统管理员", JLabel.CENTER), BorderLayout.SOUTH);
+            label.setPreferredSize(new Dimension(240, 100));
+            JMenuItem menuItem9 = new JMenuItem("个人信息");
+            menuItem9.setIcon(new FlatSVGIcon("icons/gerenxinxi.svg", 25, 25));
+            JMenuItem menuItem11 = new JMenuItem("退出");
+            menuItem11.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
 
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel("", JLabel.CENTER);
-        label.setIcon(new FlatSVGIcon("icons/user.svg", 80, 80));
-        label.setText("admin");
-        label.setVerticalTextPosition(SwingConstants.BOTTOM);  //必须设置文字树直方向位置
-        label.setHorizontalTextPosition(SwingConstants.CENTER);
-        infoPanel.add(label, BorderLayout.CENTER);
-        infoPanel.add(new JLabel("系统管理员", JLabel.CENTER), BorderLayout.SOUTH);
-        label.setPreferredSize(new Dimension(240, 100));
-        JMenuItem menuItem9 = new JMenuItem("个人信息");
-        menuItem9.setIcon(new FlatSVGIcon("icons/gerenxinxi.svg", 25, 25));
-        JMenuItem menuItem11 = new JMenuItem("退出");
-        menuItem11.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
+            menuItem11.addActionListener(e1 -> loginOut(false));
+            menuItem9.addActionListener(e1 -> {
 
-        menuItem11.addActionListener(e1 -> loginOut(false));
-        menuItem9.addActionListener(e1 -> {
-
-            int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("个人信息");
-            PersonalCenterPanel personalCenterPanel;
-            if (tabIndex == -1) {
-                personalCenterPanel = new PersonalCenterPanel();
-                MainFrame.getInstance().getTabbedPane().addTab("个人信息", personalCenterPanel);
-            } else {
-                personalCenterPanel = (PersonalCenterPanel) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
-            }
-            MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("个人信息"));
-            personalCenterPanel.updateData();
+                int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("个人信息");
+                PersonalCenterPanel personalCenterPanel;
+                if (tabIndex == -1) {
+                    personalCenterPanel = new PersonalCenterPanel();
+                    MainFrame.getInstance().getTabbedPane().addTab("个人信息", personalCenterPanel);
+                } else {
+                    personalCenterPanel = (PersonalCenterPanel) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
+                }
+                MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("个人信息"));
+                personalCenterPanel.updateData();
 
 
-        });
+            });
 
-        popupMenu.add(infoPanel);
-        popupMenu.addSeparator();
-        popupMenu.add(menuItem9);
-        popupMenu.addSeparator();
-        popupMenu.add(menuItem11);
-        popupMenu.show(invoker, 0, invoker.getHeight());
+            personalPopupMenu.add(infoPanel);
+            personalPopupMenu.addSeparator();
+            personalPopupMenu.add(menuItem9);
+            personalPopupMenu.addSeparator();
+            personalPopupMenu.add(menuItem11);
+        }
+
+
+        personalPopupMenu.show(invoker, 0, invoker.getHeight());
 
     }
 

@@ -167,7 +167,7 @@ public class MyNotifyMessagePane extends JPanel {
         startDateTextField.setValue(null);
         endDateTextField.setValue(null);
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
-
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
     @Override
@@ -270,7 +270,7 @@ public class MyNotifyMessagePane extends JPanel {
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             Boolean b = (Boolean) tableModel.getValueAt(i, 0);
             if (b) {
-                NotifyMessageRespVO notifyMessageRespVO = (NotifyMessageRespVO) tableModel.getValueAt(i, COLUMN_ID.length-1);
+                NotifyMessageRespVO notifyMessageRespVO = (NotifyMessageRespVO) tableModel.getValueAt(i, COLUMN_ID.length - 1);
 
                 ids.add(notifyMessageRespVO.getId());
             }
