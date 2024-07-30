@@ -274,7 +274,7 @@ public class TokenView implements FxmlView<TokenViewModel>, Initializable {
                             .addConsumerInPlatformThread(r -> {
                                 if (r.isSuccess()) {
                                     dialog.close();
-                                    MvvmFX.getNotificationCenter().publish("message", "删除成功", MessageType.SUCCESS);
+                                    MvvmFX.getNotificationCenter().publish("message", "强退成功", MessageType.SUCCESS);
 
                                     viewModel.loadTableData();
                                 }
@@ -283,7 +283,7 @@ public class TokenView implements FxmlView<TokenViewModel>, Initializable {
                 })
         );
 
-        dialog.setContent(new Label("是否确认删除名称为" + respVO.getUserId() + "的数据项？"));
+        dialog.setContent(new Label("是否确认强退名称为" + respVO.getUserId() + "的数据项？"));
         dialog.show(rootPane.getScene());
     }
 }

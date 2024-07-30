@@ -66,8 +66,6 @@ public class JobLogView implements FxmlView<JobLogViewModel>, Initializable {
     @FXML
     private TableColumn<JobLogRespVO, ?> idCol;
 
-    @FXML
-    private Button infoBut;
 
     @FXML
     private TableColumn<JobLogRespVO, ?> jobIdCol;

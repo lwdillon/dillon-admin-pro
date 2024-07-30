@@ -139,7 +139,7 @@ public class JobPane extends JPanel {
                 newBut.setText("新增");
                 toolPane.add(newBut, "cell 0 0");
 
-                toolPane.add(logBut = new JButton("调度日志"), "cell 0 0");
+                toolPane.add(logBut = new JButton("执行日志"), "cell 0 0");
             }
             centerPane.add(toolPane, BorderLayout.NORTH);
         }
@@ -611,15 +611,15 @@ public class JobPane extends JPanel {
     }
 
     private void showJobLogTab(JobRespVO respVO) {
-        int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("调度日志");
+        int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("执行日志");
         JobLogPane jobLogPane;
         if (tabIndex == -1) {
             jobLogPane = new JobLogPane();
-            MainFrame.getInstance().getTabbedPane().addTab("调度日志", jobLogPane);
+            MainFrame.getInstance().getTabbedPane().addTab("执行日志", jobLogPane);
         } else {
             jobLogPane = (JobLogPane) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
         }
-        MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("调度日志"));
+        MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("执行日志"));
         jobLogPane.loadTableData(respVO.getHandlerName());
 
     }

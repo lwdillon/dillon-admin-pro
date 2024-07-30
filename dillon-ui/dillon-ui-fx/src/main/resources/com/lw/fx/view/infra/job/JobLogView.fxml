@@ -31,7 +31,6 @@
                             </graphic>
                         </Button>
 
-                        <Button fx:id="infoBut" mnemonicParsing="false" text="执行日志" />
                     </children>
                     <opaqueInsets>
                         <Insets />
