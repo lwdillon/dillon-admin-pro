@@ -4,18 +4,17 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import com.dlsc.gemsfx.DialogPane;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.dillon.admin.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
 import com.lw.fx.util.MessageType;
 import com.lw.fx.view.control.PagingControl;
 import com.lw.fx.view.control.WFXGenericDialog;
-import com.lw.fx.view.system.operatelog.OperateLogDetailView;
-import com.lw.fx.view.system.operatelog.OperateLogDetailViewModel;
 import com.lw.fx.vo.NotifyMessageVo;
 import com.lw.ui.request.api.system.OperateLogFeign;
 import com.lw.ui.utils.DictTypeEnum;
-import de.saxsys.mvvmfx.*;
+import de.saxsys.mvvmfx.FxmlView;
+import de.saxsys.mvvmfx.InjectViewModel;
+import de.saxsys.mvvmfx.MvvmFX;
 import io.datafx.core.concurrent.ProcessChain;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,15 +31,14 @@ import javafx.util.Callback;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import javax.swing.*;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.ResourceBundle;
 
 import static atlantafx.base.theme.Styles.*;
-import static com.lw.ui.utils.DictTypeEnum.*;
+import static com.lw.ui.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
+import static com.lw.ui.utils.DictTypeEnum.SYSTEM_NOTIFY_TEMPLATE_TYPE;
 
 public class MyNotifyMessageView implements FxmlView<MyNotifyMessageViewModel>, Initializable {
 

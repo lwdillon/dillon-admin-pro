@@ -2,7 +2,6 @@ package com.lw.ui.request.api.job;
 
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
-import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobPageReqVO;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.lw.ui.request.api.BaseFeignApi;
@@ -10,7 +9,6 @@ import feign.Param;
 import feign.QueryMap;
 import feign.RequestLine;
 
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;

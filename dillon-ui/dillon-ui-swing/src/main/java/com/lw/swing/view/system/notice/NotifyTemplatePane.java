@@ -6,7 +6,6 @@ package com.lw.swing.view.system.notice;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;

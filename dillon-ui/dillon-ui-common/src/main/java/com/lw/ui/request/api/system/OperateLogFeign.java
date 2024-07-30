@@ -9,7 +9,6 @@ import feign.QueryMap;
 import feign.RequestLine;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 
 public interface OperateLogFeign extends BaseFeignApi {

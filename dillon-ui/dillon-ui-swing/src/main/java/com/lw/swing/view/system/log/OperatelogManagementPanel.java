@@ -12,27 +12,22 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
-import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
 import com.lw.swing.request.Request;
-import com.lw.swing.utils.BadgeLabelUtil;
 import com.lw.ui.request.api.system.OperateLogFeign;
-import com.lw.ui.utils.DictTypeEnum;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.lw.ui.utils.DictTypeEnum.*;
 import static javax.swing.JOptionPane.*;
 
 /**

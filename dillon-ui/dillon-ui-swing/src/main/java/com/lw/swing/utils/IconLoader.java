@@ -33,7 +33,6 @@
 
 package com.lw.swing.utils;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 

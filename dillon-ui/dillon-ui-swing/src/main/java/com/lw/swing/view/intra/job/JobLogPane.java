@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.lw.ui.utils.DictTypeEnum.*;
+import static com.lw.ui.utils.DictTypeEnum.INFRA_JOB_LOG_STATUS;
+import static com.lw.ui.utils.DictTypeEnum.INFRA_JOB_STATUS;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 

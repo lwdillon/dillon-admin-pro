@@ -1,13 +1,9 @@
 package com.lw.fx.view.main;
 
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
-import com.lw.fx.request.Request;
 import com.lw.fx.util.MessageType;
-import com.lw.fx.view.system.config.UserInfoView;
-import com.lw.fx.view.system.config.UserInfoViewModel;
 import com.lw.fx.view.system.notice.MyNotifyMessageView;
 import com.lw.fx.view.system.notice.MyNotifyMessageViewModel;
-import com.lw.ui.request.api.system.NotifyMessageFeign;
 import de.saxsys.mvvmfx.*;
 import io.datafx.core.concurrent.ProcessChain;
 import javafx.beans.binding.Bindings;
@@ -15,7 +11,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -28,7 +27,7 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 
-import static atlantafx.base.theme.Styles.*;
+import static atlantafx.base.theme.Styles.ACCENT;
 
 public class MessageView implements FxmlView<MessageViewModel>, Initializable {
     @FXML

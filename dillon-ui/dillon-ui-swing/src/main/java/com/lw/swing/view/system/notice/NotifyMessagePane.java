@@ -19,7 +19,6 @@ import com.lw.swing.request.Request;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
 import com.lw.ui.request.api.system.NotifyMessageFeign;
-import com.lw.ui.request.api.system.OperateLogFeign;
 import com.lw.ui.utils.DictTypeEnum;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
@@ -34,7 +33,8 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.*;
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 
 /**
  * @author wenli

@@ -38,7 +38,8 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.WARNING_MESSAGE;
 
 /**
  * @author wenli

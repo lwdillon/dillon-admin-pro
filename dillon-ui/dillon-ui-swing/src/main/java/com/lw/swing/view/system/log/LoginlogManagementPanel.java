@@ -12,7 +12,6 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
-import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
@@ -32,7 +31,8 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.lw.ui.utils.DictTypeEnum.*;
+import static com.lw.ui.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
+import static com.lw.ui.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
 import static javax.swing.JOptionPane.*;
 
 /**

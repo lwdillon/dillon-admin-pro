@@ -4,8 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
-import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
-import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.lw.fx.request.Request;
 import com.lw.ui.request.api.job.JobFeign;
 import de.saxsys.mvvmfx.ViewModel;

@@ -2,12 +2,9 @@ package com.lw.fx.request;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.lw.dillon.admin.module.infra.framework.file.core.client.FileClientConfig;
-import com.lw.fx.request.feign.FileClientConfigAdapter;
 import com.lw.fx.request.feign.interceptor.ForwardedForInterceptor;
 import com.lw.fx.request.feign.interceptor.OkHttpInterceptor;
 import com.lw.ui.request.api.BaseFeignApi;
-import com.lw.ui.request.api.file.FileFeign;
 import com.lw.ui.request.gson.LocalDateTimeTypeAdapter;
 import com.lw.ui.request.gson.LocalDateTypeAdapter;
 import com.lw.ui.request.gson.ZonedDateTimeTypeAdapter;

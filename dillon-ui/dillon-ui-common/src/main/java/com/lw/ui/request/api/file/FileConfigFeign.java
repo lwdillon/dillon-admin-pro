@@ -3,7 +3,6 @@ package com.lw.ui.request.api.file;
 import com.google.gson.JsonObject;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
-import com.lw.dillon.admin.module.infra.controller.admin.file.vo.config.FileConfigRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.lw.ui.request.api.BaseFeignApi;
 import feign.Param;

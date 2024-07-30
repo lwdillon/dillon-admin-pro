@@ -5,7 +5,6 @@ import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.file.FileCreateReqVO;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.file.FilePresignedUrlRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.file.FileRespVO;
-import com.lw.dillon.admin.module.infra.controller.admin.file.vo.file.FileUploadReqVO;
 import com.lw.ui.request.api.BaseFeignApi;
 import feign.Headers;
 import feign.Param;

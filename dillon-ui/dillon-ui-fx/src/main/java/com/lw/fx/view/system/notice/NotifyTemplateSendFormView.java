@@ -1,12 +1,10 @@
 package com.lw.fx.view.system.notice;
 
-import atlantafx.base.controls.CustomTextField;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.fx.store.AppStore;
 import de.saxsys.mvvmfx.FxmlView;
 import de.saxsys.mvvmfx.InjectViewModel;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -17,13 +15,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.kordamp.ikonli.feather.Feather;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import static com.lw.ui.utils.DictTypeEnum.*;
+import static com.lw.ui.utils.DictTypeEnum.USER_TYPE;
 
 public class NotifyTemplateSendFormView implements FxmlView<NotifyTemplateSendFormViewModel>, Initializable {
     @InjectViewModel
