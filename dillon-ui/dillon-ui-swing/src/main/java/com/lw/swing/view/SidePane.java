@@ -76,6 +76,7 @@ public class SidePane extends WPanel {
 
 
                         ((JLabel) component).setIcon(svgIcon);
+                        ((JLabel) component).setIconTextGap(7);
 
                     }
 

@@ -66,11 +66,13 @@
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-javafx</artifactId>
             <version>${lib.ikonli.version}</version>
+
         </dependency>
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-feather-pack</artifactId>
             <version>${lib.ikonli.version}</version>
+
         </dependency>
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
@@ -86,12 +88,19 @@
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
             <version>${controlsfx.version}</version>
+
         </dependency>
 
         <dependency>
             <groupId>fr.brouillard.oss</groupId>
             <artifactId>cssfx</artifactId>
             <version>${lib.cssfx.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -103,7 +112,6 @@
             <groupId>de.saxsys</groupId>
             <artifactId>mvvmfx</artifactId>
             <version>${mvvmfx-version}</version>
-
         </dependency>
         <dependency>
             <groupId>de.saxsys</groupId>
@@ -116,6 +124,12 @@
             <groupId>io.github.mkpaz</groupId>
             <artifactId>atlantafx-base</artifactId>
             <version>${atlantafx.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -149,16 +163,7 @@
             <version>1.2.4</version>
         </dependency>
 
-        <dependency>
-            <groupId>de.saxsys</groupId>
-            <artifactId>mvvmfx</artifactId>
-            <version>${mvvmfx-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.saxsys</groupId>
-            <artifactId>mvvmfx-validation</artifactId>
-            <version>${mvvmfx-version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.kordamp.jipsy</groupId>
             <artifactId>jipsy-processor</artifactId>
@@ -177,6 +182,12 @@
             <groupId>com.dlsc.gemsfx</groupId>
             <artifactId>gemsfx</artifactId>
             <version>2.32.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

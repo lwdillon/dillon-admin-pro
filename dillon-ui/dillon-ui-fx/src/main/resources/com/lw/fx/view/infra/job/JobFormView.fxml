@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootBox" alignment="TOP_CENTER" prefHeight="257.0" prefWidth="620.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.infra.job.JobFormView">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*任务名称" />
+                <TextField fx:id="nameField" promptText="请输入任务名称" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*处理器的名字" />
+                <TextField fx:id="handlerNameField" promptText="请输入处理器的名字" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="basePathBox" alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*处理器的参数" />
+                <TextField fx:id="handlerParamField" promptText="请输入处理器的参数" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="hostBox" alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*CRON 表达式" />
+                <TextField fx:id="cronExpressionField" promptText="请输入CRON 表达式" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="portBox" alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*重试次数" />
+                <TextField fx:id="retryCountField" promptText="请输入重试次数。设置为 0 时，不进行重试" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="usernameBox" alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*重试间隔" />
+                <TextField fx:id="retryIntervalFiled" promptText="请输入重试间隔，单位：毫秒。设置为 0 时，无需间隔" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox fx:id="passwordBox" alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" minWidth="80.0" text="*监控超时时间" />
+                <TextField fx:id="monitorTimeoutFiled" promptText="请输入监控超时时间，单位：毫秒" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+
+    </children>
+    <padding>
+        <Insets right="10.0" />
+    </padding>
+
+</VBox>
