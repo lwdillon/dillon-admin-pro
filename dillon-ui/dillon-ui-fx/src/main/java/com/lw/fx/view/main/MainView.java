@@ -8,9 +8,14 @@ import animatefx.util.ParallelAnimationFX;
 import atlantafx.base.controls.Popover;
 import atlantafx.base.theme.Tweaks;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.dlsc.gemsfx.AvatarView;
+import com.dlsc.gemsfx.infocenter.*;
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
+import com.lw.dillon.admin.framework.websocket.core.message.JsonWebSocketMessage;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
+import com.lw.fx.store.AppStore;
 import com.lw.fx.util.Lazy;
 import com.lw.fx.view.general.ThemePage;
 import com.lw.fx.view.home.DashboardView;
@@ -18,6 +23,9 @@ import com.lw.fx.view.home.DashboardViewModel;
 import com.lw.fx.view.system.config.UserInfoView;
 import com.lw.fx.view.system.config.UserInfoViewModel;
 import com.lw.fx.view.system.menu.MenuManageView;
+import com.lw.fx.view.system.notice.MyNotifyMessageView;
+import com.lw.fx.view.system.notice.MyNotifyMessageViewModel;
+import com.lw.ui.utils.DictTypeEnum;
 import de.saxsys.mvvmfx.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -31,10 +39,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.util.Duration;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.feather.Feather;
@@ -42,6 +47,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.material2.Material2AL;
 
 import java.net.URL;
+import java.time.ZonedDateTime;
 import java.util.ResourceBundle;
 
 import static atlantafx.base.theme.Styles.*;
@@ -68,16 +74,24 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
     private Button logoBut;
     @FXML
     private ToggleButton menuButton;
-    @FXML
     private TabPane tabPane;
     @FXML
     private VBox sideBox;
+    @FXML
+    private StackPane contentPane;
 
     private Popover popover;
 
     private NavTree<AuthPermissionInfoRespVO.MenuVO> sideMenu;
 
     private Lazy<ThemeDialog> themeDialog;
+
+    private final InfoCenterPane infoCenterPane = new InfoCenterPane();
+
+    private final NotificationGroup<Mail, MailNotification> mailGroup = new NotificationGroup<>("通知公告");
+    private final NotificationGroup<Object, SlackNotification> slackGroup = new NotificationGroup<>("消息");
+    private final NotificationGroup<Object, CalendarNotification> calendarGroup = new NotificationGroup<>("Calendar");
+
 
     @InjectViewModel
     private MainViewModel mainViewModel;
@@ -87,7 +101,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
+        createInfoCenterView();
         popover = new Popover();
         popover.setHeaderAlwaysVisible(false);
         popover.setArrowLocation(Popover.ArrowLocation.TOP_CENTER);
@@ -176,11 +190,11 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         initListeners();
 
 
-        noticeBut.setOnMouseClicked(actionEvent ->{
+        noticeBut.setOnMouseClicked(actionEvent -> {
             ViewTuple<MessageView, MessageViewModel> viewTuple = FluentViewLoader.fxmlView(MessageView.class).load();
             popover.setContentNode(viewTuple.getView());
             popover.show(noticeBut);
-        } );
+        });
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(400), rootPane);
         fadeTransition.setFromValue(0);
         fadeTransition.setToValue(1);
@@ -197,14 +211,55 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         });
         toggleStyleClass(sideMenu, Tweaks.ALT_ICON);
 
-        tagLabel.visibleProperty().bind(Bindings.createBooleanBinding( () -> {
+        tagLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
                     String text = mainViewModel.unreadCountProperty().get();
                     return text != null && !text.isEmpty();
                 },
                 mainViewModel.unreadCountProperty()));
         tagLabel.textProperty().bindBidirectional(mainViewModel.unreadCountProperty());
+
     }
 
+    private void createInfoCenterView() {
+        slackGroup.setSortOrder(0);
+        calendarGroup.setSortOrder(1);
+        mailGroup.setSortOrder(2);
+
+        slackGroup.maximumNumberOfNotificationsProperty().bind(Bindings.createIntegerBinding(() -> slackGroup.isPinned() ? 3 : 10, slackGroup.pinnedProperty()));
+        calendarGroup.maximumNumberOfNotificationsProperty().bind(Bindings.createIntegerBinding(() -> calendarGroup.isPinned() ? 3 : 10, calendarGroup.pinnedProperty()));
+        mailGroup.maximumNumberOfNotificationsProperty().bind(Bindings.createIntegerBinding(() -> mailGroup.isPinned() ? 3 : 10, mailGroup.pinnedProperty()));
+
+        slackGroup.setViewFactory(n -> {
+            NotificationView<Object, SlackNotification> view = new NotificationView<>(n);
+//            view.setGraphic(createImageView(SLACK_IMAGE));
+            return view;
+        });
+
+        calendarGroup.setViewFactory(n -> {
+            NotificationView<Object, CalendarNotification> view = new NotificationView<>(n);
+//            view.setGraphic(createImageView(CALENDAR_IMAGE));
+            Region region = new Region();
+            region.setMinHeight(200);
+//            region.setBackground(new Background(new BackgroundImage(MAP_IMAGE, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, false, true))));
+            StackPane stackPane = new StackPane(region);
+            stackPane.setStyle("-fx-border-color: grey;");
+            view.setContent(stackPane);
+            return view;
+        });
+
+        mailGroup.setViewFactory(n -> {
+            NotificationView<Mail, MailNotification> view = new NotificationView<>(n);
+//            view.setGraphic(createImageView(MAIL_IMAGE));
+            return view;
+        });
+
+        InfoCenterView infoCenterView = infoCenterPane.getInfoCenterView();
+        infoCenterView.getGroups().setAll(mailGroup, slackGroup, calendarGroup);
+
+
+        infoCenterPane.setContent(tabPane = new TabPane());
+        contentPane.getChildren().add(infoCenterPane);
+    }
 
     private void initListeners() {
         menuButton.setOnAction(actionEvent -> {
@@ -247,10 +302,69 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
             });
 
         });
+        MvvmFX.getNotificationCenter().subscribe("socketMessage", (key, payload) -> {
+
+            // trigger some actions
+            Platform.runLater(() -> {
+                assignNotification(createNotification((JsonWebSocketMessage)payload[0]));
+
+            });
+
+        });
 
 
     }
 
+    private Notification<?> createNotification(JsonWebSocketMessage webSocketMessage) {
+
+        Notification notification = null;
+        switch (webSocketMessage.getType()) {
+            case "notice-push": {
+                notification = createMailNotification(webSocketMessage.getContent());
+                break;
+            }
+        }
+
+
+
+        return notification;
+    }
+
+    private ZonedDateTime createTimeStamp() {
+        ZonedDateTime time = ZonedDateTime.now();
+        time = time.minusDays((int) (Math.random() * 2));
+        time = time.minusMinutes((int) (Math.random() * 30));
+        time = time.minusSeconds((int) (Math.random() * 45));
+        return time;
+    }
+
+    private void assignNotification(Notification<?> notification) {
+        if (notification instanceof MailNotification) {
+            mailGroup.getNotifications().add((MailNotification) notification);
+        } else if (notification instanceof CalendarNotification) {
+            calendarGroup.getNotifications().add((CalendarNotification) notification);
+        } else if (notification instanceof SlackNotification) {
+            slackGroup.getNotifications().add((SlackNotification) notification);
+        }
+    }
+
+    private MailNotification createMailNotification(String jsonStr) {
+
+        JSONObject jsonObject= JSONUtil.parseObj(jsonStr);
+        Mail mail = new Mail(AppStore.getDictDataValueMap(DictTypeEnum.SYSTEM_NOTICE_TYPE).get(jsonObject.getStr("type")).getLabel(), jsonObject.getStr("title"), ZonedDateTime.now());
+        MailNotification mailNotification = new MailNotification(mail);
+
+        NotificationAction<Mail> openMailAction = new NotificationAction<>("查看", (notification) -> {
+            ViewTuple<MyNotifyMessageView, MyNotifyMessageViewModel> viewTuple = FluentViewLoader.fxmlView(MyNotifyMessageView.class).load();
+            MvvmFX.getNotificationCenter().publish("addTab", "我的消息", Feather.MAIL, viewTuple.getView());
+            return Notification.OnClickBehaviour.HIDE_AND_REMOVE;
+        });
+
+
+        mailNotification.getActions().add(openMailAction);
+
+        return mailNotification;
+    }
 
     private void loddTab(AuthPermissionInfoRespVO.MenuVO obj) {
         var title = obj.getName();
@@ -397,6 +511,69 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         var dialog = themeDialog.get();
         dialog.show(rootPane.getScene());
         Platform.runLater(dialog::requestFocus);
+    }
+
+
+    public static class CalendarNotification extends Notification<Object> {
+
+        public CalendarNotification(String title, String description) {
+            super(title, description);
+            setOnClick(notification -> OnClickBehaviour.HIDE_AND_REMOVE);
+        }
+    }
+
+    public static class SlackNotification extends Notification<Object> {
+
+        public SlackNotification(String title, String description) {
+            super(title, description);
+            setOnClick(notification -> OnClickBehaviour.REMOVE);
+        }
+    }
+
+    public static class MailNotification extends Notification<Mail> {
+
+        public MailNotification(Mail mail) {
+            super(mail.getTitle(), mail.getDescription(), mail.getDateTime());
+            setUserObject(mail);
+            setOnClick(notification -> OnClickBehaviour.NONE);
+        }
+    }
+
+    public static class Mail {
+
+        private String title;
+        private String description;
+        private ZonedDateTime dateTime;
+
+        public Mail(String title, String description, ZonedDateTime dateTime) {
+            this.title = title;
+            this.description = description;
+            this.dateTime = dateTime;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public ZonedDateTime getDateTime() {
+            return dateTime;
+        }
+
+        public void setDateTime(ZonedDateTime dateTime) {
+            this.dateTime = dateTime;
+        }
     }
 
 }

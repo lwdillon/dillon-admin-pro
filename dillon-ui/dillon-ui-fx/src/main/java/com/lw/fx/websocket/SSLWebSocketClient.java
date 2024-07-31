@@ -1,6 +1,15 @@
 package com.lw.fx.websocket;
 
+import com.lw.dillon.admin.framework.common.util.json.JsonUtils;
+import com.lw.dillon.admin.framework.websocket.core.message.JsonWebSocketMessage;
+import com.lw.dillon.admin.module.system.controller.admin.notice.vo.NoticeRespVO;
+import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
+import com.lw.fx.util.MessageType;
+import com.lw.ui.request.api.system.AuthFeign;
+import de.saxsys.mvvmfx.MvvmFX;
+import io.datafx.core.concurrent.ProcessChain;
+import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.java_websocket.client.WebSocketClient;
@@ -62,6 +71,23 @@ public class SSLWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         log.info("[websocket] 收到消息={}", message);
 
+
+        ProcessChain.create()
+                .addSupplierInExecutor(() -> {
+                    return JsonUtils.parseObject(message, JsonWebSocketMessage.class);
+                })
+                .addConsumerInPlatformThread(rel -> {
+
+                    if (rel != null) {
+                        MvvmFX.getNotificationCenter().publish("socketMessage", rel);
+                    }
+                })
+                .onException(e -> {
+                    e.printStackTrace();
+                })
+                .withFinal(() -> {
+                })
+                .run();
 
     }
 
@@ -149,7 +175,7 @@ public class SSLWebSocketClient extends WebSocketClient {
         }
     }
 
-    public  void loginOut() {
+    public void loginOut() {
         if (instance != null && instance.isOpen()) {
             instance.close();
             executorService.shutdown();
@@ -159,7 +185,7 @@ public class SSLWebSocketClient extends WebSocketClient {
     }
 
 
-    public  void start() {
+    public void start() {
         executorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {

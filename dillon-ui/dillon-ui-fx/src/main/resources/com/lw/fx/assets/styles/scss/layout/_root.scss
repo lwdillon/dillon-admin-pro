@@ -294,4 +294,33 @@
   }
 
 
+  .info-center-view .notification-view > .content {
+    -fx-background-radius: 8px;
+    -fx-background-color: -color-bg-default;
+    -fx-padding: 10px 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .26), 15, 0.16, -1, 4);
+  }
+
+  .info-center-view .notification-view > .content > .close-icon-wrapper {
+    -size: 24px;
+    -fx-min-width: -size;
+    -fx-min-height: -size;
+    -fx-pref-width: -size;
+    -fx-pref-height: -size;
+    -fx-max-width: -size;
+    -fx-max-height: -size;
+
+    -fx-translate-x: -5;
+    -fx-translate-y: -5;
+
+    -fx-background-radius: 1000px;
+    -fx-background-color: -color-danger-muted;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, .26), 15, 0.16, -1, 4);
+  }
+
+  .info-center-view .notification-view > .content > .text-container > .actions-box .button {
+    -fx-padding: 2px 5px;
+    -fx-background-color:  -color-accent-muted;
+    -fx-background-radius: 2px;
+  }
 }
