@@ -42,7 +42,7 @@ public class OptButtonTableCellRenderer extends DefaultTableCellRenderer {
             Object v = table.getValueAt(row, hideCol);
             this.component.setVisible(!ObjectUtil.equal(v, hideValue));
         }
-        panel.setOpaque(isSelected);
+        panel.setOpaque(hasFocus||isSelected);
         return panel;
     }
 

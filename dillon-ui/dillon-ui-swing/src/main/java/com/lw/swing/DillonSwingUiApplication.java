@@ -40,7 +40,7 @@ public class DillonSwingUiApplication {
             ChartFactory.setChartTheme(chartTheme);
 
             MainFrame frame = MainFrame.getInstance();
-            frame.setTitle("Dillon-Pro-管理系统");
+            frame.setTitle("后台管理系统");
             frame.showLogin();
         });
     }

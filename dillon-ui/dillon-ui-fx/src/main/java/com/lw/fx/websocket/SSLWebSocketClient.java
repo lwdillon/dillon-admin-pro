@@ -2,14 +2,9 @@ package com.lw.fx.websocket;
 
 import com.lw.dillon.admin.framework.common.util.json.JsonUtils;
 import com.lw.dillon.admin.framework.websocket.core.message.JsonWebSocketMessage;
-import com.lw.dillon.admin.module.system.controller.admin.notice.vo.NoticeRespVO;
-import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
-import com.lw.fx.util.MessageType;
-import com.lw.ui.request.api.system.AuthFeign;
 import de.saxsys.mvvmfx.MvvmFX;
 import io.datafx.core.concurrent.ProcessChain;
-import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.java_websocket.client.WebSocketClient;

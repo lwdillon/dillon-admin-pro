@@ -1,11 +1,11 @@
 package com.lw.dillon.admin.module.system.dal.dataobject.oauth2;
 
-import com.lw.dillon.admin.framework.common.enums.UserTypeEnum;
-import com.lw.dillon.admin.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.lw.dillon.admin.framework.common.enums.UserTypeEnum;
+import com.lw.dillon.admin.framework.mybatis.core.dataobject.BaseDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

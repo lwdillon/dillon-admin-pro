@@ -360,7 +360,7 @@ public class MainFrame extends JFrame {
 
     public JLabel getTitleLabel() {
         if (titleLabel == null) {
-            titleLabel = new JLabel("Dillon-Pro-管理系统");
+            titleLabel = new JLabel("后台管理系统");
             titleLabel.putClientProperty("FlatLaf.styleClass", "h1");
             titleLabel.setIcon(new FlatSVGIcon("icons/guanli.svg", 45, 45));
             titleLabel.setBorder(BorderFactory.createEmptyBorder(7, 3, 7, 7));

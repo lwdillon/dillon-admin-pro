@@ -1,10 +1,10 @@
 package com.lw.dillon.admin.module.system.dal.dataobject.notice;
 
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.lw.dillon.admin.framework.common.enums.CommonStatusEnum;
 import com.lw.dillon.admin.framework.mybatis.core.dataobject.BaseDO;
 import com.lw.dillon.admin.module.system.enums.notice.NoticeTypeEnum;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

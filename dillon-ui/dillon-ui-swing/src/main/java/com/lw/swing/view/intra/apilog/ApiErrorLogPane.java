@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-import static com.lw.ui.utils.DictTypeEnum.*;
+import static com.lw.ui.utils.DictTypeEnum.INFRA_API_ERROR_LOG_PROCESS_STATUS;
+import static com.lw.ui.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.*;
 
 /**

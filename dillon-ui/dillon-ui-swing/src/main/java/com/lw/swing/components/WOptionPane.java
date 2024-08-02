@@ -40,7 +40,7 @@ public class WOptionPane extends JOptionPane {
 
     public WOptionPane(Object message, int messageType, int optionType, Icon icon, Object[] options, Object initialValue) {
         super(message, messageType, optionType, icon, options, initialValue);
-        setBackground(UIManager.getColor("App.optionPaneBackground"));
+//        setBackground(UIManager.getColor("App.optionPaneBackground"));
     }
 
 
