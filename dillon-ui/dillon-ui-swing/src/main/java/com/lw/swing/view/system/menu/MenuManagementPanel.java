@@ -17,6 +17,7 @@ import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
 import com.lw.swing.request.Request;
+import com.lw.swing.store.AppStore;
 import com.lw.swing.view.MainFrame;
 import com.lw.ui.request.api.system.MenuFeign;
 import org.jdesktop.swingx.JXTreeTable;
@@ -50,7 +51,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
 
     private JTextField nameTextField;
     private JComboBox statusCombo;
-
+   private JToggleButton exButton;
 
     private WaitPane waitPane;
 
@@ -89,7 +90,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         });
         addButton.setBackground(new Color(0x1c7dfa));
 
-        JToggleButton exButton = new JToggleButton("展开/折叠");
+        exButton= new JToggleButton("展开/折叠");
         toolBar.add(exButton);
         exButton.addActionListener(e -> {
             if (exButton.isSelected()) {
@@ -136,14 +137,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
                 ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
                 treeTable.setHighlighters(rollover);
                 treeTable.setIntercellSpacing(new Dimension(0, 1));
-//                treeTable.setLeafIcon(null);
-//                treeTable.setClosedIcon(null);
-//                treeTable.setOpenIcon(null);
 
-//                DefaultTableCellRenderer dc = new DefaultTableCellRenderer();
-//                dc.setHorizontalAlignment(SwingConstants.CENTER);
-//                dc.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-//                treeTable.getColumn("排序").setCellRenderer(dc);
 
             }
         });
@@ -259,6 +253,9 @@ public class MenuManagementPanel extends JPanel implements Observer {
                 try {
                     if (CollUtil.isNotEmpty(get())) {
                         updateTreeTableRoot(get());
+                        if (exButton.isSelected()) {
+                            treeTable.expandAll();
+                        }
                     }
 
                 } catch (Exception e) {
@@ -366,6 +363,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
                     if (get().isSuccess()) {
                         WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
                         updateData();
+                        AppStore.getMenuRefreshObservable().refresh();
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -393,7 +391,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
                         WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
 
                         updateData();
-
+                        AppStore.getMenuRefreshObservable().refresh();
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -439,6 +437,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
                         WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
 
                         updateData();
+                        AppStore.getMenuRefreshObservable().refresh();
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

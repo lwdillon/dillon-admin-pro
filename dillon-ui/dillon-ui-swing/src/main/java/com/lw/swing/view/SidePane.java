@@ -3,11 +3,14 @@ package com.lw.swing.view;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.swing.components.WPanel;
 import com.lw.swing.components.WScrollPane;
+import com.lw.swing.request.Request;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.IconLoader;
+import com.lw.ui.request.api.system.AuthFeign;
 import lombok.extern.slf4j.Slf4j;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
@@ -20,6 +23,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -27,7 +32,7 @@ import java.util.concurrent.ExecutionException;
  * @date 2024/05/09
  */
 @Slf4j
-public class SidePane extends WPanel {
+public class SidePane extends WPanel implements Observer {
 
 
     private JXTreeTable treeTable;
@@ -36,7 +41,7 @@ public class SidePane extends WPanel {
         initComponents();
         initListeners();
         initData();
-
+        AppStore.getMenuRefreshObservable().addObserver(this);
     }
 
     private void initComponents() {
@@ -64,15 +69,15 @@ public class SidePane extends WPanel {
                 Component component = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
                 if (component instanceof JLabel) {
                     if (value instanceof AuthPermissionInfoRespVO.MenuVO) {
-                        AuthPermissionInfoRespVO.MenuVO menuVO= (AuthPermissionInfoRespVO.MenuVO) value;
+                        AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) value;
                         ((JLabel) component).setText(menuVO.getName());
                         String icon = menuVO.getIcon();
                         if (StrUtil.isBlank(menuVO.getIcon())) {
-                            icon="icons/item.svg";
-                        }else if (StrUtil.contains(icon,":")){
-                            icon="icons/menu/"+icon.split(":")[1]+".svg";
+                            icon = "icons/item.svg";
+                        } else if (StrUtil.contains(icon, ":")) {
+                            icon = "icons/menu/" + icon.split(":")[1] + ".svg";
                         }
-                        FlatSVGIcon svgIcon =  IconLoader.getSvgIcon(icon,25,25);
+                        FlatSVGIcon svgIcon = IconLoader.getSvgIcon(icon, 25, 25);
 
 
                         ((JLabel) component).setIcon(svgIcon);
@@ -106,6 +111,9 @@ public class SidePane extends WPanel {
 
     private void initListeners() {
         treeTable.addTreeSelectionListener(e -> {
+            if (e.getNewLeadSelectionPath() == null) {
+                return;
+            }
             Object object = e.getNewLeadSelectionPath().getLastPathComponent();
 
             if (object instanceof AuthPermissionInfoRespVO.MenuVO) {
@@ -193,6 +201,45 @@ public class SidePane extends WPanel {
         return container;
     }
 
+    @Override
+    public void update(Observable o, Object arg) {
+        if (this.isDisplayable()) {
+            updateData();
+        }
+    }
+
+    private void updateData() {
+        SwingWorker<AuthPermissionInfoRespVO.MenuVO, Object> swingWorker = new SwingWorker<AuthPermissionInfoRespVO.MenuVO, Object>() {
+            @Override
+            protected AuthPermissionInfoRespVO.MenuVO doInBackground() throws Exception {
+
+
+                CommonResult<AuthPermissionInfoRespVO> permissionInfoRespVOCommonResult = Request.connector(AuthFeign.class).getPermissionInfo();
+                AuthPermissionInfoRespVO.MenuVO rootNode = new AuthPermissionInfoRespVO.MenuVO();
+                rootNode.setName("root");
+                if (permissionInfoRespVOCommonResult.isSuccess()) {
+                    AppStore.setAuthPermissionInfoRespVO(permissionInfoRespVOCommonResult.getData());
+
+                    rootNode.setChildren(AppStore.getMenus());
+                }
+
+
+                return rootNode;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    updateTreeTableRoot(get());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        swingWorker.execute();
+    }
 
     class MenuModel extends AbstractTreeTableModel {
 

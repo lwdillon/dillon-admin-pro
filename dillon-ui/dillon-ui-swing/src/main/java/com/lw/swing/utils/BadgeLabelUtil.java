@@ -34,4 +34,29 @@ public class BadgeLabelUtil {
         return redBadge;
 
     }
+
+    public static JLabel getBadgeLabel(String text, String colortype) {
+        JLabel redBadge = new JLabel(text);
+        switch (colortype) {
+            case "primary":
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "primary");
+                break;
+            case "success":
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "success");
+                break;
+            case "info":
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "info");
+                break;
+            case "warning":
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "warning");
+                break;
+            case "danger":
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "danger");
+                break;
+            default:
+                redBadge.putClientProperty(FlatClientProperties.STYLE_CLASS, "info");
+        }
+        return redBadge;
+
+    }
 }

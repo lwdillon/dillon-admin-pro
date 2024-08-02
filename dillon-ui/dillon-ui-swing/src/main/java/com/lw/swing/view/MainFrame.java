@@ -109,6 +109,10 @@ public class MainFrame extends JFrame {
      */
     public void showLogin() {
 
+        sidePane = null;
+        tabbedPane = null;
+        statusBar = null;
+        titleMenuBar = null;
         this.showMenuBar(false);
         this.setContentPane(loginPane = new LoginPane());
         this.setResizable(false);
@@ -148,6 +152,7 @@ public class MainFrame extends JFrame {
                 g2.dispose();
             }
         };
+
         content.add(getSidePane(), BorderLayout.WEST);
         content.add(getStatusBar(), BorderLayout.SOUTH);
         content.add(getTabbedPane(), BorderLayout.CENTER);
@@ -237,6 +242,16 @@ public class MainFrame extends JFrame {
             tabbedPane.setUI(new MainTabbedPaneUI());
             tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
             tabForegroundChanged();
+
+            tabbedPane.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    super.mouseReleased(e);
+                    if (SwingUtilities.isRightMouseButton(e)) {
+                        showPopupMenu(e);
+                    }
+                }
+            });
 
         }
         return tabbedPane;
@@ -376,7 +391,6 @@ public class MainFrame extends JFrame {
         if (sidePane == null) {
             sidePane = new SidePane();
             sidePane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("App.borderColor")));
-
         }
         return sidePane;
     }
@@ -592,5 +606,104 @@ public class MainFrame extends JFrame {
             }
         };
         swingWorker.execute();
+    }
+
+    private void showPopupMenu(final MouseEvent event) {
+
+        // 如果当前事件与右键菜单有关（单击右键），则弹出菜单
+        final int index = ((JTabbedPane) event.getComponent()).getUI().tabForCoordinate(tabbedPane, event.getX(), event.getY());
+        final int count = ((JTabbedPane) event.getComponent()).getTabCount();
+        final String title = tabbedPane.getTitleAt(index);
+
+        if (index == -1) {
+            return;
+        }
+        JPopupMenu pop = new JPopupMenu();
+        JMenuItem closeCurrent = new JMenuItem("关闭当前");
+        closeCurrent.setPreferredSize(new Dimension(140, 30));
+
+        closeCurrent.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (tabbedPane.isTabClosableAt(index)) {
+                    tabbedPane.removeTabAt(index);
+                }
+            }
+        });
+        pop.add(closeCurrent);
+        pop.addSeparator();
+
+        JMenuItem closeLeft = new JMenuItem("关闭左侧标签");
+        closeLeft.setPreferredSize(new Dimension(140, 30));
+
+        closeLeft.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (int j = (index - 1); j >= 0; j--) {
+                    if (tabbedPane.isTabClosableAt(j)) {
+                        tabbedPane.removeTabAt(j);
+                    }
+                }
+            }
+        });
+        pop.add(closeLeft);
+
+        JMenuItem closeRight = new JMenuItem("关闭右侧标签");
+        closeRight.setPreferredSize(new Dimension(140, 30));
+
+        closeRight.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (int j = (count - 1); j > index; j--) {
+                    if (tabbedPane.isTabClosableAt(j)) {
+                        tabbedPane.removeTabAt(j);
+                    }
+                }
+            }
+        });
+        closeRight.setPreferredSize(new Dimension(140, 30));
+        pop.add(closeRight);
+
+        JMenuItem other = new JMenuItem("关闭其它标签");
+        other.setPreferredSize(new Dimension(140, 30));
+
+        other.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                int tabCount = count;
+                while (tabCount-- > 0) {
+                    if (title.equals(tabbedPane.getTitleAt(tabCount))) {
+                        continue;
+                    }
+                    if (tabbedPane.isTabClosableAt(tabCount)) {
+                        tabbedPane.removeTabAt(tabCount);
+                    }
+                }
+            }
+        });
+        pop.add(other);
+        pop.addSeparator();
+
+        JMenuItem all = new JMenuItem("关闭所有标签");
+        all.setPreferredSize(new Dimension(140, 30));
+
+        all.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                int tabCount = count;
+                // We invoke removeTabAt for each tab, otherwise we may end up
+                // removing Components added by the UI.
+                while (tabCount-- > 0) {
+
+                    if (tabbedPane.isTabClosableAt(tabCount)) {
+                        tabbedPane.removeTabAt(tabCount);
+                    }
+                }
+            }
+        });
+        pop.add(all);
+
+        pop.show(event.getComponent(), event.getX(), event.getY());
+
     }
 }

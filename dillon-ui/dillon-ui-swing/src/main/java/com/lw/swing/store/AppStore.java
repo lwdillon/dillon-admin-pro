@@ -5,6 +5,7 @@ import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginRespV
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.swing.request.Request;
+import com.lw.swing.subject.MenuRefrestObservable;
 import com.lw.ui.request.api.system.DictDataFeign;
 import com.lw.ui.utils.DictTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ public class AppStore {
 
     private static AuthLoginRespVO authLoginRespVO;
     private static AuthPermissionInfoRespVO authPermissionInfoRespVO;
+    private static final MenuRefrestObservable menuRefreshObservable = new MenuRefrestObservable();
 
     private static Map<String, List<DictDataSimpleRespVO>> dictDataListMap;
 
@@ -208,5 +211,7 @@ public class AppStore {
 
     }
 
-
+    public static MenuRefrestObservable getMenuRefreshObservable() {
+        return menuRefreshObservable;
+    }
 }

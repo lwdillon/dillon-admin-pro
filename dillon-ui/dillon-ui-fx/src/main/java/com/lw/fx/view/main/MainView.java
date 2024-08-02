@@ -201,7 +201,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         fadeTransition.play();
 
         ViewTuple<DashboardView, DashboardViewModel> viewTuple = FluentViewLoader.fxmlView(DashboardView.class).load();
-        loddTab("主页", Material2AL.HOME, false, viewTuple.getView());
+//        loddTab("主页", Material2AL.HOME,true, viewTuple.getView());
         MvvmFX.getNotificationCenter().subscribe("showThemePage", (key, payload) -> {
             // trigger some actions
             Platform.runLater(() -> {
