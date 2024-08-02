@@ -24,7 +24,7 @@ public class MainTabbedPaneUI extends FlatJideTabbedPaneUI {
 
     @Override
     public void paintBackground(Graphics g, Component c) {
-        g.setColor(UIManager.getColor("TabbedPane.background"));
+//        g.setColor(UIManager.getColor("TabbedPane.background"));
         super.paintBackground(g, c);
         Graphics2D g2 = (Graphics2D) g.create();
 

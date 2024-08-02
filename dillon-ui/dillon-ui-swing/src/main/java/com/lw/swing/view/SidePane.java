@@ -42,6 +42,7 @@ public class SidePane extends WPanel implements Observer {
         initListeners();
         initData();
         AppStore.getMenuRefreshObservable().addObserver(this);
+        setDrawBoder(false);
     }
 
     private void initComponents() {

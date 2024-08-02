@@ -142,7 +142,7 @@ public class MainFrame extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 if (StrUtil.equals(UIManager.getLookAndFeel().getName(), DarkTheme.NAME)) {
-                    g2.setColor(UIManager.getColor("App.background"));
+                    g2.setColor(UIManager.getColor("App.mainPaneBackground"));
                     g2.fillRect(0, 0, getWidth(), getHeight());
                 } else if (StrUtil.equals(UIManager.getLookAndFeel().getName(), LightTheme.NAME)) {
                     g2.drawImage(getBackgroundImageLight(), 0, 0, getWidth(), getHeight(), this);
