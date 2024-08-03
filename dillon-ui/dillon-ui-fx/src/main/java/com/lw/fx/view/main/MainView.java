@@ -38,7 +38,10 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
 import org.kordamp.ikonli.Ikon;
@@ -106,6 +109,18 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         popover.setHeaderAlwaysVisible(false);
         popover.setArrowLocation(Popover.ArrowLocation.TOP_CENTER);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
+        // 添加右键菜单
+        // 添加右键菜单
+        ContextMenu contextMenu = createContextMenu(tabPane);
+        tabPane.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY  && isOnTab(event)) {
+                contextMenu.show(tabPane, event.getScreenX(), event.getScreenY());
+            } else {
+                contextMenu.hide();
+            }
+        });
+
+
         rootPane.getStyleClass().add("main-view");
         sideMenu = new NavTree<>();
         VBox.setVgrow(sideMenu, Priority.ALWAYS);
@@ -201,7 +216,7 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         fadeTransition.play();
 
         ViewTuple<DashboardView, DashboardViewModel> viewTuple = FluentViewLoader.fxmlView(DashboardView.class).load();
-//        loddTab("主页", Material2AL.HOME,true, viewTuple.getView());
+        loddTab("主页", Material2AL.HOME,false, viewTuple.getView());
         MvvmFX.getNotificationCenter().subscribe("showThemePage", (key, payload) -> {
             // trigger some actions
             Platform.runLater(() -> {
@@ -218,6 +233,11 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
                 mainViewModel.unreadCountProperty()));
         tagLabel.textProperty().bindBidirectional(mainViewModel.unreadCountProperty());
 
+    }
+    private boolean isOnTab(MouseEvent event) {
+        // 检查点击是否在TabPane顶部的60像素范围内
+        double mouseY = event.getY();
+        return mouseY >= 0 && mouseY <= 60;
     }
 
     private void createInfoCenterView() {
@@ -511,6 +531,55 @@ public class MainView implements FxmlView<MainViewModel>, Initializable {
         var dialog = themeDialog.get();
         dialog.show(rootPane.getScene());
         Platform.runLater(dialog::requestFocus);
+    }
+
+    private ContextMenu createContextMenu(TabPane tabPane) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        // 关闭当前标签
+        MenuItem closeCurrent = new MenuItem("关闭当前");
+        closeCurrent.setOnAction(e -> {
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null && selectedTab.isClosable()) {
+                tabPane.getTabs().remove(selectedTab);
+            }
+        });
+
+        // 关闭左侧标签
+        MenuItem closeLeft = new MenuItem("关闭左侧");
+        closeLeft.setOnAction(e -> {
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null) {
+                int selectedIndex = tabPane.getTabs().indexOf(selectedTab);
+                tabPane.getTabs().removeIf(tab -> tabPane.getTabs().indexOf(tab) < selectedIndex && tab.isClosable());
+            }
+        });
+
+        // 关闭右侧标签
+        MenuItem closeRight = new MenuItem("关闭右侧");
+        closeRight.setOnAction(e -> {
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null) {
+                int selectedIndex = tabPane.getTabs().indexOf(selectedTab);
+                tabPane.getTabs().removeIf(tab -> tabPane.getTabs().indexOf(tab) > selectedIndex && tab.isClosable());
+            }
+        });
+
+        // 关闭其它标签
+        MenuItem closeOthers = new MenuItem("关闭其它");
+        closeOthers.setOnAction(e -> {
+            Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+            if (selectedTab != null) {
+                tabPane.getTabs().removeIf(tab -> tab != selectedTab && tab.isClosable());
+            }
+        });
+
+        // 关闭所有标签
+        MenuItem closeAll = new MenuItem("关闭所有");
+        closeAll.setOnAction(e -> tabPane.getTabs().removeIf(Tab::isClosable));
+
+        contextMenu.getItems().addAll(closeCurrent, closeLeft, closeRight, closeOthers, closeAll);
+        return contextMenu;
     }
 
 
