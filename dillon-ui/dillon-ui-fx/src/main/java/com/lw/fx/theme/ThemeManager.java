@@ -3,6 +3,7 @@
 package com.lw.fx.theme;
 
 import atlantafx.base.theme.*;
+import cn.hutool.core.util.StrUtil;
 import com.lw.fx.Resources;
 import com.lw.fx.event.DefaultEventBus;
 import com.lw.fx.event.EventBus;
@@ -88,16 +89,18 @@ public final class ThemeManager {
     }
 
     public void setTheme(String themeName) {
-        SamplerTheme samplerTheme = getDefaultTheme();
+        SamplerTheme samplerTheme = null;
         // 使用Stream查找name为"abc"的SamplerTheme
         Optional<SamplerTheme> result = getRepository().getAll().stream()
-                .filter(theme -> themeName.equals(theme.getName()))
+                .filter(theme -> StrUtil.equals(themeName,theme.getName()))
                 .findFirst();
 
         // 处理查找到的结果
         if (result.isPresent()) {
             samplerTheme = result.get();
 
+        }else {
+            samplerTheme=getDefaultTheme();
         }
         setTheme(samplerTheme);
     }

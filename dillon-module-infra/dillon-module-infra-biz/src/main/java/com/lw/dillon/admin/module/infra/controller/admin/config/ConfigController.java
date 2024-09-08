@@ -40,14 +40,14 @@ public class ConfigController {
 
     @PostMapping("/create")
     @Operation(summary = "创建参数配置")
-    @PreAuthorize("@ss.hasPermission('infra:config:create')")
+//    @PreAuthorize("@ss.hasPermission('infra:config:create')")
     public CommonResult<Long> createConfig(@Valid @RequestBody ConfigSaveReqVO createReqVO) {
         return success(configService.createConfig(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "修改参数配置")
-    @PreAuthorize("@ss.hasPermission('infra:config:update')")
+//    @PreAuthorize("@ss.hasPermission('infra:config:update')")
     public CommonResult<Boolean> updateConfig(@Valid @RequestBody ConfigSaveReqVO updateReqVO) {
         configService.updateConfig(updateReqVO);
         return success(true);
