@@ -397,8 +397,8 @@ public class LoginPane extends JPanel {
                             MainPrefs.getState().put(KEY_USER_CUR, json);
                         }
 
-                        UIManager.setLookAndFeel(get().get("userTheme"));
                         MainFrame.getInstance().showMainPane();
+                        MainFrame.getInstance().theme(get().get("userTheme"));
 
                     } else {
                         usernameTextFiled.setRequestFocusEnabled(true);

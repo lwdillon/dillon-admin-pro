@@ -437,16 +437,25 @@ public class MainFrame extends JFrame {
             JCheckBoxMenuItem lighterMenuItem = new JCheckBoxMenuItem("白色");
             group.add(lighterMenuItem);
             themePopupMenu.add(lighterMenuItem);
-            lighterMenuItem.addActionListener(e1 -> theme("白色"));
+            lighterMenuItem.addActionListener(e1 -> {
+                theme("白色");
+                updateUserTheme("白色");
+            });
 
 
             JCheckBoxMenuItem darkMenuItem = new JCheckBoxMenuItem("深色");
-            darkMenuItem.addActionListener(e1 -> theme("深色"));
+            darkMenuItem.addActionListener(e1 -> {
+                theme("深色");
+                updateUserTheme("深色");
+            });
             themePopupMenu.add(darkMenuItem);
             group.add(darkMenuItem);
 
             JCheckBoxMenuItem glazzedMenuItem = new JCheckBoxMenuItem("玻璃");
-            glazzedMenuItem.addActionListener(e1 -> theme("玻璃"));
+            glazzedMenuItem.addActionListener(e1 -> {
+                theme("玻璃");
+                updateUserTheme("玻璃");
+            });
             themePopupMenu.add(glazzedMenuItem);
             group.add(glazzedMenuItem);
 
@@ -460,7 +469,7 @@ public class MainFrame extends JFrame {
     /**
      * 主题
      */
-    private void theme(String theme) {
+    public void theme(String theme) {
 
         EventQueue.invokeLater(() -> {
             FlatAnimatedLafChange.showSnapshot();
@@ -513,37 +522,14 @@ public class MainFrame extends JFrame {
 
         });
 
-        updateUserTheme(theme);
+
     }
 
 
     public void updateUserTheme(String theme) {
 
-        String userTheme = LightTheme.class.getName();
-        switch (theme) {
 
-            case "深色": {
-
-                userTheme = DarkTheme.class.getName();
-                break;
-            }
-            case "白色": {
-
-                userTheme = (LightTheme.class.getName());
-                break;
-            }
-            case "玻璃": {
-                userTheme = GlazzedTheme.class.getName();
-                break;
-
-            }
-            default: {
-                userTheme = LightTheme.class.getName();
-                break;
-
-            }
-        }
-        String finalUserTheme = userTheme;
+        String finalUserTheme = theme;
         SwingWorker<String, String> stringSwingWorker = new SwingWorker<String, String>() {
             @Override
             protected String doInBackground() throws Exception {
