@@ -33,6 +33,11 @@ public interface ConfigFeign extends BaseFeignApi {
     @RequestLine("GET /admin-api/infra/config/get-value-by-key?key={key}")
     public CommonResult<String> getConfigKey(@Param("key") String key);
 
+    //"根据参数键名查询参数值", description = "不可见的配置，不允许返回给前端")
+    @RequestLine("GET /admin-api/infra/config/get-by-key?key={key}")
+    public CommonResult<ConfigRespVO> getConfig(@Param("key") String key);
+
+
     //"获取参数配置分页")
     @RequestLine("GET /admin-api/infra/config/page")
     public CommonResult<PageResult<ConfigRespVO>> getConfigPage(@QueryMap Map<String, Object> pageReqVO);

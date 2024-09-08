@@ -1,10 +1,13 @@
 package com.lw.fx.view.main;
 
+import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.fx.request.Request;
 import com.lw.fx.store.AppStore;
+import com.lw.fx.theme.ThemeManager;
 import com.lw.fx.util.MessageType;
 import com.lw.fx.websocket.SSLWebSocketClient;
+import com.lw.ui.request.api.config.ConfigFeign;
 import com.lw.ui.request.api.system.AuthFeign;
 import com.lw.ui.request.api.system.NotifyMessageFeign;
 import de.saxsys.mvvmfx.MvvmFX;
@@ -13,6 +16,7 @@ import de.saxsys.mvvmfx.ViewModel;
 import io.datafx.core.concurrent.ProcessChain;
 import javafx.beans.property.*;
 import javafx.scene.control.TreeItem;
+import net.datafaker.App;
 
 
 public class MainViewModel implements ViewModel, SceneLifecycle {
@@ -71,12 +75,7 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
 
                     if (r.isSuccess()) {
                         SSLWebSocketClient.getInstance().loginOut();
-                        if (exit) {
-                            System.exit(0);
-                        } else {
-                            MvvmFX.getNotificationCenter().publish("showLoginRegister");
-                            MvvmFX.getNotificationCenter().publish("message", "退出成功！", MessageType.SUCCESS);
-                        }
+
 
                     }
                 })
@@ -84,6 +83,12 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
                     e.printStackTrace();
                 })
                 .withFinal(() -> {
+                    if (exit) {
+                        System.exit(0);
+                    } else {
+                        MvvmFX.getNotificationCenter().publish("showLoginRegister");
+                        MvvmFX.getNotificationCenter().publish("message", "退出成功！", MessageType.SUCCESS);
+                    }
                 })
                 .run();
     }
@@ -142,11 +147,18 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
                         for (AuthPermissionInfoRespVO.MenuVO menu : r.getData().getMenus()) {
                             rootItem.getChildren().add(createTreeItem(menu));
                         }
-
                         treeItemObjectProperty.set(rootItem);
                     } else {
 
                     }
+                })
+                .addSupplierInExecutor(() -> {
+                    String key = "fx.theme.userid." + AppStore.getAuthPermissionInfoRespVO().getUser().getId();
+                    CommonResult<String> commonResult = Request.connector(ConfigFeign.class).getConfigKey(key);
+                    return commonResult.getCheckedData();
+                }).addConsumerInPlatformThread(userTheme -> {
+                    var tm = ThemeManager.getInstance();
+                    tm.setTheme(userTheme);
                 })
                 .addSupplierInExecutor(() -> Request.connector(NotifyMessageFeign.class).getUnreadNotifyMessageCount())
                 .addConsumerInPlatformThread(rel -> {
@@ -155,6 +167,7 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
                     }
 
                 })
+
                 .onException(e -> {
                     unreadCount.set("");
                     e.printStackTrace();

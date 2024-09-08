@@ -96,7 +96,7 @@ public class RoleDataPermissionFormViewModel implements ViewModel {
     }
 
     private void findSelectedItems(CheckBoxTreeItem<DeptSimpleRespVO> item, Set<Long> selMenuIds) {
-        if (item.isSelected()) {
+        if (item.isSelected()||item.isIndeterminate()) {
             selMenuIds.add(item.getValue().getId());
         }
 

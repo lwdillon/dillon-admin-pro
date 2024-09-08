@@ -14,7 +14,9 @@ import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginRespV
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.swing.request.Request;
 import com.lw.swing.store.AppStore;
+import com.lw.swing.theme.LightTheme;
 import com.lw.swing.websocket.SSLWebSocketClient;
+import com.lw.ui.request.api.config.ConfigFeign;
 import com.lw.ui.request.api.system.AuthFeign;
 import net.miginfocom.swing.MigLayout;
 
@@ -349,12 +351,15 @@ public class LoginPane extends JPanel {
         AuthLoginReqVO authLoginReqVO = new AuthLoginReqVO();
         authLoginReqVO.setUsername(username);
         authLoginReqVO.setPassword(password);
-        SwingWorker<CommonResult, String> worker = new SwingWorker<CommonResult, String>() {
+        SwingWorker<Map<String, String>, String> worker = new SwingWorker<Map<String, String>, String>() {
             @Override
-            protected CommonResult doInBackground() throws Exception {
+            protected Map<String, String> doInBackground() throws Exception {
 
                 CommonResult<AuthLoginRespVO> commonResult = Request.connector(AuthFeign.class).login(authLoginReqVO);
 
+                String key = "swing.theme.userid." + commonResult.getCheckedData().getUserId();
+
+                String userTheme = null;
                 if (commonResult.isSuccess()) {
                     AppStore.setAuthLoginRespVO(commonResult.getData());
 
@@ -362,18 +367,23 @@ public class LoginPane extends JPanel {
 
                     if (permissionInfoRespVOCommonResult.isSuccess()) {
                         AppStore.setAuthPermissionInfoRespVO(permissionInfoRespVOCommonResult.getData());
+                        userTheme = Request.connector(ConfigFeign.class).getConfigKey(key).getCheckedData();
                     }
 
                     AppStore.loadDictData();
                 }
-                return commonResult;
+                Map<String, String> stringStringMap = new HashMap<>();
+                stringStringMap.put("login", commonResult.isSuccess() ? "登录成功" : "登录失败");
+                stringStringMap.put("msg", commonResult.getMsg());
+                stringStringMap.put("userTheme", StrUtil.isBlank(userTheme) ? LightTheme.class.getName() : userTheme);
+                return stringStringMap;
             }
 
             @Override
             protected void done() {
 
                 try {
-                    if (get().isSuccess()) {
+                    if (StrUtil.equals(get().get("login"), "登录成功")) {
 
                         SSLWebSocketClient.getInstance().start();
                         msgLabel.setVisible(false);
@@ -387,12 +397,13 @@ public class LoginPane extends JPanel {
                             MainPrefs.getState().put(KEY_USER_CUR, json);
                         }
 
+                        UIManager.setLookAndFeel(get().get("userTheme"));
                         MainFrame.getInstance().showMainPane();
 
                     } else {
                         usernameTextFiled.setRequestFocusEnabled(true);
                         msgLabel.setVisible(true);
-                        msgLabel.setText(get().getMsg());
+                        msgLabel.setText(get().get("msg"));
                     }
                 } catch (Exception e) {
                     msgLabel.setText("无法连接服务器，请检查服务器是否启动。");

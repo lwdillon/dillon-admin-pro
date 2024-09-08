@@ -113,7 +113,7 @@ public class RoleAssignMenuFormViewModel implements ViewModel {
     }
 
     private void findSelectedItems(CheckBoxTreeItem<MenuSimpleRespVO> item, Set<Long> selMenuIds) {
-        if (item.isSelected()) {
+        if (item.isSelected()||item.isIndeterminate()) {
             selMenuIds.add(item.getValue().getId());
         }
 

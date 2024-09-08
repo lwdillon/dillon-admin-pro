@@ -62,6 +62,7 @@ public class LoginViewModel implements ViewModel {
 
 
 
+
     public BooleanProperty loginStautsPropertyProperty() {
         return loginStautsProperty;
     }

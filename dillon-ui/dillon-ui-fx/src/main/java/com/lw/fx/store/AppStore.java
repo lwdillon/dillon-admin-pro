@@ -4,6 +4,7 @@ import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.fx.request.Request;
+import com.lw.ui.request.api.config.ConfigFeign;
 import com.lw.ui.request.api.system.DictDataFeign;
 import com.lw.ui.utils.DictTypeEnum;
 import io.datafx.core.concurrent.ProcessChain;
@@ -25,6 +26,8 @@ public class AppStore {
     public static String getToken() {
         return token;
     }
+
+    public static String userTheme;
 
     public static void setToken(String token) {
         AppStore.token = token;
@@ -77,6 +80,13 @@ public class AppStore {
         return reultMap;
     }
 
+    public static String getUserTheme() {
+        return userTheme;
+    }
+
+    public static void setUserTheme(String userTheme) {
+        AppStore.userTheme = userTheme;
+    }
 
     public static void loadDictData() {
 
@@ -93,4 +103,6 @@ public class AppStore {
                 .run();
 
     }
+
+
 }

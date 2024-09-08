@@ -9,6 +9,8 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.LoggingFacade;
 import com.jidesoft.swing.JideTabbedPane;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;
+import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigRespVO;
+import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.swing.components.ReflectionRepaintManager;
 import com.lw.swing.components.ui.MainTabbedPaneUI;
@@ -21,6 +23,7 @@ import com.lw.swing.utils.IconLoader;
 import com.lw.swing.view.system.notice.MyNotifyMessagePane;
 import com.lw.swing.view.system.user.PersonalCenterPanel;
 import com.lw.swing.websocket.SSLWebSocketClient;
+import com.lw.ui.request.api.config.ConfigFeign;
 import com.lw.ui.request.api.system.AuthFeign;
 
 import javax.swing.*;
@@ -509,8 +512,67 @@ public class MainFrame extends JFrame {
             FlatAnimatedLafChange.hideSnapshotWithAnimation();
 
         });
+
+        updateUserTheme(theme);
     }
 
+
+    public void updateUserTheme(String theme) {
+
+        String userTheme = LightTheme.class.getName();
+        switch (theme) {
+
+            case "深色": {
+
+                userTheme = DarkTheme.class.getName();
+                break;
+            }
+            case "白色": {
+
+                userTheme = (LightTheme.class.getName());
+                break;
+            }
+            case "玻璃": {
+                userTheme = GlazzedTheme.class.getName();
+                break;
+
+            }
+            default: {
+                userTheme = LightTheme.class.getName();
+                break;
+
+            }
+        }
+        String finalUserTheme = userTheme;
+        SwingWorker<String, String> stringSwingWorker = new SwingWorker<String, String>() {
+            @Override
+            protected String doInBackground() throws Exception {
+                String key = "swing.theme.userid." + AppStore.getAuthPermissionInfoRespVO().getUser().getId();
+                ConfigRespVO configRespVO = Request.connector(ConfigFeign.class).getConfig(key).getCheckedData();
+                if (configRespVO == null) {
+                    ConfigSaveReqVO saveReqVO = new ConfigSaveReqVO();
+                    saveReqVO.setKey(key);
+                    saveReqVO.setValue(finalUserTheme);
+                    saveReqVO.setVisible(true);
+                    saveReqVO.setCategory("ui");
+                    saveReqVO.setName("用户主题");
+                    Request.connector(ConfigFeign.class).createConfig(saveReqVO);
+                } else {
+                    ConfigSaveReqVO saveReqVO = new ConfigSaveReqVO();
+                    saveReqVO.setId(configRespVO.getId());
+                    saveReqVO.setName(configRespVO.getName());
+                    saveReqVO.setCategory(configRespVO.getCategory());
+                    saveReqVO.setValue(finalUserTheme);
+                    saveReqVO.setKey(configRespVO.getKey());
+                    saveReqVO.setVisible(true);
+                    Request.connector(ConfigFeign.class).updateConfig(saveReqVO);
+                }
+                return "";
+            }
+        };
+        stringSwingWorker.execute();
+
+    }
 
     private void showMenuBar(boolean isShow) {
         setJMenuBar(isShow ? getTitleMenuBar() : null);
@@ -591,17 +653,17 @@ public class MainFrame extends JFrame {
                 try {
                     if (get().isSuccess()) {
                         SSLWebSocketClient.getInstance().loginOut();
-                        if (exit) {
-                            System.exit(0);
-                        } else {
-                            showLogin();
-                        }
 
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
+
                     throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
+                } finally {
+                    if (exit) {
+                        System.exit(0);
+                    } else {
+                        showLogin();
+                    }
                 }
             }
         };
