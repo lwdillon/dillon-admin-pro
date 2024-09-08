@@ -171,19 +171,26 @@ public class RoleAssignMenuPane extends JPanel {
     private void treeDataScopeDeptIds(DefaultMutableTreeNode treeNode, Set<Long> menuIdlist) {
 
 
-        if (treeNode.getUserObject() instanceof MenuSimpleRespVO) {
-            MenuSimpleRespVO menuSimpleRespVO = (MenuSimpleRespVO) treeNode.getUserObject();
-            menuIdlist.add(menuSimpleRespVO.getId());
+        // 处理当前节点
+        addMenuIdIfApplicable(treeNode, menuIdlist);
+
+        // 处理子节点
+        for (int i = 0; i < treeNode.getChildCount(); i++) {
+            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) treeNode.getChildAt(i);
+            treeDataScopeDeptIds(childNode, menuIdlist);
         }
 
-
-        for (int i = 0; i < treeNode.getChildCount(); i++) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode.getChildAt(i);
-            if (node.getUserObject() instanceof MenuSimpleRespVO) {
-                MenuSimpleRespVO menuSimpleRespVO = (MenuSimpleRespVO) node.getUserObject();
-                menuIdlist.add(menuSimpleRespVO.getId());
-            }
-            treeDataScopeDeptIds(node, menuIdlist);
+        // 处理父节点
+        while (treeNode.getParent() != null) {
+            treeNode = (DefaultMutableTreeNode) treeNode.getParent();
+            addMenuIdIfApplicable(treeNode, menuIdlist);
+        }
+    }
+    // 将添加菜单ID的逻辑提取成一个方法
+    private void addMenuIdIfApplicable(DefaultMutableTreeNode treeNode, Set<Long> menuIdList) {
+        if (treeNode.getUserObject() instanceof MenuSimpleRespVO) {
+            MenuSimpleRespVO menuSimpleRespVO = (MenuSimpleRespVO) treeNode.getUserObject();
+            menuIdList.add(menuSimpleRespVO.getId());
         }
     }
 
@@ -208,9 +215,7 @@ public class RoleAssignMenuPane extends JPanel {
 
                 java.util.List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
                 for (MenuSimpleRespVO simpleRespVO : menuResult.getData()) {
-                    if (simpleRespVO.getType() == 3) {
-                        continue;
-                    }
+
                     DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
                     nodeMap.put(simpleRespVO.getId(), node);
 
@@ -220,18 +225,17 @@ public class RoleAssignMenuPane extends JPanel {
                 }
 
                 menuResult.getData().forEach(menuSimpleRespVO -> {
-                    if (menuSimpleRespVO.getType() != 3) {
 
 
-                        DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                        DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            if (childNode != null) {
-                                parentNode.add(childNode);
-                            }
+                    DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                    DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
+                    if (parentNode != null) {
+                        if (childNode != null) {
+                            parentNode.add(childNode);
                         }
-
                     }
+
+
                 });
 
                 Map<String, Object> resultMap = new HashMap<>();
@@ -249,7 +253,9 @@ public class RoleAssignMenuPane extends JPanel {
                     java.util.List<DefaultMutableTreeNode> selNodes = (List<DefaultMutableTreeNode>) get().get("selNodes");
                     if (selNodes != null) {
                         for (DefaultMutableTreeNode node : selNodes) {
-                            menuTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                            if (node.isLeaf()) {
+                                menuTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                            }
 
                         }
                     }

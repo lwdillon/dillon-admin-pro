@@ -214,22 +214,29 @@ public class DataPermissionPane extends JPanel {
     private void treeDataScopeDeptIds(DefaultMutableTreeNode treeNode, Set<Long> deptIdlist) {
 
 
-        if (treeNode.getUserObject() instanceof DeptSimpleRespVO) {
-            DeptSimpleRespVO deptSimpleRespVO = (DeptSimpleRespVO) treeNode.getUserObject();
-            deptIdlist.add(deptSimpleRespVO.getId());
+        addDeptIdIfApplicable(treeNode, deptIdlist);
+
+
+        // 处理子节点
+        for (int i = 0; i < treeNode.getChildCount(); i++) {
+            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) treeNode.getChildAt(i);
+            treeDataScopeDeptIds(childNode, deptIdlist);
         }
 
-
-        for (int i = 0; i < treeNode.getChildCount(); i++) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) treeNode.getChildAt(i);
-            if (node.getUserObject() instanceof DeptSimpleRespVO) {
-                DeptSimpleRespVO deptSimpleRespVO = (DeptSimpleRespVO) node.getUserObject();
-                deptIdlist.add(deptSimpleRespVO.getId());
-            }
-            treeDataScopeDeptIds(node,deptIdlist);
+        // 处理父节点
+        while (treeNode.getParent() != null) {
+            treeNode = (DefaultMutableTreeNode) treeNode.getParent();
+            addDeptIdIfApplicable(treeNode, deptIdlist);
         }
     }
 
+    // 将添加菜单ID的逻辑提取成一个方法
+    private void addDeptIdIfApplicable(DefaultMutableTreeNode treeNode, Set<Long> deptIdList) {
+        if (treeNode.getUserObject() instanceof DeptSimpleRespVO) {
+            DeptSimpleRespVO respVO = (DeptSimpleRespVO) treeNode.getUserObject();
+            deptIdList.add(respVO.getId());
+        }
+    }
 
     public void updateData(RoleRespVO roleRespVO) {
 
@@ -258,11 +265,13 @@ public class DataPermissionPane extends JPanel {
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
                 nodeMap.put(0l, deptRoot); // Root node
 
-                List<TreePath> selTreePth = new ArrayList<>();
+                List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
                 for (DeptSimpleRespVO simpleRespVO : deptResult.getData()) {
                     DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
                     nodeMap.put(simpleRespVO.getId(), node);
-
+                    if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
+                        selNodes.add(node);
+                    }
                 }
 
                 deptResult.getData().forEach(deptSimpleRespVO -> {
@@ -271,15 +280,13 @@ public class DataPermissionPane extends JPanel {
                     if (parentNode != null) {
                         parentNode.add(childNode);
                     }
-                    if (roleRespVO.getDataScopeDeptIds().contains(deptSimpleRespVO.getId())) {
-                        selTreePth.add(new TreePath(nodeMap.get(deptSimpleRespVO.getId()).getPath()));
-                    }
+
 
                 });
 
                 Map<String, Object> resultMap = new HashMap<>();
                 resultMap.put("deptRoot", deptRoot);
-                resultMap.put("selTreePth", selTreePth);
+                resultMap.put("selNodes", selNodes);
 
                 return resultMap;
             }
@@ -289,10 +296,16 @@ public class DataPermissionPane extends JPanel {
                 try {
 
                     deptTree.setModel(new DefaultTreeModel((TreeNode) get().get("deptRoot")));
-                    List<TreePath> selTreePth = (List<TreePath>) get().get("selTreePth");
-                    if (selTreePth != null) {
-                        deptTree.getCheckBoxTreeSelectionModel().setSelectionPaths(selTreePth.toArray(new TreePath[0]));
+                    List<DefaultMutableTreeNode> selNodes = (List<DefaultMutableTreeNode>) get().get("selNodes");
+                    if (selNodes != null) {
+                        for (DefaultMutableTreeNode node : selNodes) {
+                            if (node.isLeaf()) {
+                                deptTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                            }
+
+                        }
                     }
+                    TreeUtils.expandAll(deptTree);
                     TreeUtils.expandAll(deptTree);
 
                 } catch (InterruptedException e) {
