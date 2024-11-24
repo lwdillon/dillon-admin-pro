@@ -56,9 +56,9 @@ public class MainPrefs {
     public static void setupLaf(String[] args) {
         // set look and feel
         try {
-            if (args.length > 0)
+            if (args.length > 0) {
                 UIManager.setLookAndFeel(args[0]);
-            else {
+            } else {
                 String lafClassName = state.get(KEY_LAF, FlatLightLaf.class.getName());
                 if (IntelliJTheme.ThemeLaf.class.getName().equals(lafClassName)) {
                     String theme = state.get(KEY_LAF_THEME, "");
@@ -66,24 +66,29 @@ public class MainPrefs {
 //                        IntelliJTheme.setup(IJThemesPanel.class.getResourceAsStream(IJThemesPanel.THEMES_PACKAGE + theme.substring(RESOURCE_PREFIX.length())));
                     } else if (theme.startsWith(FILE_PREFIX)) {
                         FlatLaf.setup(IntelliJTheme.createLaf(new FileInputStream(theme.substring(FILE_PREFIX.length()))));
-                    } else
+                    } else {
                         FlatLightLaf.setup();
+                    }
 
-                    if (!theme.isEmpty())
+                    if (!theme.isEmpty()) {
                         UIManager.getLookAndFeelDefaults().put(THEME_UI_KEY, theme);
+                    }
                 } else if (FlatPropertiesLaf.class.getName().equals(lafClassName)) {
                     String theme = state.get(KEY_LAF_THEME, "");
                     if (theme.startsWith(FILE_PREFIX)) {
                         File themeFile = new File(theme.substring(FILE_PREFIX.length()));
                         String themeName = StringUtils.removeTrailing(themeFile.getName(), ".properties");
                         FlatLaf.setup(new FlatPropertiesLaf(themeName, themeFile));
-                    } else
+                    } else {
                         FlatLightLaf.setup();
+                    }
 
-                    if (!theme.isEmpty())
+                    if (!theme.isEmpty()) {
                         UIManager.getLookAndFeelDefaults().put(THEME_UI_KEY, theme);
-                } else
+                    }
+                } else {
                     UIManager.setLookAndFeel(lafClassName);
+                }
             }
         } catch (Throwable ex) {
             LoggingFacade.INSTANCE.logSevere(null, ex);
@@ -94,8 +99,9 @@ public class MainPrefs {
 
         // remember active look and feel
         UIManager.addPropertyChangeListener(e -> {
-            if ("lookAndFeel".equals(e.getPropertyName()))
+            if ("lookAndFeel".equals(e.getPropertyName())) {
                 state.put(KEY_LAF, UIManager.getLookAndFeel().getClass().getName());
+            }
         });
     }
 }

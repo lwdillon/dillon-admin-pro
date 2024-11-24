@@ -15,45 +15,45 @@ import static com.lw.dillon.admin.framework.common.exception.enums.GlobalErrorCo
 @RestController
 public class DefaultController {
 
-    @RequestMapping("/admin-api/bpm/**")
+    @RequestMapping("/bpm/**")
     public CommonResult<Boolean> bpm404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[工作流模块 dillon-module-bpm - 已禁用][参考 https://doc.iocoder.cn/bpm/ 开启]");
     }
 
-    @RequestMapping("/admin-api/mp/**")
+    @RequestMapping("/mp/**")
     public CommonResult<Boolean> mp404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[微信公众号 dillon-module-mp - 已禁用][参考 https://doc.iocoder.cn/mp/build/ 开启]");
     }
 
-    @RequestMapping(value = {"/admin-api/product/**", // 商品中心
-            "/admin-api/trade/**", // 交易中心
-            "/admin-api/promotion/**"})  // 营销中心
+    @RequestMapping(value = {"/product/**", // 商品中心
+            "/trade/**", // 交易中心
+            "/promotion/**"})  // 营销中心
     public CommonResult<Boolean> mall404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[商城系统 dillon-module-mall - 已禁用][参考 https://doc.iocoder.cn/mall/build/ 开启]");
     }
 
-    @RequestMapping("/admin-api/erp/**")
+    @RequestMapping("/erp/**")
     public CommonResult<Boolean> erp404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[ERP 模块 dillon-module-erp - 已禁用][参考 https://doc.iocoder.cn/erp/build/ 开启]");
     }
 
-    @RequestMapping("/admin-api/crm/**")
+    @RequestMapping("/crm/**")
     public CommonResult<Boolean> crm404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[CRM 模块 dillon-module-crm - 已禁用][参考 https://doc.iocoder.cn/crm/build/ 开启]");
     }
 
-    @RequestMapping(value = {"/admin-api/report/**"})
+    @RequestMapping(value = {"/report/**"})
     public CommonResult<Boolean> report404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[报表模块 dillon-module-report - 已禁用][参考 https://doc.iocoder.cn/report/ 开启]");
     }
 
-    @RequestMapping(value = {"/admin-api/pay/**"})
+    @RequestMapping(value = {"/pay/**"})
     public CommonResult<Boolean> pay404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[支付模块 dillon-module-pay - 已禁用][参考 https://doc.iocoder.cn/pay/build/ 开启]");

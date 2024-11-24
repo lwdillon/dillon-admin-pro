@@ -14,14 +14,14 @@ import java.util.Map;
 public interface OperateLogFeign extends BaseFeignApi {
 
 
-    @RequestLine("GET /admin-api/system/operate-log/page")
+    @RequestLine("GET /system/operate-log/page")
     CommonResult<PageResult<OperateLogRespVO>> pageOperateLog(@QueryMap Map<String, Object> map);
 
 
-    @RequestLine("DELETE /admin-api/system/operate-log/delete?id={id}")
+    @RequestLine("DELETE /system/operate-log/delete?id={id}")
     CommonResult<Boolean> deleteOperateLog(@Param("id") Long id);
 
-    @RequestLine("DELETE /admin-api/system/operate-log/clear")
+    @RequestLine("DELETE /system/operate-log/clear")
     CommonResult<Boolean> clearOperateLog();
 
 }

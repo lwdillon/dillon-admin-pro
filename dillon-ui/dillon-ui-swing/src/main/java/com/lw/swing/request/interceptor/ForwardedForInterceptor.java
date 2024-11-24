@@ -11,6 +11,7 @@ public class ForwardedForInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate template) {
 
         template.header("Authorization", "Bearer " + AppStore.getAccessToken());
+        template.uri(System.getProperty("app.server.url.prefix") + template.url());
         if (ObjectUtil.isNotEmpty("1")) {
             template.header("tenant-id", "1");
         }else {

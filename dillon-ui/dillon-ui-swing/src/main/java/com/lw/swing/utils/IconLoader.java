@@ -71,8 +71,9 @@ public class IconLoader {
     private static String resolveFile(String filename) {
         // iterate over each location, return on first hit
         for (String path : new String[]{"", "famfam/", "fugue/"}) {
-            if (IconLoader.class.getResource(path + filename) != null)
+            if (IconLoader.class.getResource(path + filename) != null) {
                 return path + filename;
+            }
         }
 
         // if push comes to shove, we let the calling method deal w/ the

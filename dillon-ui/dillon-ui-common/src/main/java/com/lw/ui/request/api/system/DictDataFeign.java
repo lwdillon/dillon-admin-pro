@@ -16,22 +16,22 @@ import java.util.Map;
 public interface DictDataFeign extends BaseFeignApi {
 
 
-    @RequestLine("POST /admin-api/system/dict-data/create")
+    @RequestLine("POST /system/dict-data/create")
     CommonResult<Long> createDictData(DictDataSaveReqVO createReqVO);
 
-    @RequestLine("PUT /admin-api/system/dict-data/update")
+    @RequestLine("PUT /system/dict-data/update")
     CommonResult<Boolean> updateDictData(DictDataSaveReqVO updateReqVO);
 
-    @RequestLine("DELETE /admin-api/system/dict-data/delete?id={id}")
+    @RequestLine("DELETE /system/dict-data/delete?id={id}")
     CommonResult<Boolean> deleteDictData(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/dict-data/simple-list")
+    @RequestLine("GET /system/dict-data/simple-list")
     CommonResult<List<DictDataSimpleRespVO>> getSimpleDictDataList();
 
-    @RequestLine("GET /admin-api/system/dict-data/page")
+    @RequestLine("GET /system/dict-data/page")
     CommonResult<PageResult<DictDataRespVO>> getDictTypePage(@QueryMap Map<String,Object> map);
 
-    @RequestLine("GET /admin-api/system/dict-data/get?id={id}")
+    @RequestLine("GET /system/dict-data/get?id={id}")
     CommonResult<DictDataRespVO> getDictData(@Param("id") Long id);
 
 

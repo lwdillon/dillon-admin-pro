@@ -361,7 +361,7 @@ public class MenuEditPane extends JPanel {
                 DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
                 // Build the tree
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0l, root); // Root node
+                nodeMap.put(0L, root); // Root node
 
                 CommonResult<List<MenuSimpleRespVO>> menuSimpleRespVOList = Request.connector(MenuFeign.class).getSimpleMenuList();
 

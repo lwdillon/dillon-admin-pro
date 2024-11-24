@@ -13,18 +13,18 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserProfileFeign extends BaseFeignApi {
 
 
-    @RequestLine("GET /admin-api/system/user/profile/get")
+    @RequestLine("GET /system/user/profile/get")
     CommonResult<UserProfileRespVO> getUserProfile();
 
-    @RequestLine("PUT /admin-api/system/user/profile/update")
+    @RequestLine("PUT /system/user/profile/update")
     CommonResult<Boolean> updateUserProfile(UserProfileUpdateReqVO reqVO);
 
     @PutMapping("/update-password")
-    @RequestLine("PUT /admin-api/system/user/profile/update-password")
+    @RequestLine("PUT /system/user/profile/update-password")
     CommonResult<Boolean> updateUserProfilePassword(UserProfileUpdatePasswordReqVO reqVO);
 
 
-    @RequestLine("POST /admin-api/system/user/profile/update-avatar")
+    @RequestLine("POST /system/user/profile/update-avatar")
     CommonResult<String> updateUserAvatar(MultipartFile file) throws Exception;
 
 }

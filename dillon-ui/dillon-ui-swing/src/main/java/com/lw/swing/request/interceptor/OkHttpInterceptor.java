@@ -22,6 +22,7 @@ public class OkHttpInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
         Request originalRequest = chain.request();
+
         Response response = null;
         try {
             response = chain.proceed(originalRequest);
@@ -76,6 +77,7 @@ public class OkHttpInterceptor implements Interceptor {
 
                     MainFrame.getInstance().showLogin();
                 }
+                System.err.println("-----------------"+commonResult.getMsg());
                 WMessage.showMessageError(MainFrame.getInstance(), commonResult.getMsg());
 
 

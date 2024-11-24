@@ -73,14 +73,16 @@ public class WButton extends JButton {
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (isEnabled())
+                if (isEnabled()) {
                     getAnimationStart().restart();
+                }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (isEnabled())
+                if (isEnabled()) {
                     getAnimationStart().restartReverse();
+                }
             }
 
             @Override

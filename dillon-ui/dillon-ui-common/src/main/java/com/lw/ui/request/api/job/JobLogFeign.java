@@ -14,11 +14,11 @@ public interface JobLogFeign extends BaseFeignApi {
 
 
     //"获得定时任务日志")
-    @RequestLine("GET /admin-api/infra/job-log/get?id={id}")
+    @RequestLine("GET /infra/job-log/get?id={id}")
     CommonResult<JobLogRespVO> getJobLog(@Param("id") Long id);
 
     //"获得定时任务日志分页")
-    @RequestLine("GET /admin-api/infra/job-log/page")
+    @RequestLine("GET /infra/job-log/page")
     CommonResult<PageResult<JobLogRespVO>> getJobLogPage(@QueryMap Map<String,Object> pageVO);
 
 

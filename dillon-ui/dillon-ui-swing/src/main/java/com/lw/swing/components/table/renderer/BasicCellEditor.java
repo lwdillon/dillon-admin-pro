@@ -108,8 +108,9 @@ public class BasicCellEditor extends JPanel implements CellEditor, PropertyChang
     }
 
     // Implementation of the PropertyChangeListener interface
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals("ancestor")
+        if ("ancestor".equals(evt.getPropertyName())
                 && evt.getNewValue() != null) {
             // Added to table - notify the editor
             editingStarted(editingEvent);

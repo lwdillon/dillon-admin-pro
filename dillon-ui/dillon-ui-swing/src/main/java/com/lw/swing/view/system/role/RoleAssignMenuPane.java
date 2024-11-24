@@ -211,7 +211,7 @@ public class RoleAssignMenuPane extends JPanel {
                 DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
                 // Build the tree
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0l, menuRoot); // Root node
+                nodeMap.put(0L, menuRoot); // Root node
 
                 java.util.List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
                 for (MenuSimpleRespVO simpleRespVO : menuResult.getData()) {

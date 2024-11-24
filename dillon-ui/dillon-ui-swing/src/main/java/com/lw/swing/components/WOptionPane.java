@@ -480,17 +480,20 @@ public class WOptionPane extends JOptionPane {
 
         Object selectedValue = pane.getValue();
 
-        if (selectedValue == null)
+        if (selectedValue == null) {
             return CLOSED_OPTION;
+        }
         if (options == null) {
-            if (selectedValue instanceof Integer)
+            if (selectedValue instanceof Integer) {
                 return ((Integer) selectedValue).intValue();
+            }
             return CLOSED_OPTION;
         }
         for (int counter = 0, maxCounter = options.length;
              counter < maxCounter; counter++) {
-            if (options[counter].equals(selectedValue))
+            if (options[counter].equals(selectedValue)) {
                 return counter;
+            }
         }
         return CLOSED_OPTION;
     }
@@ -985,6 +988,7 @@ public class WOptionPane extends JOptionPane {
         dialog.setLocationRelativeTo(parentComponent);
 
         final PropertyChangeListener listener = new PropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 // Let the defaultCloseOperation handle the closing
                 // if the user closed the window without selecting a button
@@ -1001,15 +1005,16 @@ public class WOptionPane extends JOptionPane {
         WindowAdapter adapter = new WindowAdapter() {
             private boolean gotFocus = false;
 
+            @Override
             public void windowClosing(WindowEvent we) {
                 setValue(null);
             }
-
+            @Override
             public void windowClosed(WindowEvent e) {
                 removePropertyChangeListener(listener);
                 dialog.getContentPane().removeAll();
             }
-
+            @Override
             public void windowGainedFocus(WindowEvent we) {
                 // Once window gets focus, set initial focus
                 if (!gotFocus) {
@@ -1021,6 +1026,7 @@ public class WOptionPane extends JOptionPane {
         dialog.addWindowListener(adapter);
         dialog.addWindowFocusListener(adapter);
         dialog.addComponentListener(new ComponentAdapter() {
+            @Override
             public void componentShown(ComponentEvent ce) {
                 // reset value to ensure closing works properly
                 setValue(JOptionPane.UNINITIALIZED_VALUE);
@@ -1032,10 +1038,12 @@ public class WOptionPane extends JOptionPane {
 
     static Window getWindowForComponent(Component parentComponent)
             throws HeadlessException {
-        if (parentComponent == null)
+        if (parentComponent == null) {
             return getRootFrame();
-        if (parentComponent instanceof Frame || parentComponent instanceof Dialog)
+        }
+        if (parentComponent instanceof Frame || parentComponent instanceof Dialog) {
             return (Window) parentComponent;
+        }
         return WOptionPane.getWindowForComponent(parentComponent.getParent());
     }
 

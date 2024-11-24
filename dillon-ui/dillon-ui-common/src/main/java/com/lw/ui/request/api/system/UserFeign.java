@@ -14,28 +14,28 @@ import java.util.Map;
 
 public interface UserFeign extends BaseFeignApi {
 
-    @RequestLine("POST /admin-api/system/user/create")
+    @RequestLine("POST /system/user/create")
     CommonResult<Long> createUser(UserSaveReqVO reqVO);
 
-    @RequestLine("PUT /admin-api/system/user/update")
+    @RequestLine("PUT /system/user/update")
     CommonResult<Boolean> updateUser(UserSaveReqVO reqVO);
 
-    @RequestLine("DELETE /admin-api/system/user/delete?id={id}")
+    @RequestLine("DELETE /system/user/delete?id={id}")
     CommonResult<Boolean> deleteUser(@Param("id") Long id);
 
-    @RequestLine("PUT /admin-api/system/user/update-password")
+    @RequestLine("PUT /system/user/update-password")
     CommonResult<Boolean> updateUserPassword(UserUpdatePasswordReqVO reqVO);
 
-    @RequestLine("PUT /admin-api/system/user/update-status")
+    @RequestLine("PUT /system/user/update-status")
     CommonResult<Boolean> updateUserStatus(UserUpdateStatusReqVO reqVO);
 
-    @RequestLine("GET /admin-api/system/user/page")
+    @RequestLine("GET /system/user/page")
     CommonResult<PageResult<UserRespVO>> getUserPage(@QueryMap Map<String,Object> queryMap);
 
-    @RequestLine("GET /admin-api/system/user/simple-list")
+    @RequestLine("GET /system/user/simple-list")
     CommonResult<List<UserSimpleRespVO>> getSimpleUserList();
 
-    @RequestLine("GET /admin-api/system/user/get?id={id}")
+    @RequestLine("GET /system/user/get?id={id}")
     CommonResult<UserRespVO> getUser(@Param("id") Long id);
 
 

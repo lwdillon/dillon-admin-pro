@@ -13,7 +13,7 @@ public interface ApiAccessLogFeign extends BaseFeignApi {
 
 
     // "获得API 访问日志分页")
-    @RequestLine("GET /admin-api/infra/api-access-log/page")
+    @RequestLine("GET /infra/api-access-log/page")
      CommonResult<PageResult<ApiAccessLogRespVO>> getApiAccessLogPage(@QueryMap Map<String,Object> pageReqVO);
 
 

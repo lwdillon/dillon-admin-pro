@@ -263,7 +263,7 @@ public class DataPermissionPane extends JPanel {
                 DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
                 // Build the tree
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0l, deptRoot); // Root node
+                nodeMap.put(0L, deptRoot); // Root node
 
                 List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
                 for (DeptSimpleRespVO simpleRespVO : deptResult.getData()) {

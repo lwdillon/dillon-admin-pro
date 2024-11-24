@@ -17,41 +17,41 @@ public interface JobFeign extends BaseFeignApi {
 
 
     // "创建定时任务")
-    @RequestLine("POST /admin-api/infra/job/create")
+    @RequestLine("POST /infra/job/create")
     CommonResult<Long> createJob(JobSaveReqVO createReqVO);
 
     // "更新定时任务")
-    @RequestLine("PUT /admin-api/infra/job/update")
+    @RequestLine("PUT /infra/job/update")
     CommonResult<Boolean> updateJob(JobSaveReqVO updateReqVO);
 
     // "更新定时任务的状态")
-    @RequestLine("PUT /admin-api/infra/job/update-status?id={id}&status={status}")
+    @RequestLine("PUT /infra/job/update-status?id={id}&status={status}")
     CommonResult<Boolean> updateJobStatus(@Param("id") Long id, @Param("status") Integer status);
 
     // "删除定时任务")
-    @RequestLine("DELETE /admin-api/infra/job/delete?id={id}")
+    @RequestLine("DELETE /infra/job/delete?id={id}")
     CommonResult<Boolean> deleteJob(@Param("id") Long id);
 
     // "触发定时任务")
-    @RequestLine("PUT /admin-api/infra/job/trigger?id={id}")
+    @RequestLine("PUT /infra/job/trigger?id={id}")
     CommonResult<Boolean> triggerJob(@Param("id") Long id);
 
     // "同步定时任务")
-    @RequestLine("POST /admin-api/infra/job/sync")
+    @RequestLine("POST /infra/job/sync")
     CommonResult<Boolean> syncJob();
 
     // "获得定时任务")
-    @RequestLine("GET /admin-api/infra/job/get?id={id}")
+    @RequestLine("GET /infra/job/get?id={id}")
     CommonResult<JobRespVO> getJob(@Param("id") Long id);
 
     // "获得定时任务分页")
-    @RequestLine("GET /admin-api/infra/job/page")
+    @RequestLine("GET /infra/job/page")
     CommonResult<PageResult<JobRespVO>> getJobPage(@QueryMap Map<String,Object> pageVO);
 
 
 
     // "获得定时任务的下 n 次执行时间")
-    @RequestLine("GET /admin-api/infra/job/get_next_times?id={id}&count={count}")
+    @RequestLine("GET /infra/job/get_next_times?id={id}&count={count}")
     CommonResult<List<LocalDateTime>> getJobNextTimes(
             @Param("id") Long id,
             @Param("count") Integer count);

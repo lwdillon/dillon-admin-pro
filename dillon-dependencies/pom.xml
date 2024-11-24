@@ -77,12 +77,11 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.6.0</weixin-java.version>
         <!-- flatlaf -->
-        <flatlaf.version>3.5</flatlaf.version>
+        <flatlaf.version>3.5.2</flatlaf.version>
         <!-- jfreechart -->
         <jfreechart.version>1.5.3</jfreechart.version>
         <!-- pinyin4j -->
         <pinyin4j.version>2.5.1</pinyin4j.version>
-        <openfeign.version>13.3</openfeign.version>
 
     </properties>
 
@@ -653,44 +652,7 @@
                 <version>${jfreechart.version}</version>
             </dependency>
 
-            <!--openfeign-->
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-core</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-okhttp</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-ribbon</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-gson</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-jackson</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-slf4j</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.github.openfeign</groupId>
-                <artifactId>feign-form</artifactId>
-                <version>${openfeign.version}</version>
-            </dependency>
 
 
 

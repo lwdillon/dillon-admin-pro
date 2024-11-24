@@ -10,10 +10,10 @@ import feign.RequestLine;
 
 public interface AuthFeign extends BaseFeignApi {
 
-    @RequestLine("POST /admin-api/system/auth/login")
+    @RequestLine("POST /system/auth/login")
     CommonResult<AuthLoginRespVO> login(AuthLoginReqVO authLoginReqVO);
 
-    @RequestLine("POST /admin-api/system/auth/logout")
+    @RequestLine("POST /system/auth/logout")
     CommonResult<Boolean> logout();
 
     /**
@@ -21,6 +21,6 @@ public interface AuthFeign extends BaseFeignApi {
      *
      * @return {@link CommonResult }<{@link AuthPermissionInfoRespVO }>
      */
-    @RequestLine("GET /admin-api/system/auth/get-permission-info")
+    @RequestLine("GET /system/auth/get-permission-info")
     CommonResult<AuthPermissionInfoRespVO> getPermissionInfo();
 }

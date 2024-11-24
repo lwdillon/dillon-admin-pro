@@ -13,10 +13,10 @@ import java.util.Map;
 public interface OAuth2TokenFeign extends BaseFeignApi {
 
 
-    @RequestLine("GET /admin-api/system/oauth2-token/page")
+    @RequestLine("GET /system/oauth2-token/page")
     CommonResult<PageResult<OAuth2AccessTokenRespVO>> getAccessTokenPage(@QueryMap Map<String,Object> reqVO);
 
-    @RequestLine("DELETE /admin-api/system/oauth2-token/delete?accessToken={accessToken}")
+    @RequestLine("DELETE /system/oauth2-token/delete?accessToken={accessToken}")
     CommonResult<Boolean> deleteAccessToken(@Param("accessToken") String accessToken);
 
 }

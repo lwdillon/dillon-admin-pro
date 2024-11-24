@@ -14,13 +14,13 @@ import java.util.Map;
 public interface LoginLogFeign extends BaseFeignApi {
 
 
-    @RequestLine("GET /admin-api/system/login-log/page")
+    @RequestLine("GET /system/login-log/page")
     CommonResult<PageResult<LoginLogRespVO>> getLoginLogPage(@QueryMap Map<String, Object> map);
 
-    @RequestLine("DELETE /admin-api/system/login-log/delete?id={id}")
+    @RequestLine("DELETE /system/login-log/delete?id={id}")
     CommonResult<Boolean> deleteLoginLog(@Param("id") Long id);
 
-    @RequestLine("DELETE /admin-api/system/login-log/clear")
+    @RequestLine("DELETE /system/login-log/clear")
     CommonResult<Boolean> clearLoginLog();
 
 }

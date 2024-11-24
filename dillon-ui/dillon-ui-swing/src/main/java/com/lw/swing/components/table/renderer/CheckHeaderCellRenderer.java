@@ -19,6 +19,7 @@ public class CheckHeaderCellRenderer implements TableCellRenderer {
         selectBox = new JCheckBox(tableModel.getColumnName(0));
         selectBox.setSelected(false);
         tableHeader.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() > 0) {
                     //获得选中列

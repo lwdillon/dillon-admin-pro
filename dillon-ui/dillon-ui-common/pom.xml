@@ -20,37 +20,56 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <openfeign.version>13.5</openfeign.version>
     </properties>
     <dependencies>
+        <!--openfeign-->
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-core</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-okhttp</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-ribbon</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-gson</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-jackson</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-slf4j</artifactId>
+            <version>${openfeign.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.github.openfeign.form</groupId>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-hystrix</artifactId>
+            <version>${openfeign.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
             <artifactId>feign-form</artifactId>
-            <version>3.8.0</version>
+            <version>${openfeign.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.ribbon</groupId>
+            <artifactId>ribbon-httpclient</artifactId>
+            <version>2.7.18</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign.form</groupId>
@@ -82,6 +101,7 @@
             <version>2.1.0-jdk8-snapshot</version>
             <scope>compile</scope>
         </dependency>
+
     </dependencies>
 
 </project>

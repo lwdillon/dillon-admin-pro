@@ -253,6 +253,7 @@ public class SidePane extends WPanel implements Observer {
             super(root);
         }
 
+        @Override
         public Object getChild(Object parent, int index) {
             AuthPermissionInfoRespVO.MenuVO parentFile = (AuthPermissionInfoRespVO.MenuVO) parent;
             List<AuthPermissionInfoRespVO.MenuVO> children = parentFile.getChildren();
@@ -260,6 +261,7 @@ public class SidePane extends WPanel implements Observer {
 
         }
 
+        @Override
         public int getChildCount(Object parent) {
             if (parent instanceof AuthPermissionInfoRespVO.MenuVO) {
                 List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
@@ -271,6 +273,7 @@ public class SidePane extends WPanel implements Observer {
             return 0;
         }
 
+        @Override
         public Class<?> getColumnClass(int column) {
             switch (column) {
                 case 0:
@@ -280,14 +283,17 @@ public class SidePane extends WPanel implements Observer {
             }
         }
 
+        @Override
         public int getColumnCount() {
             return 1;
         }
 
+        @Override
         public String getColumnName(int column) {
             return "Name";
         }
 
+        @Override
         public Object getValueAt(Object node, int column) {
             if (node instanceof AuthPermissionInfoRespVO.MenuVO) {
                 AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) node;
@@ -307,6 +313,7 @@ public class SidePane extends WPanel implements Observer {
             this.modelSupport.fireNewRoot();
         }
 
+        @Override
         public boolean isLeaf(Object node) {
             if (node instanceof AuthPermissionInfoRespVO.MenuVO) {
                 return ((AuthPermissionInfoRespVO.MenuVO) node).getChildren() == null;

@@ -15,22 +15,22 @@ import java.util.List;
 
 public interface MenuFeign extends BaseFeignApi {
 
-    @RequestLine("GET /admin-api/system/menu/list")
+    @RequestLine("GET /system/menu/list")
     CommonResult<List<MenuRespVO>> getMenuList(@QueryMap MenuListReqVO reqVO);
 
 
-    @RequestLine("POST /admin-api/system/menu/create")
+    @RequestLine("POST /system/menu/create")
     CommonResult<Long> createMenu( MenuSaveVO createReqVO);
 
-    @RequestLine("PUT /admin-api/system/menu/update")
+    @RequestLine("PUT /system/menu/update")
     CommonResult<Boolean> updateMenu(MenuSaveVO updateReqVO);
 
-    @RequestLine("DELETE /admin-api/system/menu/delete?id={id}")
+    @RequestLine("DELETE /system/menu/delete?id={id}")
     CommonResult<Boolean> deleteMenu(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/menu/simple-list")
+    @RequestLine("GET /system/menu/simple-list")
     CommonResult<List<MenuSimpleRespVO>> getSimpleMenuList();
 
-    @RequestLine("GET /admin-api/system/menu/get?id={id}")
+    @RequestLine("GET /system/menu/get?id={id}")
     CommonResult<MenuRespVO> getMenu(@Param("id") Long id);
 }

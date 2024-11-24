@@ -111,6 +111,7 @@ public class AssignRolesPane extends JPanel {
             }
         });
         roleCheckBoxList.getCheckBoxListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     Object[] objects = roleCheckBoxList.getCheckBoxListSelectedValues();

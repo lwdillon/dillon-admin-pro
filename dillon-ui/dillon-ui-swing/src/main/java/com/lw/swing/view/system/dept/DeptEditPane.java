@@ -234,7 +234,7 @@ public class DeptEditPane extends JPanel {
                 DefaultMutableTreeNode deptRootNode = new DefaultMutableTreeNode("主类目");
                 // Build the tree
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0l, deptRootNode); // Root node
+                nodeMap.put(0L, deptRootNode); // Root node
 
                 CommonResult<java.util.List<DeptSimpleRespVO>> deptSimpleRespVOList = Request.connector(DeptFeign.class).getSimpleDeptList();
                 CommonResult<java.util.List<UserSimpleRespVO>> userSimpleRespVOList = Request.connector(UserFeign.class).getSimpleUserList();
@@ -245,7 +245,7 @@ public class DeptEditPane extends JPanel {
                     for (UserSimpleRespVO respVO : userSimpleRespVOList.getData()) {
                         leaderUsers.add(respVO);
 
-                        if (deptRespVO != null && deptRespVO.getLeaderUserId() == respVO.getId()) {
+                        if (deptRespVO != null && deptRespVO.getLeaderUserId().equals(respVO.getId())) {
                             leaderUserSel = respVO;
                         }
                     }

@@ -15,22 +15,22 @@ import java.util.List;
 public interface DeptFeign extends BaseFeignApi {
 
 
-    @RequestLine("POST /admin-api/system/dept/create")
+    @RequestLine("POST /system/dept/create")
     CommonResult<Long> createDept( DeptSaveReqVO createReqVO);
 
-    @RequestLine("PUT /admin-api/system/dept/update")
+    @RequestLine("PUT /system/dept/update")
     CommonResult<Boolean> updateDept( DeptSaveReqVO updateReqVO);
 
-    @RequestLine("DELETE /admin-api/system/dept/delete?id={id}")
+    @RequestLine("DELETE /system/dept/delete?id={id}")
     CommonResult<Boolean> deleteDept(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/dept/list")
+    @RequestLine("GET /system/dept/list")
     CommonResult<List<DeptRespVO>> getDeptList(@QueryMap DeptListReqVO reqVO);
 
-    @RequestLine("GET /admin-api/system/dept/simple-list")
+    @RequestLine("GET /system/dept/simple-list")
     CommonResult<List<DeptSimpleRespVO>> getSimpleDeptList();
 
-    @RequestLine("GET /admin-api/system/dept/get?id={id}")
+    @RequestLine("GET /system/dept/get?id={id}")
     CommonResult<DeptRespVO> getDept(@Param("id") Long id);
 
 }

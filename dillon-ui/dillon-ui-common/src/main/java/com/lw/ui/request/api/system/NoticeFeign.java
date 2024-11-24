@@ -15,22 +15,22 @@ import java.util.Map;
 public interface NoticeFeign extends BaseFeignApi {
 
 
-    @RequestLine("POST /admin-api/system/notice/create")
+    @RequestLine("POST /system/notice/create")
     CommonResult<Long> createNotice(NoticeSaveReqVO createReqVO);
 
-    @RequestLine("PUT /admin-api/system/notice/update")
+    @RequestLine("PUT /system/notice/update")
     CommonResult<Boolean> updateNotice(NoticeSaveReqVO updateReqVO);
 
-    @RequestLine("DELETE /admin-api/system/notice/delete?id={id}")
+    @RequestLine("DELETE /system/notice/delete?id={id}")
     CommonResult<Boolean> deleteNotice(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/notice/page")
+    @RequestLine("GET /system/notice/page")
     CommonResult<PageResult<NoticeRespVO>> getNoticePage(@QueryMap Map<String,Object> map);
 
-    @RequestLine("GET /admin-api/system/notice/get?id={id}")
+    @RequestLine("GET /system/notice/get?id={id}")
     CommonResult<NoticeRespVO> getNotice(@Param("id") Long id);
 
-    @RequestLine("POST /admin-api/system/notice/push?id={id}")
+    @RequestLine("POST /system/notice/push?id={id}")
     CommonResult<Boolean> push(@Param("id")Long id);
 
 }

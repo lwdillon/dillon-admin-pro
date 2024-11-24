@@ -17,18 +17,18 @@ import java.util.Set;
  */
 
 public interface PermissionFeign extends BaseFeignApi {
-    @RequestLine("GET /admin-api/system/permission/list-role-menus?roleId={roleId}")
+    @RequestLine("GET /system/permission/list-role-menus?roleId={roleId}")
     CommonResult<Set<Long>> getRoleMenuList(@Param("roleId") Long roleId);
 
-    @RequestLine("POST /admin-api/system/permission/assign-role-menu")
+    @RequestLine("POST /system/permission/assign-role-menu")
     CommonResult<Boolean> assignRoleMenu(PermissionAssignRoleMenuReqVO reqVO);
 
-    @RequestLine("POST /admin-api/system/permission/assign-role-data-scope")
+    @RequestLine("POST /system/permission/assign-role-data-scope")
     CommonResult<Boolean> assignRoleDataScope(PermissionAssignRoleDataScopeReqVO reqVO);
 
-    @RequestLine("GET /admin-api/system/permission/list-user-roles?userId={userId}")
+    @RequestLine("GET /system/permission/list-user-roles?userId={userId}")
     CommonResult<Set<Long>> listAdminRoles(@Param("userId") Long userId);
 
-    @RequestLine("POST /admin-api/system/permission/assign-user-role")
+    @RequestLine("POST /system/permission/assign-user-role")
     CommonResult<Boolean> assignUserRole(PermissionAssignUserRoleReqVO reqVO);
 }

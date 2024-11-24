@@ -219,6 +219,7 @@ public class UserEditPane extends JPanel {
 
 
         postCheckBoxList.getCheckBoxListSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     Object[] objects = postCheckBoxList.getCheckBoxListSelectedValues();
@@ -278,7 +279,7 @@ public class UserEditPane extends JPanel {
                 DefaultMutableTreeNode selectNode = null;
                 // Build the tree
                 Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0l, deptRoot); // Root node
+                nodeMap.put(0L, deptRoot); // Root node
 
 
                 for (DeptSimpleRespVO simpleRespVO : deptResult.getData()) {

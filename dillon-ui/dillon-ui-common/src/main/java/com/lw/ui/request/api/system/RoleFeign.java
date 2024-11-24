@@ -19,26 +19,22 @@ import java.util.Map;
 
 public interface RoleFeign extends BaseFeignApi {
 
-    @PostMapping("/create")
-    @RequestLine("POST /admin-api/system/role/create")
+    @RequestLine("POST /system/role/create")
     CommonResult<Long> createRole( RoleSaveReqVO createReqVO);
 
-    @PutMapping("/update")
-    @RequestLine("PUT /admin-api/system/role/update")
+    @RequestLine("PUT /system/role/update")
     CommonResult<Boolean> updateRole(RoleSaveReqVO updateReqVO);
 
-    @DeleteMapping("/delete")
-    @RequestLine("DELETE /admin-api/system/role/delete?id={id}")
+    @RequestLine("DELETE /system/role/delete?id={id}")
     CommonResult<Boolean> deleteRole(@Param("id") Long id);
 
-    @GetMapping("/get")
-    @RequestLine("GET /admin-api/system/role/get?id={id}")
+    @RequestLine("GET /system/role/get?id={id}")
     CommonResult<RoleRespVO> getRole(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/role/page")
+    @RequestLine("GET /system/role/page")
     CommonResult<PageResult<RoleRespVO>> getRolePage(@QueryMap Map<String,Object> queryMay);
 
-    @RequestLine("GET /admin-api/system/role/simple-list")
+    @RequestLine("GET /system/role/simple-list")
     CommonResult<List<RoleRespVO>> getSimpleRoleList();
 
 

@@ -1,4 +1,4 @@
-package com.lw.fx.request.feign.interceptor;
+package com.lw.fx.request.interceptor;
 
 import cn.hutool.json.JSONUtil;
 import com.lw.dillon.admin.framework.common.pojo.CommonResult;

@@ -17,22 +17,22 @@ import java.util.Map;
 public interface DictTypeFeign extends BaseFeignApi {
 
 
-    @RequestLine("POST /admin-api/system/dict-type/create")
+    @RequestLine("POST /system/dict-type/create")
     CommonResult<Long> createDictType( DictTypeSaveReqVO createReqVO);
 
-    @RequestLine("PUT /admin-api/system/dict-type/update")
+    @RequestLine("PUT /system/dict-type/update")
     CommonResult<Boolean> updateDictType( DictTypeSaveReqVO updateReqVO);
 
-    @RequestLine("DELETE /admin-api/system/dict-type/delete?id={id}")
+    @RequestLine("DELETE /system/dict-type/delete?id={id}")
     CommonResult<Boolean> deleteDictType(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/dict-type/page")
+    @RequestLine("GET /system/dict-type/page")
     CommonResult<PageResult<DictTypeRespVO>> pageDictTypes(@QueryMap Map<String,Object> map);
 
-    @RequestLine("GET /admin-api/system/dict-type/get?id={id}")
+    @RequestLine("GET /system/dict-type/get?id={id}")
     CommonResult<DictTypeRespVO> getDictType(@Param("id") Long id);
 
-    @RequestLine("GET /admin-api/system/dict-type/simple-list")
+    @RequestLine("GET /system/dict-type/simple-list")
         // 无需添加权限认证，因为前端全局都需要
     CommonResult<List<DictTypeSimpleRespVO>> getSimpleDictTypeList();
 
