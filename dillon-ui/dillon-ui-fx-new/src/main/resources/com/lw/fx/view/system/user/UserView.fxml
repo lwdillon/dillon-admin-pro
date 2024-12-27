@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.dlsc.gemsfx.daterange.DateRangePicker?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import java.lang.String?>
+<StackPane fx:id="rootPane" prefHeight="454.0" prefWidth="1060.0" styleClass="tab-center-pane" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.user.UserView">
+    <children>
+        <HBox fx:id="contentPane" prefHeight="100.0" prefWidth="200.0" spacing="10.0" styleClass="sample">
+            <children>
+                <VBox prefHeight="454.0" prefWidth="207.0" spacing="7.0">
+                    <children>
+                        <TextField fx:id="deptNameField" maxWidth="1.7976931348623157E308" promptText="请输入部门名称" />
+                        <TreeView fx:id="treeView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                    </children>
+                </VBox>
+                <VBox fx:id="rightPane" prefHeight="200.0" prefWidth="100.0" spacing="7.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="5.0">
+                            <children>
+                                <TextField fx:id="usernameField" promptText="请输入用户名称" />
+                                <TextField fx:id="mobileField" promptText="请输入手机号码" />
+                                <ComboBox fx:id="statusComboBox" prefWidth="120.0" promptText="用户状态">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="开启" />
+                                            <String fx:value="关闭" />
+                                        </FXCollections>
+                                    </items>
+                                </ComboBox>
+                                <DateRangePicker fx:id="createTimePicker" customRangeText="创建时间" promptText="开始日期-结束日期" />
+                                <Button fx:id="searchBut" mnemonicParsing="false" text="查询">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-search" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="resetBut" mnemonicParsing="false" text="重置">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-refresh-cw" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="addBut" mnemonicParsing="false" text="新增">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-plus" />
+                                    </graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <TableView fx:id="tableView" editable="true" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="idCol" prefWidth="141.0" style="-fx-alignment: CENTER;" text="用户编号" />
+                                <TableColumn fx:id="userNameCol" prefWidth="75.0" style="-fx-alignment: CENTER;" text="用户名称" />
+                                <TableColumn fx:id="nickNameCol" prefWidth="75.0" style="-fx-alignment: CENTER;" text="用户昵称" />
+                                <TableColumn fx:id="deptCol" prefWidth="75.0" style="-fx-alignment: CENTER;" text="部门" />
+                                <TableColumn fx:id="phonenumberCol" prefWidth="75.0" style="-fx-alignment: CENTER;" text="手机号码" />
+                                <TableColumn fx:id="statusCol" prefWidth="75.0" style="-fx-alignment: CENTER;" text="状态" />
+                                <TableColumn fx:id="createTimeCol" minWidth="150.0" prefWidth="150.0" style="-fx-alignment: CENTER;" text="创建时间" />
+                                <TableColumn fx:id="optCol" minWidth="340.0" prefWidth="340.0" style="-fx-alignment: CENTER;" text="操作" />
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
+                        </TableView>
+
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+</StackPane>

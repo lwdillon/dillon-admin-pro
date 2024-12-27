@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.ToggleSwitch?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.HTMLEditor?>
+<VBox prefHeight="529.0" prefWidth="827.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.notice.NoticeFormView">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="*公告标题" />
+                <TextField fx:id="titleField" promptText="请输入公告标题" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="*公告内容" />
+            <HTMLEditor fx:id="contentHtmlEditor" htmlText="&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body contenteditable=&quot;true&quot;&gt;&lt;/body&gt;&lt;/html&gt;" prefHeight="200.0" prefWidth="506.0" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="公告类型" />
+            <ComboBox fx:id="typeComboBox" prefWidth="150.0" promptText="请选择公告类型" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="*状态:" />
+                <ToggleSwitch fx:id="statusBut" labelPosition="RIGHT" selected="true" text="开启" />
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <Insets bottom="10.0" right="10.0" top="10.0" />
+    </padding>
+</VBox>

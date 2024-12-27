@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane prefHeight="462.0" prefWidth="786.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.main.MainView">
+   <children>
+      <Pane id="background-image-pane" fx:id="backgroundImagePane" prefHeight="200.0" prefWidth="200.0" />
+      <Pane fx:id="backgroundPane" prefHeight="200.0" prefWidth="200.0" styleClass="background-pane" />
+      <HBox fx:id="contentPane">
+         <children>
+            <VBox fx:id="navigationPane" prefHeight="462.0" prefWidth="300.0" styleClass="cord-pane">
+               <children>
+                  <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="153.0" style="-fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;">
+                     <children>
+                        <Label fx:id="logoLabel" style="-fx-text-fill: linear-gradient(to right, #e00db4, #0d6bde);" styleClass="title-2" text="Label" />
+                     </children>
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                  </HBox>
+                  <StackPane id="sidebar" fx:id="menuPane" VBox.vgrow="ALWAYS" />
+                  <VBox alignment="CENTER" prefHeight="45.0" prefWidth="143.0" style="-fx-border-color: -color-border-default; -fx-border-width: 1 0 0 0;">
+                     <padding>
+                        <Insets left="10.0" />
+                     </padding>
+                     <children>
+                        <Label fx:id="versionLabel" text="dillon-ui-fx 1.0.1 " />
+                     </children>
+                  </VBox>
+               </children>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+            </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <HBox fx:id="titlePane" alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="786.0" style="-fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;" styleClass="cord-pane">
+                     <children>
+                        <Button fx:id="menuBarBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                        <Pane prefHeight="200.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                        <HBox>
+                           <children>
+                              <MenuButton fx:id="themeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="MenuButton" />
+                              <MenuButton fx:id="userBut" mnemonicParsing="false" text="MenuButton">
+                                <items>
+                                  <MenuItem fx:id="individualCenterBut" mnemonicParsing="false" text="个人中心">
+                                       <graphic>
+                                          <FontIcon iconLiteral="fth-user" iconSize="20" />
+                                       </graphic>
+                                    </MenuItem>
+                                  <MenuItem fx:id="loginOutBut" mnemonicParsing="false" text="退出登录">
+                                       <graphic>
+                                          <FontIcon iconLiteral="fth-log-out" iconSize="20" />
+                                       </graphic>
+                                    </MenuItem>
+                                </items>
+                                 <graphic>
+                                    <FontIcon iconLiteral="fth-user" iconSize="20" />
+                                 </graphic>
+                                 <styleClass>
+                                    <String fx:value="flat" />
+                                    <String fx:value="alt-icon" />
+                                 </styleClass>
+                              </MenuButton>
+                              <Button fx:id="minimizeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                              <Button fx:id="maximizeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                              <Button fx:id="closeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </HBox>
+                  <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" />
+                  <HBox fx:id="statusPane" prefHeight="45.0" prefWidth="786.0" style="-fx-border-color: -color-border-default; -fx-border-width: 1 0 0 0;" styleClass="cord-pane" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</StackPane>

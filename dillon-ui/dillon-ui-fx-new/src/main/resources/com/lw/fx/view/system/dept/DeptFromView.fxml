@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.CustomTextField?>
+<?import atlantafx.base.controls.ToggleSwitch?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox fx:id="rootBox" prefHeight="323.0" prefWidth="620.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.dept.DeptFromView">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="上级部门" />
+                <CustomTextField fx:id="deptTreeTextField" editable="false" promptText="请输入部门名称" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*部门名称" />
+                <TextField fx:id="nameTextField" promptText="请选择上级部门" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*显示排序" />
+                <Spinner fx:id="sortNumFeild" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="负责人" />
+            <ComboBox fx:id="leaderUserIdComBox" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="联系电话" />
+            <TextField fx:id="phoneField" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="邮箱" />
+            <TextField fx:id="emailField" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*部门状态" />
+                <ToggleSwitch fx:id="statusToggleBut" labelPosition="RIGHT" selected="true" text="开启" />
+            </children>
+        </HBox>
+
+    </children>
+    <padding>
+        <Insets right="10.0" />
+    </padding>
+
+</VBox>

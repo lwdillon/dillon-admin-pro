@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.layout.DeckPane?>
+<?import atlantafx.base.layout.InputGroup?>
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="650.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.login.LoginView">
+   <children>
+      <HBox prefHeight="100.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff0000, #0000ff); -fx-background-radius: 10 0 0 10;" HBox.hgrow="ALWAYS">
+               <children>
+                  <DeckPane fx:id="deckPane" animationDuration="500.0ms" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+<!--                     <padding>-->
+<!--                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />-->
+<!--                     </padding>-->
+                  </DeckPane>
+               </children>
+            </VBox>
+            <VBox alignment="CENTER" maxWidth="420.0" minWidth="420.0" style="-fx-background-color: #ffffff; -fx-background-radius: 0 10 10 0;" HBox.hgrow="ALWAYS">
+               <children>
+                  <Label fx:id="logoLabel" styleClass="title-1" text="登录">
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                  </Label>
+                  <Label styleClass="title-3" text="dillon-admin-pro" />
+                  <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" progress="0.0" VBox.vgrow="ALWAYS" />
+                  <InputGroup>
+                     <children>
+                        <Label contentDisplay="GRAPHIC_ONLY" prefHeight="45.0">
+                           <graphic>
+                              <FontIcon iconLiteral="fth-user" iconSize="20" />
+                           </graphic>
+                        </Label>
+                        <TextField fx:id="usernameField" prefHeight="45.0" prefWidth="300.0" promptText="用户名" />
+                     </children>
+                     <padding>
+                        <Insets bottom="10.0" top="20.0" />
+                     </padding>
+                  </InputGroup>
+                  <InputGroup>
+                     <children>
+                        <Label contentDisplay="GRAPHIC_ONLY" prefHeight="45.0" text="Label">
+                           <graphic>
+                              <FontIcon iconLiteral="fth-unlock" iconSize="20" />
+                           </graphic>
+                        </Label>
+                        <PasswordField fx:id="passwordField" prefHeight="45.0" prefWidth="300.0" promptText="密码" />
+                     </children>
+                     <padding>
+                        <Insets bottom="10.0" />
+                     </padding>
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </InputGroup>
+                  <HBox alignment="CENTER_RIGHT">
+                     <children>
+                        <CheckBox mnemonicParsing="false" text="记住密码" />
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                     <padding>
+                        <Insets bottom="5.0" />
+                     </padding>
+                  </HBox>
+                  <Label fx:id="msgLabel" styleClass="title-5">
+                     <padding>
+                        <Insets bottom="10.0" />
+                     </padding>
+                  </Label>
+                  <Button fx:id="loginBut" maxWidth="1.7976931348623157E308" mnemonicParsing="false" prefHeight="45.0" text="登录" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Separator prefWidth="200.0" />
+                  <Label text="lw-dillon">
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                     <styleClass>
+                        <String fx:value="text-muted" />
+                        <String fx:value="text-caption" />
+                     </styleClass>
+                  </Label>
+                  <Label text="421058391">
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                     <styleClass>
+                        <String fx:value="text-muted" />
+                        <String fx:value="text-caption" />
+                     </styleClass>
+                  </Label>
+               </children>
+               <padding>
+                  <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+               </padding>
+
+            </VBox>
+         </children>
+      </HBox>
+      <Button fx:id="closeBut" mnemonicParsing="false" AnchorPane.rightAnchor="0.0" />
+   </children>
+</AnchorPane>

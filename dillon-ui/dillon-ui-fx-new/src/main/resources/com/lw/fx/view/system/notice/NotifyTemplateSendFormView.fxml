@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lw.fx.view.system.notice.NotifyTemplateSendFormView">
+    <children>
+        <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="模板内容" />
+                <TextArea fx:id="contentArea" prefHeight="200.0" prefWidth="200.0" promptText="请输入模板内容" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="用户类型" />
+                <ComboBox fx:id="userTypeComboBox" promptText="请选择类型" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="接收人" />
+            <ComboBox fx:id="userComboBox" prefWidth="150.0" />
+            </children>
+        </HBox>
+      <VBox fx:id="paramsBox" spacing="10.0" />
+    </children>
+</VBox>
