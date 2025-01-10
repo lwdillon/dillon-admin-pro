@@ -9,11 +9,9 @@ import com.lw.ui.request.api.BaseFeignApi;
 import feign.Param;
 import feign.QueryMap;
 import feign.RequestLine;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Map;
 
-@Tag(name = "管理后台 - 站内信模版")
 public interface NotifyTemplateFeign extends BaseFeignApi {
     //"创建站内信模版")
     @RequestLine("POST /system/notify-template/create")

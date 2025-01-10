@@ -4,15 +4,29 @@
 		"domain":"https://api.apifox.com",
 		"syncAfterSave":false
 	},
-	"dataList":[],
-	"envList":[],
+	"dataList":[
+		{
+			"hostGroup":[
+				{
+					"env":"dev",
+					"url":"127.0.0.1:48080"
+				}
+			],
+			"name":"dillon-admin-pro"
+		}
+	],
+	"envList":[
+		"dev"
+	],
 	"headerList":[],
 	"ignoreParseFieldList":[],
 	"maxDescriptionLength":-1,
 	"pmCollectionId":"",
 	"postScript":"",
 	"preScript":"",
-	"projectList":[],
+	"projectList":[
+		"dillon-admin-pro"
+	],
 	"syncModel":{
 		"branch":"master",
 		"domain":"https://github.com",

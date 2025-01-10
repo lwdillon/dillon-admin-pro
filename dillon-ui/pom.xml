@@ -22,6 +22,7 @@
         <module>dillon-ui-common</module>
         <module>dillon-ui-swing</module>
         <module>dillon-ui-fx</module>
+        <module>dillon-ui-fx-new</module>
     </modules>
 
 

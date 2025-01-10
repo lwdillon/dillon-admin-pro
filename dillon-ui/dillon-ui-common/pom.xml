@@ -81,11 +81,7 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.32</version> <!-- 适当的版本号 -->
         </dependency>
-        <dependency>
-            <groupId>com.lw.dillon</groupId>
-            <artifactId>dillon-module-system-biz</artifactId>
-            <version>${revision}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.belerweb</groupId>
             <artifactId>pinyin4j</artifactId>
@@ -95,13 +91,22 @@
             <artifactId>Java-WebSocket</artifactId>
             <version>1.5.1</version>
         </dependency>
+
         <dependency>
             <groupId>com.lw.dillon</groupId>
             <artifactId>dillon-module-infra-biz</artifactId>
-            <version>2.1.0-jdk8-snapshot</version>
-            <scope>compile</scope>
+            <version>${revision}</version>
+
+        </dependency>
+        <dependency>
+            <groupId>com.lw.dillon</groupId>
+            <artifactId>dillon-module-system-biz</artifactId>
+            <version>${revision}</version>
+
         </dependency>
 
     </dependencies>
+
+
 
 </project>

@@ -99,6 +99,9 @@ public class AuthPermissionInfoRespVO {
          */
         private List<MenuVO> children;
 
+        public boolean hasChildren() {
+            return children != null && !children.isEmpty();
+        }
     }
 
 }
