@@ -154,4 +154,9 @@ public class AuthController {
         return success(authService.socialLogin(reqVO));
     }
 
+    @GetMapping("/health")
+    public CommonResult<Boolean> health() {
+        return CommonResult.success(true);
+    }
+
 }

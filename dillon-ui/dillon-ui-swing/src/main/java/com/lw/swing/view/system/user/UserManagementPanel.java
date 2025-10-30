@@ -9,7 +9,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
@@ -20,14 +19,17 @@ import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.DeptFeign;
-import com.lw.ui.request.api.system.PermissionFeign;
-import com.lw.ui.request.api.system.UserFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.DeptApi;
+import com.lw.ui.api.system.PermissionApi;
+import com.lw.ui.api.system.UserApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.JXTable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -37,9 +39,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 import static javax.swing.JOptionPane.*;
 
@@ -321,55 +322,50 @@ public class UserManagementPanel extends JPanel {
      * 添加
      */
     private void add(UserSaveReqVO userSaveReqVO) {
+        RetrofitServiceManager.getInstance().create(UserApi.class).createUser(userSaveReqVO)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                            loadTableData();
+                        }, // 成功回调
+                        throwable -> {
+                            WMessage.showMessageWarning(MainFrame.getInstance(), throwable.getMessage());
+                            throwable.printStackTrace();
+                        } // 错误回调
+                );
 
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(UserFeign.class).createUser(userSaveReqVO);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
-
-                        loadTableData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void edit(UserSaveReqVO userSaveReqVO) {
 
+        RetrofitServiceManager.getInstance().create(UserApi.class).updateUser(userSaveReqVO)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                            loadTableData();
+                        }, // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(UserFeign.class).updateUser(userSaveReqVO);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
-
-                        loadTableData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -389,28 +385,24 @@ public class UserManagementPanel extends JPanel {
             return;
         }
         Long finalUserId = userId;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(UserFeign.class).deleteUser(finalUserId);
-            }
+        RetrofitServiceManager.getInstance().create(UserApi.class).deleteUser(finalUserId)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                            loadTableData();
+                        }, // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
-
-                        loadTableData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -427,102 +419,93 @@ public class UserManagementPanel extends JPanel {
         userUpdatePasswordReqVO.setId(id);
         userUpdatePasswordReqVO.setPassword(pwd);
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(UserFeign.class).updateUserPassword(userUpdatePasswordReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(UserApi.class).updateUserPassword(userUpdatePasswordReqVO)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "重置成功！");
+                        }, // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
 
-            @Override
-            protected void done() {
-
-                try {
-                    if(get().isSuccess()){
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"操作成功！");
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void permissionAssignUserRole(PermissionAssignUserRoleReqVO permissionAssignUserRoleReqVO) {
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(PermissionFeign.class).assignUserRole(permissionAssignUserRoleReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "操作成功！");
+                            loadTableData();
+                        }, // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"操作成功！");
-                        loadTableData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     public void loadTreeData() {
 
-        SwingWorker<DefaultMutableTreeNode, Object> swingWorker = new SwingWorker<DefaultMutableTreeNode, Object>() {
-            @Override
-            protected DefaultMutableTreeNode doInBackground() throws Exception {
-                CommonResult<List<DeptSimpleRespVO>> result = Request.connector(DeptFeign.class).getSimpleDeptList();
+        RetrofitServiceManager.getInstance().create(DeptApi.class).getSimpleDeptList()
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        authPermissionInfo -> updateTreeUI(authPermissionInfo), // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
 
-                DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
-                // Build the tree
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0L, root); // Root node
+
+    }
+
+    @NotNull
+    private void updateTreeUI(List<DeptSimpleRespVO> result) {
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
+        // Build the tree
+        Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+        nodeMap.put(0L, root); // Root node
 
 
-                if (result.isSuccess()) {
-                    for (DeptSimpleRespVO menu : result.getData()) {
-                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(menu);
+        for (DeptSimpleRespVO menu : result) {
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(menu);
 
-                        nodeMap.put(menu.getId(), node);
-                    }
+            nodeMap.put(menu.getId(), node);
+        }
 
-                    result.getData().forEach(menuSimpleRespVO -> {
-                        DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                        DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
-                        if (parentNode != null) {
+        result.forEach(menuSimpleRespVO -> {
+            DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+            DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
+            if (parentNode != null) {
 
-                            parentNode.add(childNode);
-                        }
-                    });
-                }
-                return root;
+                parentNode.add(childNode);
             }
+        });
 
-            @Override
-            protected void done() {
-                try {
-                    tree.setModel(new DefaultTreeModel(get()));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        swingWorker.execute();
-
+        tree.setModel(new DefaultTreeModel(root));
     }
 
     public void loadTableData() {
@@ -560,77 +543,64 @@ public class UserManagementPanel extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
+        // 过滤掉 null 值
+        queryMap.entrySet().removeIf(entry -> entry.getValue() == null);
+        RetrofitServiceManager.getInstance().create(UserApi.class).getUserPage(queryMap)
+                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
+                .map(new PayLoad<>()) // 提取响应中的数据
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
+                .doOnSubscribe(disposable -> {
+                    // UI 更新：开始请求
+                })
+                .doFinally(() -> {
+                    // UI 更新：请求结束
+                })
+                .subscribe(
+                        result -> updateTableDataUI(result), // 成功回调
+                        throwable -> throwable.printStackTrace() // 错误回调
+                );
+
+
+    }
+
+    private void updateTableDataUI(PageResult<UserRespVO> pageResult) {
+        Vector<Vector> tableData = new Vector<>();
+        paginationPane.setTotal(pageResult.getTotal());
+        pageResult.getList().forEach(userRespVO -> {
+            Vector rowV = new Vector();
+            rowV.add(userRespVO.getId());
+            rowV.add(userRespVO.getUsername());
+            rowV.add(userRespVO.getNickname());
+            rowV.add(userRespVO.getDeptName());
+            rowV.add(userRespVO.getMobile());
+            rowV.add(userRespVO.getStatus());
+            rowV.add(DateUtil.format(userRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            rowV.add(userRespVO);
+            tableData.add(rowV);
+        });
+        tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+        table.getColumn("操作").setMinWidth(240);
+        table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+        table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+
+        table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
             @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<UserRespVO>> result = Request.connector(UserFeign.class).getUserPage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(userRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(userRespVO.getId());
-                        rowV.add(userRespVO.getUsername());
-                        rowV.add(userRespVO.getNickname());
-                        rowV.add(userRespVO.getDeptName());
-                        rowV.add(userRespVO.getMobile());
-                        rowV.add(userRespVO.getStatus());
-                        rowV.add(DateUtil.format(userRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(userRespVO);
-                        tableData.add(rowV);
-                    });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                    return label.getForeground();
+                }));
+                label.setIcon(icon);
+                panel.add(label);
+                panel.setBackground(component.getBackground());
+                panel.setOpaque(isSelected);
+                return panel;
             }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setMinWidth(240);
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
-
-                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                                return label.getForeground();
-                            }));
-                            label.setIcon(icon);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        swingWorker.execute();
+        });
 
     }
 

@@ -9,16 +9,17 @@ import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.jidesoft.swing.CheckBoxList;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.oauth2.vo.client.OAuth2ClientRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.oauth2.vo.client.OAuth2ClientSaveReqVO;
 import com.lw.swing.components.WScrollPane;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.OAuth2ClientFeign;
+import com.lw.ui.api.system.OAuth2ClientApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -31,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -311,38 +311,22 @@ public class ClientFormPane extends JPanel {
 
         this.id = id;
 
-
-        SwingWorker<OAuth2ClientRespVO, OAuth2ClientRespVO> swingWorker = new SwingWorker<OAuth2ClientRespVO, OAuth2ClientRespVO>() {
-            @Override
-            protected OAuth2ClientRespVO doInBackground() throws Exception {
-                OAuth2ClientRespVO auth2ClientRespVO = new OAuth2ClientRespVO();
-                if (id != null) {
-                    CommonResult<OAuth2ClientRespVO> userResult = Request.connector(OAuth2ClientFeign.class).getOAuth2Client(id);
-                    auth2ClientRespVO = userResult.getData();
-                }
-
-                return auth2ClientRespVO;
-            }
-
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
+        RetrofitServiceManager.getInstance().create(OAuth2ClientApi.class).getOAuth2Client(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    setValue(result);
                     List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_OAUTH2_GRANT_TYPE);
                     // 提取所有 label
                     List<String> labels = dictDataSimpleRespVOList.stream().map(DictDataSimpleRespVO::getLabel).collect(Collectors.toList());
                     authorizedGrantTypesCheckBoxList.setModel(new DefaultComboBoxModel(labels.toArray()));
-                    authorizedGrantTypesCheckBoxList.setSelectedObjects(get().getAuthorizedGrantTypes().toArray());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                    authorizedGrantTypesCheckBoxList.setSelectedObjects(result.getAuthorizedGrantTypes().toArray());
+
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
+
+
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

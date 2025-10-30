@@ -8,18 +8,18 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.ui.request.api.system.NotifyMessageFeign;
+import com.lw.ui.api.system.NotifyMessageApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -28,9 +28,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.*;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -250,17 +248,17 @@ public class NotifyMessagePane extends JPanel {
                 "[fill][grow,fill]",
                 // rows
                 "[][][][][][][][][][][][]"));
-        panel.setPreferredSize(new Dimension(450,600));
+        panel.setPreferredSize(new Dimension(450, 600));
         addMessageInfo("编号", noticeRespVO.getId(), panel, 0);
-        addMessageInfo("用户类型", USER_TYPE,noticeRespVO.getUserType(), panel, 1);
+        addMessageInfo("用户类型", USER_TYPE, noticeRespVO.getUserType(), panel, 1);
         addMessageInfo("用户编号", noticeRespVO.getUserId(), panel, 2);
         addMessageInfo("模版编号", noticeRespVO.getTemplateId(), panel, 3);
         addMessageInfo("模板编码", noticeRespVO.getTemplateCode(), panel, 4);
         addMessageInfo("发送人名称", noticeRespVO.getTemplateNickname(), panel, 5);
         addMessageInfo("模版内容", noticeRespVO.getTemplateContent(), panel, 6);
         addMessageInfo("模版参数", noticeRespVO.getTemplateParams(), panel, 7);
-        addMessageInfo("模版类型", SYSTEM_NOTIFY_TEMPLATE_TYPE,noticeRespVO.getTemplateType(), panel, 8);
-        addMessageInfo("是否已读", INFRA_BOOLEAN_STRING,noticeRespVO.getReadStatus(), panel, 9);
+        addMessageInfo("模版类型", SYSTEM_NOTIFY_TEMPLATE_TYPE, noticeRespVO.getTemplateType(), panel, 8);
+        addMessageInfo("是否已读", INFRA_BOOLEAN_STRING, noticeRespVO.getReadStatus(), panel, 9);
         addMessageInfo("阅读时间", DateUtil.format(noticeRespVO.getReadTime(), "yyyy-MM-dd HH:mm:ss"), panel, 10);
         addMessageInfo("创建时间", DateUtil.format(noticeRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 11);
         WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
@@ -280,16 +278,15 @@ public class NotifyMessagePane extends JPanel {
 
 
         JLabel label = new JLabel(text);
-        JLabel badge = BadgeLabelUtil.getBadgeLabel(dictType,value);
+        JLabel badge = BadgeLabelUtil.getBadgeLabel(dictType, value);
 
 
         panel.add(label, "cell 0 " + row);
-        panel.add(badge, "cell 1 " + row+",alignx left,growx 0");
+        panel.add(badge, "cell 1 " + row + ",alignx left,growx 0");
     }
 
 
     private void clear() {
-
 
 
     }
@@ -329,18 +326,14 @@ public class NotifyMessagePane extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<NotifyMessageRespVO>> result = Request.connector(NotifyMessageFeign.class).getNotifyMessagePage(queryMap);
+        RetrofitServiceManager.getInstance().create(NotifyMessageApi.class).getNotifyMessagePage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
 
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
+                    result.getList().forEach(roleRespVO -> {
                         Vector rowV = new Vector();
                         rowV.add(roleRespVO.getId());
                         rowV.add(roleRespVO.getUserType());
@@ -355,24 +348,7 @@ public class NotifyMessagePane extends JPanel {
                         rowV.add(roleRespVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
@@ -413,15 +389,12 @@ public class NotifyMessagePane extends JPanel {
                             return panel;
                         }
                     });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
 
-            }
-        };
-        swingWorker.execute();
+                    paginationPane.setTotal(result.getTotal());
+                }, Throwable::printStackTrace);
+
+
+
 
     }
 

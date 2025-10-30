@@ -16,7 +16,6 @@ import de.saxsys.mvvmfx.ViewModel;
 import io.datafx.core.concurrent.ProcessChain;
 import javafx.beans.property.*;
 import javafx.scene.control.TreeItem;
-import net.datafaker.App;
 
 
 public class MainViewModel implements ViewModel, SceneLifecycle {

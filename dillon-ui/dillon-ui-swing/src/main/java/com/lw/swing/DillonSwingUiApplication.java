@@ -1,8 +1,9 @@
 package com.lw.swing;
 
 
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.theme.LightTheme;
-import com.lw.swing.view.MainFrame;
+import com.lw.swing.view.frame.MainFrame;
 import org.jdesktop.core.animation.timing.Animator;
 import org.jdesktop.core.animation.timing.TimingSource;
 import org.jdesktop.swing.animation.timing.sources.SwingTimerTimingSource;
@@ -21,6 +22,7 @@ public class DillonSwingUiApplication {
 
     public static void main(String[] args) {
         loadApplicationProperties();
+        RetrofitServiceManager.getInstance();
         SwingUtilities.invokeLater(() -> {
             try {
                 TimingSource ts = new SwingTimerTimingSource();
@@ -39,9 +41,7 @@ public class DillonSwingUiApplication {
             chartTheme.setRegularFont(new Font("宋体", Font.PLAIN, 12)); // 设置图例字体
             ChartFactory.setChartTheme(chartTheme);
 
-            MainFrame frame = MainFrame.getInstance();
-            frame.setTitle(System.getProperty("app.name"));
-            frame.showLogin();
+            MainFrame.getInstance().showLogin();
         });
     }
 

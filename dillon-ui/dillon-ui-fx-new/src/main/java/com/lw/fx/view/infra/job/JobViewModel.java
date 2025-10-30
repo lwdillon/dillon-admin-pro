@@ -25,6 +25,7 @@ public class JobViewModel implements ViewModel {
 
     private ObservableList<JobRespVO> tableItems = FXCollections.observableArrayList();
 
+
     public JobViewModel() {
         loadTableData();
     }

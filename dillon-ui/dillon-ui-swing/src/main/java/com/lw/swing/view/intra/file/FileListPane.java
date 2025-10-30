@@ -9,17 +9,16 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.file.FileRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.file.FileConfigFeign;
-import com.lw.ui.request.api.file.FileFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.file.FileApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -34,9 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
@@ -212,26 +209,17 @@ public class FileListPane extends JPanel {
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            SwingWorker<CommonResult<String>, Object> swingWorker = new SwingWorker<CommonResult<String>, Object>() {
-                @Override
-                protected CommonResult<String> doInBackground() throws Exception {
-                    return Request.fileConnector(FileFeign.class).uploadFile("", selectedFile);
-                }
 
-                @Override
-                protected void done() {
-                    try {
-                        if (get().isSuccess()) {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "上传成功！");
-                            loadTableData();
-                        }
-                    } catch (Exception e) {
+            RetrofitServiceManager.getInstance().create(FileApi.class).uploadFile("", selectedFile).map(new PayLoad<>())
+                    .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                    .subscribe(result1 -> {
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "上传成功！");
+                        loadTableData();
+                    }, throwable -> {
+                        WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                        throwable.printStackTrace();
+                    });
 
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-            swingWorker.execute();
         }
     }
 
@@ -260,27 +248,16 @@ public class FileListPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(FileConfigFeign.class).deleteFileConfig(finalId);
-            }
+        RetrofitServiceManager.getInstance().create(FileApi.class).deleteFile(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                        loadTableData();
-                    }
-                } catch (Exception e) {
-
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -339,17 +316,14 @@ public class FileListPane extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<FileRespVO>> result = Request.connector(FileFeign.class).getFilePage(queryMap);
+        queryMap.values().removeIf(Objects::isNull);
 
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(respVO -> {
+        RetrofitServiceManager.getInstance().create(FileApi.class).getFilePage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    paginationPane.setTotal(result.getTotal());
+                    result.getList().forEach(respVO -> {
                         Vector rowV = new Vector();
                         rowV.add(respVO.getName());
                         rowV.add(respVO.getPath());
@@ -360,24 +334,7 @@ public class FileListPane extends JPanel {
                         rowV.add(respVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setMinWidth(180);
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
@@ -414,15 +371,12 @@ public class FileListPane extends JPanel {
                         }
                     });
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
+
 
     }
 

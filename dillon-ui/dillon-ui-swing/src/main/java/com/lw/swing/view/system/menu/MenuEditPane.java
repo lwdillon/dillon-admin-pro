@@ -7,13 +7,15 @@ package com.lw.swing.view.system.menu;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.utils.TreeUtils;
-import com.lw.ui.request.api.system.MenuFeign;
+import com.lw.ui.api.system.MenuApi;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTree;
 
@@ -26,9 +28,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -284,7 +286,6 @@ public class MenuEditPane extends JPanel {
         });
 
 
-
     }
 
     private void showPopupMenu() {
@@ -316,7 +317,7 @@ public class MenuEditPane extends JPanel {
             return;
         }
         nameTextField.setText(menuRespVO.getName());
-        int menuType = menuRespVO.getType();
+        int menuType = ObjectUtil.defaultIfNull(menuRespVO.getType(),0);
         if (menuType == 1) {
             typeDirRadioButton.setSelected(true);
         } else if (menuType == 2) {
@@ -329,11 +330,11 @@ public class MenuEditPane extends JPanel {
         componentTextField.setText(menuRespVO.getComponentSwing());
         componentNameTextField.setText(menuRespVO.getComponentName());
         permissionTextField.setText(menuRespVO.getPermission());
-        sortSpinner.setValue(menuRespVO.getSort());
+        sortSpinner.setValue(ObjectUtil.defaultIfNull(menuRespVO.getSort(),0));
         statusCheckBox.setSelected(ObjectUtil.equals(menuRespVO.getStatus(), 0));
-        visibleCheckBox.setSelected(menuRespVO.getVisible());
-        alwaysShowCheckBox.setSelected(menuRespVO.getAlwaysShow());
-        keepAliveCheckBox.setSelected(menuRespVO.getKeepAlive());
+        visibleCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getVisible(), true));
+        alwaysShowCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getAlwaysShow(),true));
+        keepAliveCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getKeepAlive(),true));
     }
 
 
@@ -345,28 +346,42 @@ public class MenuEditPane extends JPanel {
             this.id = id;
         }
 
+        // 获取 API 实例（避免重复调用 getInstance()）
+        MenuApi menuApi = RetrofitServiceManager.getInstance().create(MenuApi.class);
 
-        SwingWorker<DefaultMutableTreeNode, MenuRespVO> swingWorker = new SwingWorker<DefaultMutableTreeNode, MenuRespVO>() {
-            private DefaultMutableTreeNode selectNode = null;
+        Observable.zip(
+                        Observable.defer(() -> {
+                            if (id == null) {
+                                return Observable.just(new MenuRespVO());// 返回一个默认的空对象
+                            }
+                            return menuApi.getMenu(id).map(new PayLoad<>());
+                        }),
+                        menuApi.getSimpleMenuList().map(new PayLoad<>()),
+                        (menuRespVO, menuList) -> {
+                            // 使用 LinkedHashMap 保持顺序
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("menuRespVO", menuRespVO);
+                            resultMap.put("menuList", menuList);
+                            return resultMap;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(resultMap -> {
+                    // 直接获取数据，无需强转
+                    MenuRespVO menuRespVO = (MenuRespVO) resultMap.get("menuRespVO");
+                    List<MenuSimpleRespVO> menuList = (List<MenuSimpleRespVO>) resultMap.get("menuList");
+                    DefaultMutableTreeNode selectNode = null;
 
-            @Override
-            protected DefaultMutableTreeNode doInBackground() throws Exception {
-                CommonResult<MenuRespVO> menuRespVO = Request.connector(MenuFeign.class).getMenu(id);
+                    setMenuRespVO(menuRespVO);
 
-                if (menuRespVO.isSuccess() && menuRespVO.getData() != null) {
-                    publish(menuRespVO.getData());
+                    DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
+                    // Build the tree
+                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                    nodeMap.put(0L, root); // Root node
 
-                }
 
-                DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
-                // Build the tree
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0L, root); // Root node
-
-                CommonResult<List<MenuSimpleRespVO>> menuSimpleRespVOList = Request.connector(MenuFeign.class).getSimpleMenuList();
-
-                if (menuSimpleRespVOList.isSuccess()) {
-                    for (MenuSimpleRespVO menu : menuSimpleRespVOList.getData()) {
+                    for (MenuSimpleRespVO menu : menuList) {
                         if (menu.getType() == 3) {
                             continue;
                         }
@@ -374,7 +389,7 @@ public class MenuEditPane extends JPanel {
                         nodeMap.put(menu.getId(), node);
                     }
 
-                    menuSimpleRespVOList.getData().forEach(menuSimpleRespVO -> {
+                    menuList.forEach(menuSimpleRespVO -> {
                         if (menuSimpleRespVO.getType() != 3) {
                             DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
                             DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
@@ -387,26 +402,10 @@ public class MenuEditPane extends JPanel {
 
                     });
 
-                    if (menuRespVO.getData() != null) {
-                        selectNode = nodeMap.get(isAdd ? menuRespVO.getData().getId() : menuRespVO.getData().getParentId());
+                    if (menuRespVO != null) {
+                        selectNode = nodeMap.get(isAdd ? menuRespVO.getId() : menuRespVO.getParentId());
                     }
-
-
-                }
-                return root;
-            }
-
-            @Override
-            protected void process(List<MenuRespVO> chunks) {
-
-                chunks.forEach(chunk -> setMenuRespVO(chunk));
-            }
-
-            @Override
-            protected void done() {
-
-                try {
-                    menuTree.setModel(new DefaultTreeModel(get()));
+                    menuTree.setModel(new DefaultTreeModel(root));
                     if (selectNode != null) {
                         TreePath path = new TreePath(selectNode.getPath());
                         menuTree.setSelectionPath(path);
@@ -414,14 +413,10 @@ public class MenuEditPane extends JPanel {
                         TreeUtils.expandTreeNode(menuTree, selectNode);
                     }
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                }, Throwable::printStackTrace);
+
+
+
 
     }
 

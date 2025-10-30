@@ -167,12 +167,22 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/';
-  import ${simpleClassName}Form from './';
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
   import ImageUpload from '@/components/ImageUpload';
   import FileUpload from '@/components/FileUpload';
   import Editor from '@/components/Editor';
-  import ${subSimpleClassName}List from './components/';
+  import ${simpleClassName}
+
+  Form
+  from
+  './';
+  import ${subSimpleClassName}
+
+  List
+  from
+  './components/';
       #if ($hasImageUploadColumn)
       #end
 #if ($hasFileUploadColumn)

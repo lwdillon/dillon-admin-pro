@@ -1,25 +1,23 @@
 package com.lw.swing.view.system.dept;
 
-import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
-import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
-import com.lw.dillon.admin.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.DeptFeign;
-import com.lw.ui.request.api.system.UserFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.DeptApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -32,9 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static javax.swing.JOptionPane.*;
 
@@ -45,7 +40,7 @@ import static javax.swing.JOptionPane.*;
  * @date 2022/07/17
  */
 public class DeptManagementPanel extends JPanel implements Observer {
-    private final static String[] COLUMN_ID = {"部门名称", "负责人", "排序",  "状态", "创建时间","操作"};
+    private final static String[] COLUMN_ID = {"部门名称", "负责人", "排序", "状态", "创建时间", "操作"};
 
     private JXTreeTable treeTable;
 
@@ -102,7 +97,6 @@ public class DeptManagementPanel extends JPanel implements Observer {
                 treeTable.collapseAll();
             }
         });
-
 
 
         treeTable = new JXTreeTable(new DeptTreeTableModel(null));
@@ -222,51 +216,34 @@ public class DeptManagementPanel extends JPanel implements Observer {
             deptListReqVO.setStatus(selectIndex == 1 ? 0 : 1);
 
         }
-        SwingWorker<Tree<Long>, Object> worker = new SwingWorker<Tree<Long>, Object>() {
-            @Override
-            protected Tree<Long> doInBackground() throws Exception {
-                List<UserSimpleRespVO> userSimpleRespVOList=  Request.connector(UserFeign.class).getSimpleUserList().getData();
-                Map<Long, UserSimpleRespVO> userMap = userSimpleRespVOList.stream()
-                        .collect(Collectors.toMap(UserSimpleRespVO::getId, Function.identity()));
+        Map<String, Object> qeryMap = BeanUtil.beanToMap(deptListReqVO,false,true);
+        RetrofitServiceManager.getInstance().create(DeptApi.class).getDeptList(qeryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(deptRespVOList -> {
+                    long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+                    TreeNodeConfig config = new TreeNodeConfig();
+                    config.setWeightKey("sort");
+                    config.setParentIdKey("parentId");
+                    config.setNameKey("name");
+                    Tree<Long> treeList = TreeUtil.buildSingle(deptRespVOList, min, config, ((object, treeNode) -> {
+                        treeNode.setId(object.getId());
+                        treeNode.setParentId(object.getParentId());
+                        treeNode.setName(object.getName());
+                        treeNode.putExtra("sort", object.getSort());
+                        treeNode.putExtra("status", object.getStatus());
+                        if (object.getLeaderUserId() != null) {
+                            treeNode.putExtra("leaderUserId", object.getLeaderUserId());
+                        }
 
-                List<DeptRespVO> sysDeptModelList = Request.connector(DeptFeign.class).getDeptList(deptListReqVO).getData();
-                long min = sysDeptModelList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-                TreeNodeConfig config = new TreeNodeConfig();
-                config.setWeightKey("sort");
-                config.setParentIdKey("parentId");
-                config.setNameKey("name");
-                Tree<Long> treeList = TreeUtil.buildSingle(sysDeptModelList, min, config, ((object, treeNode) -> {
-                    treeNode.setId(object.getId());
-                    treeNode.setParentId(object.getParentId());
-                    treeNode.setName(object.getName());
-                    treeNode.putExtra("sort", object.getSort());
-                    treeNode.putExtra("status", object.getStatus());
-                    if (object.getLeaderUserId() != null) {
-                        treeNode.putExtra("leaderUserId",object.getLeaderUserId());
-                    }
+                        treeNode.putExtra("createTime", object.getCreateTime());
+                    }));
+                    updateTreeTableRoot(treeList);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-                    treeNode.putExtra("createTime", object.getCreateTime());
-                }));
-                return treeList;
 
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (CollUtil.isNotEmpty(get())) {
-                        updateTreeTableRoot(get());
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-
-                }
-            }
-        };
-
-        worker.execute();
     }
 
     private void updateTreeTableRoot(Object root) {
@@ -325,25 +302,16 @@ public class DeptManagementPanel extends JPanel implements Observer {
     private void addDept() {
 
         DeptSaveReqVO saveVO = deptEditPane.getValue();
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(DeptFeign.class).createDept(saveVO);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
-                        updateData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(DeptApi.class).createDept(saveVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aLong -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
     }
 
@@ -351,25 +319,17 @@ public class DeptManagementPanel extends JPanel implements Observer {
 
         DeptSaveReqVO saveReqVO = deptEditPane.getValue();
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DeptFeign.class).updateDept(saveReqVO);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
-                        updateData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+
+        RetrofitServiceManager.getInstance().create(DeptApi.class).updateDept(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
     }
 
@@ -392,31 +352,18 @@ public class DeptManagementPanel extends JPanel implements Observer {
         if (opt != 0) {
             return;
         }
-        Long finalDeptId = deptId;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DeptFeign.class).deleteDept(finalDeptId);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(DeptApi.class).deleteDept(deptId).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
     }
-
 
 
     @Override

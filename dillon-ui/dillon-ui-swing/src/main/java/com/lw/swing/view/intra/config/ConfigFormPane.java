@@ -5,17 +5,19 @@
 package com.lw.swing.view.intra.config;
 
 import cn.hutool.core.convert.Convert;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.components.notice.WMessage;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.config.ConfigFeign;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.config.ConfigApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 
@@ -130,32 +132,16 @@ public class ConfigFormPane extends JPanel {
         this.id = id;
 
 
-        SwingWorker<ConfigRespVO, ConfigRespVO> swingWorker = new SwingWorker<ConfigRespVO, ConfigRespVO>() {
-            @Override
-            protected ConfigRespVO doInBackground() throws Exception {
-                ConfigRespVO postRespVO = new ConfigRespVO();
-                if (id != null) {
-                    CommonResult<ConfigRespVO> userResult = Request.connector(ConfigFeign.class).getConfig(id);
-                    postRespVO = userResult.getData();
-                }
+        RetrofitServiceManager.getInstance().create(ConfigApi.class).getConfig(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
 
-                return postRespVO;
-            }
+                    setValue(result);
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

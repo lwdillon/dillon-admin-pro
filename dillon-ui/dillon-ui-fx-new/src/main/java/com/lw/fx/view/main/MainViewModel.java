@@ -15,7 +15,6 @@ import de.saxsys.mvvmfx.MvvmFX;
 import de.saxsys.mvvmfx.SceneLifecycle;
 import de.saxsys.mvvmfx.ViewModel;
 import io.datafx.core.concurrent.ProcessChain;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -233,4 +232,7 @@ public class MainViewModel implements ViewModel, SceneLifecycle {
     public SimpleBooleanProperty maximizedProperty() {
         return maximized;
     }
+
+
+
 }

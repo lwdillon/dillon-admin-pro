@@ -1,14 +1,9 @@
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class SimpleJavaFXApp extends Application {
 

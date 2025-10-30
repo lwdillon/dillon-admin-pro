@@ -9,18 +9,18 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.ui.request.api.apilog.ApiAccessLogFeign;
+import com.lw.ui.api.apilog.ApiAccessLogApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -29,9 +29,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_OPERATE_TYPE;
 import static com.lw.ui.utils.DictTypeEnum.USER_TYPE;
@@ -299,8 +297,6 @@ public class ApiAccessLogPane extends JPanel {
     }
 
 
-
-
     public void updateData() {
 
         Map<String, Object> queryMap = new HashMap<>();
@@ -332,18 +328,17 @@ public class ApiAccessLogPane extends JPanel {
             dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("beginTime", dateTimes);
         }
-
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<ApiAccessLogRespVO>> result = Request.connector(ApiAccessLogFeign.class).getApiAccessLogPage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
+        queryMap.values().removeIf(Objects::isNull);
 
 
-                if (result.isSuccess()) {
+        RetrofitServiceManager.getInstance().create(ApiAccessLogApi.class).getApiAccessLogPage(queryMap)
+                .map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
 
-                    result.getData().getList().forEach(respVO -> {
+                    result.getList().forEach(respVO -> {
                         Vector rowV = new Vector();
                         rowV.add(respVO.getId());
                         rowV.add(respVO.getUserId());
@@ -360,24 +355,8 @@ public class ApiAccessLogPane extends JPanel {
                         rowV.add(respVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    paginationPane.setTotal(result.getTotal());
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
@@ -425,15 +404,11 @@ public class ApiAccessLogPane extends JPanel {
                             return panel;
                         }
                     });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
+
 
     }
 

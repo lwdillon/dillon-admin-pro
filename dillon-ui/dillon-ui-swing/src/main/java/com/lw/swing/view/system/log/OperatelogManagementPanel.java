@@ -9,14 +9,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.OperateLogFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.OperateLogApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -24,9 +24,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.*;
 
@@ -179,6 +177,7 @@ public class OperatelogManagementPanel extends JPanel {
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
 
     }
+
     @Override
     public void updateUI() {
         super.updateUI();
@@ -186,6 +185,7 @@ public class OperatelogManagementPanel extends JPanel {
             table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
         }
     }
+
     private JToolBar creatBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
@@ -234,18 +234,18 @@ public class OperatelogManagementPanel extends JPanel {
                 "[fill][grow,fill]",
                 // rows
                 "[][][][][][][][][][][][][]"));
-        panel.setPreferredSize(new Dimension(450,600));
+        panel.setPreferredSize(new Dimension(450, 600));
         addMessageInfo("日志主键", logRespVO.getId(), panel, 0);
-        addMessageInfo("链路追踪",logRespVO.getTraceId(), panel, 1);
+        addMessageInfo("链路追踪", logRespVO.getTraceId(), panel, 1);
         addMessageInfo("操作人编号", logRespVO.getUserId(), panel, 2);
         addMessageInfo("操作人名字", logRespVO.getUserName(), panel, 3);
         addMessageInfo("操作人 IP", logRespVO.getUserIp(), panel, 4);
         addMessageInfo("操作人 UA", logRespVO.getUserAgent(), panel, 5);
         addMessageInfo("操作模块", logRespVO.getType(), panel, 6);
         addMessageInfo("操作名", logRespVO.getSubType(), panel, 7);
-        addMessageInfoArea("操作内容",logRespVO.getAction(), panel, 8);
+        addMessageInfoArea("操作内容", logRespVO.getAction(), panel, 8);
         addMessageInfo("操作拓展参数", logRespVO.getExtra(), panel, 9);
-        addMessageInfo("请求 URL", logRespVO.getRequestMethod()+" "+logRespVO.getRequestUrl(), panel, 10);
+        addMessageInfo("请求 URL", logRespVO.getRequestMethod() + " " + logRespVO.getRequestUrl(), panel, 10);
         addMessageInfo("操作时间", DateUtil.format(logRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 11);
         addMessageInfo("业务编号", logRespVO.getBizId(), panel, 12);
         WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
@@ -265,13 +265,14 @@ public class OperatelogManagementPanel extends JPanel {
 
 
         JLabel label = new JLabel(text);
-        JTextArea textField = new JTextArea(value+"");
+        JTextArea textField = new JTextArea(value + "");
         textField.setEditable(false);
         textField.setLineWrap(true);
 
         panel.add(label, "cell 0 " + row);
-        panel.add(new JScrollPane(textField), "cell 1 " + row+",grow");
+        panel.add(new JScrollPane(textField), "cell 1 " + row + ",grow");
     }
+
     private void reset() {
         userNameTextField.setText("");
         typeTextField.setText("");
@@ -288,26 +289,14 @@ public class OperatelogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(OperateLogFeign.class).clearOperateLog();
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(OperateLogApi.class).clearOperateLog().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    updateData();
+                }, throwable -> throwable.printStackTrace());
+
 
     }
 
@@ -327,27 +316,13 @@ public class OperatelogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalUserId = userId;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(OperateLogFeign.class).deleteOperateLog(finalUserId);
-            }
+        RetrofitServiceManager.getInstance().create(OperateLogApi.class).deleteOperateLog(userId).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    updateData();
+                }, throwable -> throwable.printStackTrace());
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -381,18 +356,13 @@ public class OperatelogManagementPanel extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
-
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<OperateLogRespVO>> result = Request.connector(OperateLogFeign.class).pageOperateLog(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
+        queryMap.values().removeIf(Objects::isNull);
+        RetrofitServiceManager.getInstance().create(OperateLogApi.class).pageOperateLog(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
                         Vector rowV = new Vector();
                         rowV.add(roleRespVO.getId());
                         rowV.add(roleRespVO.getUserName());
@@ -405,37 +375,14 @@ public class OperatelogManagementPanel extends JPanel {
                         rowV.add(roleRespVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
+                    paginationPane.setTotal(result.getTotal());
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                }, throwable -> throwable.printStackTrace());
 
-            }
-        };
-        swingWorker.execute();
 
     }
 

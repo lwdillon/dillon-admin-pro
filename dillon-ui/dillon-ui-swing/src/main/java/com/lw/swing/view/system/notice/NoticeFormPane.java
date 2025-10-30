@@ -6,26 +6,27 @@ package com.lw.swing.view.system.notice;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notice.vo.NoticeRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.NoticeFeign;
+import com.lw.ui.api.system.NoticeApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
  */
 public class NoticeFormPane extends JPanel {
     private Long id;
+
     public NoticeFormPane() {
         initComponents();
     }
@@ -111,6 +112,7 @@ public class NoticeFormPane extends JPanel {
             typeComboBox.addItem(dictDataSimpleRespVO);
         }
     }
+
     private void setValue(NoticeRespVO respVO) {
         titleTextFiled.setText(respVO.getTitle());
         contentTextPane.setText(respVO.getContent());
@@ -144,33 +146,16 @@ public class NoticeFormPane extends JPanel {
 
         }
 
-        SwingWorker<NoticeRespVO, NoticeRespVO> swingWorker = new SwingWorker<NoticeRespVO, NoticeRespVO>() {
-            @Override
-            protected NoticeRespVO doInBackground() throws Exception {
-                NoticeRespVO postRespVO = new NoticeRespVO();
-                if (id != null) {
-                    CommonResult<NoticeRespVO> userResult = Request.connector(NoticeFeign.class).getNotice(id);
-                    postRespVO = userResult.getData();
-                }
+        RetrofitServiceManager.getInstance().create(NoticeApi.class).getNotice(id)
+                .map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(respVO1 -> {
+                    setValue(respVO1);
+                });
 
-                return postRespVO;
-            }
-
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
+
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license
     private JLabel label1;

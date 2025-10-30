@@ -6,15 +6,15 @@ package com.lw.swing.view.system.post;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.post.PostRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.PostFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.PostApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -116,33 +116,14 @@ public class PostFormPane extends JPanel {
 
         this.id = id;
 
-
-        SwingWorker<PostRespVO, PostRespVO> swingWorker = new SwingWorker<PostRespVO, PostRespVO>() {
-            @Override
-            protected PostRespVO doInBackground() throws Exception {
-                PostRespVO postRespVO = new PostRespVO();
-                if (id != null) {
-                    CommonResult<PostRespVO> userResult = Request.connector(PostFeign.class).getPost(id);
-                    postRespVO = userResult.getData();
-                }
-
-                return postRespVO;
-            }
+        RetrofitServiceManager.getInstance().create(PostApi.class).getPost(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
+                    setValue(result);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
 
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

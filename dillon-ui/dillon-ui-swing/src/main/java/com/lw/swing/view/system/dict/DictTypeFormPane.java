@@ -5,15 +5,15 @@
 package com.lw.swing.view.system.dict;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.DictTypeFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.DictTypeApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -102,34 +102,20 @@ public class DictTypeFormPane extends JPanel {
 
         typeTextField.setEditable(id == null);
         this.id = id;
+        if (id == null) {
+            return;
+        }
+
+        RetrofitServiceManager.getInstance().create(DictTypeApi.class).getDictType(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    setValue(result);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
 
-        SwingWorker<DictTypeRespVO, DictTypeRespVO> swingWorker = new SwingWorker<DictTypeRespVO, DictTypeRespVO>() {
-            @Override
-            protected DictTypeRespVO doInBackground() throws Exception {
-                DictTypeRespVO postRespVO = new DictTypeRespVO();
-                if (id != null) {
-                    CommonResult<DictTypeRespVO> userResult = Request.connector(DictTypeFeign.class).getDictType(id);
-                    postRespVO = userResult.getData();
-                }
-
-                return postRespVO;
-            }
-
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

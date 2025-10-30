@@ -5,15 +5,15 @@
 package com.lw.swing.view.intra.job;
 
 import cn.hutool.core.convert.Convert;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.job.JobFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.job.JobApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -123,32 +123,12 @@ public class JobFormPane extends JPanel {
     public void updateData(Long id) {
         this.id = id;
 
-        SwingWorker<JobRespVO, JobRespVO> swingWorker = new SwingWorker<JobRespVO, JobRespVO>() {
-            @Override
-            protected JobRespVO doInBackground() throws Exception {
-                JobRespVO postRespVO = new JobRespVO();
-                if (id != null) {
-                    CommonResult<JobRespVO> userResult = Request.connector(JobFeign.class).getJob(id);
-                    postRespVO = userResult.getData();
-                }
-
-                return postRespVO;
-            }
+        RetrofitServiceManager.getInstance().create(JobApi.class).getJob(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(jobRespVO -> setValue(jobRespVO), throwable -> throwable.printStackTrace());
 
 
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

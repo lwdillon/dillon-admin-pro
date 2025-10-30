@@ -264,7 +264,11 @@
 #end
 </template>
 <script setup lang="ts">
-  import {${simpleClassName}Api} from '@/api/'
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
 
   const props = defineProps<{
   ${subJoinColumn.javaField}: undefined // ${subJoinColumn.columnComment}（主表的关联字段）

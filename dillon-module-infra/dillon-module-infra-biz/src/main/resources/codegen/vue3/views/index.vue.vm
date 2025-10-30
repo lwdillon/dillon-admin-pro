@@ -235,7 +235,12 @@
 <script setup lang="ts">
   import {handleTree} from '@/utils/tree'
   import download from '@/utils/download'
-  import {${simpleClassName}Api, ${simpleClassName}VO} from '@/api/'
+
+  import {
+          ${simpleClassName}Api, ${simpleClassName}VO
+  }
+    from
+        '@/api/'
       ## 特殊：树表专属逻辑
 #if ( $table.templateType == 2 )
 #end

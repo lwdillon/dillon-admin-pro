@@ -5,16 +5,17 @@
 package com.lw.swing.view.system.notice;
 
 import cn.hutool.core.convert.Convert;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.template.NotifyTemplateRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.template.NotifyTemplateSendReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.NotifyTemplateFeign;
-import com.lw.ui.request.api.system.UserFeign;
+import com.lw.ui.api.system.NotifyTemplateApi;
+import com.lw.ui.api.system.UserApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -22,7 +23,6 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -156,46 +156,27 @@ public class NotifyTemplateSendPane extends JPanel {
     public void updateData(NotifyTemplateRespVO respVO) {
         this.id = respVO.getId();
         this.code = respVO.getCode();
+        RetrofitServiceManager.getInstance().create(NotifyTemplateApi.class).getNotifyTemplate(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    setValue(result);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-
-        SwingWorker<NotifyTemplateRespVO, List<UserSimpleRespVO>> swingWorker = new SwingWorker<NotifyTemplateRespVO, List<UserSimpleRespVO>>() {
-            @Override
-            protected NotifyTemplateRespVO doInBackground() throws Exception {
-
-                List<UserSimpleRespVO> userSimpleRespVOList = Request.connector(UserFeign.class).getSimpleUserList().getCheckedData();
-                publish(userSimpleRespVOList);
-                NotifyTemplateRespVO postRespVO = new NotifyTemplateRespVO();
-                if (id != null) {
-                    CommonResult<NotifyTemplateRespVO> userResult = Request.connector(NotifyTemplateFeign.class).getNotifyTemplate(id);
-                    postRespVO = userResult.getData();
-                }
-
-                return postRespVO;
-            }
-
-            @Override
-            protected void process(List<List<UserSimpleRespVO>> chunks) {
-                super.process(chunks);
-                chunks.forEach(chunk -> {
-                    for (UserSimpleRespVO userSimpleRespVO : chunk) {
+        RetrofitServiceManager.getInstance().create(UserApi.class).getSimpleUserList().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    for (UserSimpleRespVO userSimpleRespVO : result) {
                         userComboBox.addItem(userSimpleRespVO);
                     }
+                }, throwable -> {
+                    throwable.printStackTrace();
                 });
-            }
 
-            @Override
-            protected void done() {
 
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

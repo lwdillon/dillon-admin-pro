@@ -1,13 +1,8 @@
+import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 
 /**
  * Testing the application to see if it works

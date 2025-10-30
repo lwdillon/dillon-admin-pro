@@ -6,20 +6,20 @@ package com.lw.swing.view.system.notice;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.template.NotifyTemplateRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.template.NotifyTemplateSaveReqVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.NotifyTemplateFeign;
+import com.lw.ui.api.system.NotifyTemplateApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -162,32 +162,15 @@ public class NotifyTemplateFromPane extends JPanel {
 
         }
 
-        SwingWorker<NotifyTemplateRespVO, NotifyTemplateRespVO> swingWorker = new SwingWorker<NotifyTemplateRespVO, NotifyTemplateRespVO>() {
-            @Override
-            protected NotifyTemplateRespVO doInBackground() throws Exception {
-                NotifyTemplateRespVO postRespVO = new NotifyTemplateRespVO();
-                if (id != null) {
-                    CommonResult<NotifyTemplateRespVO> userResult = Request.connector(NotifyTemplateFeign.class).getNotifyTemplate(id);
-                    postRespVO = userResult.getData();
-                }
+        RetrofitServiceManager.getInstance().create(NotifyTemplateApi.class).getNotifyTemplate(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(resp -> {
+                    setValue(resp);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-                return postRespVO;
-            }
-
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

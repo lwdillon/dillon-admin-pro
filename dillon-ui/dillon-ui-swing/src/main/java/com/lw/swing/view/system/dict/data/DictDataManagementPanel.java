@@ -9,18 +9,17 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
-import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.DictDataFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.DictDataApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -29,9 +28,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.*;
 
@@ -243,54 +240,32 @@ public class DictDataManagementPanel extends JPanel {
      */
     private void add(DictDataSaveReqVO saveReqVO) {
 
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(DictDataFeign.class).createDictData(saveReqVO);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).createDictData(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-                        updateData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void edit(DictDataSaveReqVO saveReqVO) {
 
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).updateDictData(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DictDataFeign.class).updateDictData(saveReqVO);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -309,29 +284,17 @@ public class DictDataManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DictDataFeign.class).deleteDictData(finalId);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).deleteDictData(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -349,18 +312,14 @@ public class DictDataManagementPanel extends JPanel {
         }
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? 0 : 1));
 
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<DictDataRespVO>> result = Request.connector(DictDataFeign.class).getDictTypePage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).getDictTypePage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
                         Vector rowV = new Vector();
                         rowV.add(roleRespVO.getId());
                         rowV.add(roleRespVO.getLabel());
@@ -374,24 +333,7 @@ public class DictDataManagementPanel extends JPanel {
                         rowV.add(roleRespVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
@@ -413,13 +355,10 @@ public class DictDataManagementPanel extends JPanel {
                             return panel;
                         }
                     });
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
 
     }
 

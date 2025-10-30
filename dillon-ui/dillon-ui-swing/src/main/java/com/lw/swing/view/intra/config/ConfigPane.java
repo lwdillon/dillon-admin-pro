@@ -8,20 +8,19 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
-import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.config.ConfigFeign;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.config.ConfigApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -30,9 +29,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.lw.ui.utils.DictTypeEnum.INFRA_CONFIG_TYPE;
@@ -42,7 +39,7 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class ConfigPane extends JPanel {
-    private String[] COLUMN_ID = {"参数主键", "参数分类","参数名称","参数键名", "参数键值", "是否可见","系统内置","备注", "创建时间", "操作"};
+    private String[] COLUMN_ID = {"参数主键", "参数分类", "参数名称", "参数键名", "参数键值", "是否可见", "系统内置", "备注", "创建时间", "操作"};
 
     private DefaultTableModel tableModel;
 
@@ -74,7 +71,6 @@ public class ConfigPane extends JPanel {
         //======== this ========
         setOpaque(false);
         setLayout(new BorderLayout(10, 10));
-
 
 
         //======== centerPane ========
@@ -223,59 +219,38 @@ public class ConfigPane extends JPanel {
     }
 
 
-
     /**
      * 添加
      */
     private void add(ConfigSaveReqVO saveReqVO) {
 
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(ConfigFeign.class).createConfig(saveReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(ConfigApi.class).createConfig(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
-                        updateData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void edit(ConfigSaveReqVO saveReqVO) {
 
+        RetrofitServiceManager.getInstance().create(ConfigApi.class).updateConfig(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(ConfigFeign.class).updateConfig(saveReqVO);
-            }
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
+                    updateData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -294,29 +269,18 @@ public class ConfigPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(ConfigFeign.class).deleteConfig(finalId);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
-
+        RetrofitServiceManager.getInstance().create(ConfigApi.class).deleteConfig(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    if (result) {
+                        WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
                         updateData();
                     }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
+
 
     }
 
@@ -345,18 +309,13 @@ public class ConfigPane extends JPanel {
             DictDataSimpleRespVO selectedItem = (DictDataSimpleRespVO) typeComboBox.getSelectedItem();
             queryMap.put("type", selectedItem.getValue());
         }
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<ConfigRespVO>> result = Request.connector(ConfigFeign.class).getConfigPage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(respVO -> {
+        RetrofitServiceManager.getInstance().create(ConfigApi.class).getConfigPage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(respVO -> {
                         Vector rowV = new Vector();
                         rowV.add(respVO.getId());
                         rowV.add(respVO.getCategory());
@@ -370,24 +329,7 @@ public class ConfigPane extends JPanel {
                         rowV.add(respVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
@@ -403,7 +345,8 @@ public class ConfigPane extends JPanel {
                             panel.setOpaque(isSelected);
                             return panel;
                         }
-                    });          table.getColumn("系统内置").setCellRenderer(new DefaultTableCellRenderer() {
+                    });
+                    table.getColumn("系统内置").setCellRenderer(new DefaultTableCellRenderer() {
                         @Override
                         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                             Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -416,15 +359,11 @@ public class ConfigPane extends JPanel {
                             return panel;
                         }
                     });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                    paginationPane.setTotal(result.getTotal());
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
 
     }
 

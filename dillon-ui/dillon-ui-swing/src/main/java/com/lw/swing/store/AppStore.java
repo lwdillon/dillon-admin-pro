@@ -1,13 +1,14 @@
 package com.lw.swing.store;
 
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.subject.MenuRefrestObservable;
-import com.lw.ui.request.api.system.DictDataFeign;
+import com.lw.ui.api.system.DictDataApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,6 +52,7 @@ public class AppStore {
         }
         return container;
     }
+
     public static void setAuthLoginRespVO(AuthLoginRespVO authLoginRespVO) {
         AppStore.authLoginRespVO = authLoginRespVO;
     }
@@ -182,31 +183,21 @@ public class AppStore {
 
     public static void loadDictData() {
 
-        SwingWorker<Map<String, List<DictDataSimpleRespVO>>, Object> swingWorker = new SwingWorker<Map<String, List<DictDataSimpleRespVO>>, Object>() {
-            @Override
-            protected Map<String, List<DictDataSimpleRespVO>> doInBackground() throws Exception {
-                CommonResult<List<DictDataSimpleRespVO>> commonResult = Request.connector(DictDataFeign.class).getSimpleDictDataList();
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).getSimpleDictDataList().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
 
-                // 按 type 属性分组
-                Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.getData().stream()
-                        .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
+                    // 按 type 属性分组
+                    Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
+                            .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
+
+                    setDictDataListMap(groupedByType);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
 
-                return groupedByType;
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    setDictDataListMap(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 

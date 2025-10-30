@@ -7,13 +7,17 @@ package com.lw.swing.view.system.user;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import com.jidesoft.swing.CheckBoxList;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.lw.swing.components.WScrollPane;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.PermissionFeign;
-import com.lw.ui.request.api.system.RoleFeign;
+import com.lw.swing.components.notice.WMessage;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.PermissionApi;
+import com.lw.ui.api.system.RoleApi;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -22,9 +26,8 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * @author wenli
@@ -158,49 +161,48 @@ public class AssignRolesPane extends JPanel {
         nickTextField.setText(nickName);
 
 
-        SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
-            @Override
-            protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<List<RoleRespVO>> roleResult = Request.connector(RoleFeign.class).getSimpleRoleList();
-                CommonResult<Set<Long>> listAdminRoleResult = Request.connector(PermissionFeign.class).listAdminRoles(id);
+        RoleApi roleApi= RetrofitServiceManager.getInstance().create(RoleApi.class);
+        PermissionApi permissionApi= RetrofitServiceManager.getInstance().create(PermissionApi.class);
+        Observable.zip(
+                        roleApi.getSimpleRoleList().map(new PayLoad<>()),
+                        permissionApi.listAdminRoles(id).map(new PayLoad<>()),
+                        (roleRespVOList, listAdminRoleResult) -> {
+                            // 使用 LinkedHashMap 保持顺序
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("roleRespVOList", roleRespVOList);
+                            resultMap.put("listAdminRoleResult", listAdminRoleResult);
+                            return resultMap;
+                        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    List<RoleRespVO> roleResult = (List<RoleRespVO>) result.get("roleRespVOList");
+                    Set<Long> listAdminRoleResult = (Set<Long>) result.get("listAdminRoleResult");
 
-                Vector<Object> selRoles = new Vector<>();
-                DefaultListModel listModel = new DefaultListModel();
+                    Vector<Object> selRoles = new Vector<>();
+                    DefaultListModel listModel = new DefaultListModel();
 
-                for (RoleRespVO roleRespVO : roleResult.getData()) {
+                    for (RoleRespVO roleRespVO : roleResult) {
 
-                    listModel.addElement(roleRespVO);
+                        listModel.addElement(roleRespVO);
 
-                    if (listAdminRoleResult.getData().contains(roleRespVO.getId())) {
-                        selRoles.add(roleRespVO);
+                        if (listAdminRoleResult.contains(roleRespVO.getId())) {
+                            selRoles.add(roleRespVO);
+                        }
                     }
-                }
 
-                Map<String, Object> reslutMap = new HashMap<>();
-                reslutMap.put("listModel", listModel);
-                reslutMap.put("selRoles", selRoles);
-
-
-                return reslutMap;
-            }
-
-
-            @Override
-            protected void done() {
-                try {
-                    roleCheckBoxList.setModel((ListModel) get().get("listModel"));
-                    Vector selRoles = (Vector) get().get("selRoles");
+                    roleCheckBoxList.setModel(listModel);
                     if (selRoles != null) {
-                        roleCheckBoxList.setSelectedObjects((Vector<?>) get().get("selRoles"));
+                        roleCheckBoxList.setSelectedObjects(selRoles);
                     }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
+
+
+
+
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

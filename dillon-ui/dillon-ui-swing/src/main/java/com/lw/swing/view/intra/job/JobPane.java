@@ -8,8 +8,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
@@ -17,12 +15,14 @@ import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.job.JobFeign;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.job.JobApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -32,9 +32,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_JOB_STATUS;
 import static javax.swing.JOptionPane.*;
@@ -228,7 +226,9 @@ public class JobPane extends JPanel {
 
     private void showAddDialog(Long id) {
         JobFormPane formPane = new JobFormPane();
-        formPane.updateData(id);
+        if (id != null) {
+            formPane.updateData(id);
+        }
         int opt = WOptionPane.showOptionDialog(null, formPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(formPane.getValue());
@@ -248,52 +248,34 @@ public class JobPane extends JPanel {
      */
     private void add(JobSaveReqVO saveReqVO) {
 
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(JobFeign.class).createJob(saveReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(JobApi.class).createJob(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                        loadTableData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void edit(JobSaveReqVO saveReqVO) {
 
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(JobFeign.class).updateJob(saveReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(JobApi.class).updateJob(saveReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                        loadTableData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -313,27 +295,17 @@ public class JobPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(JobFeign.class).triggerJob(finalId);
-            }
+        RetrofitServiceManager.getInstance().create(JobApi.class).triggerJob(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
-                        loadTableData();
-                    }
-                } catch (Exception e) {
-
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     private void showOnDialog() {
@@ -354,26 +326,18 @@ public class JobPane extends JPanel {
         }
         Long finalId = id;
         int status = jobRespVO.getStatus() == 2 ? 1 : 2;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(JobFeign.class).updateJobStatus(finalId, status);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
-                        loadTableData();
-                    }
-                } catch (Exception e) {
+        RetrofitServiceManager.getInstance().create(JobApi.class).updateJobStatus(finalId, status).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     private void del() {
@@ -391,27 +355,17 @@ public class JobPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(JobFeign.class).deleteJob(finalId);
-            }
+        RetrofitServiceManager.getInstance().create(JobApi.class).deleteJob(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    loadTableData();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                        loadTableData();
-                    }
-                } catch (Exception e) {
-
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -439,18 +393,15 @@ public class JobPane extends JPanel {
         queryMap.put("name", name);
         queryMap.put("handlerName", handlerName);
         queryMap.put("status", status);
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<JobRespVO>> result = Request.connector(JobFeign.class).getJobPage(queryMap);
+        RetrofitServiceManager.getInstance().create(JobApi.class).getJobPage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<Vector>();
 
-                Vector<Vector> tableData = new Vector<Vector>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(respVO -> {
+                    result.getList().forEach(respVO -> {
                         Vector rowV = new Vector();
                         rowV.add(respVO.getId());
                         rowV.add(respVO.getName());
@@ -462,23 +413,7 @@ public class JobPane extends JPanel {
                         tableData.add(rowV);
                     });
 
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setMinWidth(240);
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
@@ -496,15 +431,12 @@ public class JobPane extends JPanel {
                         }
                     });
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                    paginationPane.setTotal(result.getTotal());
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -515,38 +447,20 @@ public class JobPane extends JPanel {
             respVO = (JobRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
         }
 
-
         JobRespVO finalRespVO = respVO;
-        SwingWorker<DefaultListModel, Long> swingWorker = new SwingWorker<DefaultListModel, Long>() {
-            @Override
-            protected DefaultListModel doInBackground() throws Exception {
-                CommonResult<List<LocalDateTime>> result = Request.connector(JobFeign.class).getJobNextTimes(finalRespVO.getId(), 5);
-
-                DefaultListModel listModel = new DefaultListModel();
-                if (result.isSuccess()) {
+        RetrofitServiceManager.getInstance().create(JobApi.class).getJobNextTimes(finalRespVO.getId(),5).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    DefaultListModel listModel = new DefaultListModel();
 
                     int index = 1;
-                    for (LocalDateTime dateTime : result.getData()) {
+                    for (LocalDateTime dateTime : result) {
                         listModel.addElement("第" + index + "次: " + DateUtil.format(dateTime, "yyyy-MM-dd HH:mm:ss"));
                         index++;
                     }
-
-                }
-                return listModel;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
                     JList<String> list = new JList<>();
-                    list.setModel(get());
+                    list.setModel(listModel);
                     JPanel panel = new JPanel();
                     panel.setLayout(new MigLayout(
                             "fill,insets 0,hidemode 3",
@@ -568,13 +482,12 @@ public class JobPane extends JPanel {
                     panel.add(list, "cell 1 9,growy 0");
                     WOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
 
-            }
-        };
-        swingWorker.execute();
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
+
 
 
     }

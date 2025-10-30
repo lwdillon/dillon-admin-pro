@@ -107,13 +107,19 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/';
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
   import ImageUpload from '@/components/ImageUpload';
   import FileUpload from '@/components/FileUpload';
   import Editor from '@/components/Editor';
   import TreeSelect from "@riophae/vue-treeselect";
   import "@riophae/vue-treeselect/dist/vue-treeselect.css";
-  import ${subSimpleClassName}Form from './components/'
+  import ${subSimpleClassName}
+
+  Form
+  from
+  './components/'
       #if ($hasImageUploadColumn)
       #end
   #if ($hasFileUploadColumn)

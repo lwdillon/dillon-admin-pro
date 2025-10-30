@@ -8,25 +8,27 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.jidesoft.swing.CheckBoxTree;
 import com.jidesoft.tree.TreeUtils;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.lw.dillon.admin.module.system.enums.permission.DataScopeEnum;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.DeptFeign;
+import com.lw.ui.api.system.DeptApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * @author wenli
@@ -254,49 +256,31 @@ public class DataPermissionPane extends JPanel {
 
         }
 
+        RetrofitServiceManager.getInstance().create(DeptApi.class).getSimpleDeptList().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(deptResult -> {
+                    DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
+                    // Build the tree
+                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                    nodeMap.put(0L, deptRoot); // Root node
 
-        SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
-            @Override
-            protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<List<DeptSimpleRespVO>> deptResult = Request.connector(DeptFeign.class).getSimpleDeptList();
-
-                DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
-                // Build the tree
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0L, deptRoot); // Root node
-
-                List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
-                for (DeptSimpleRespVO simpleRespVO : deptResult.getData()) {
-                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
-                    nodeMap.put(simpleRespVO.getId(), node);
-                    if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
-                        selNodes.add(node);
-                    }
-                }
-
-                deptResult.getData().forEach(deptSimpleRespVO -> {
-                    DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
-                    DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
-                    if (parentNode != null) {
-                        parentNode.add(childNode);
+                    List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
+                    for (DeptSimpleRespVO simpleRespVO : deptResult) {
+                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                        nodeMap.put(simpleRespVO.getId(), node);
+                        if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
+                            selNodes.add(node);
+                        }
                     }
 
-
-                });
-
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put("deptRoot", deptRoot);
-                resultMap.put("selNodes", selNodes);
-
-                return resultMap;
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-                    deptTree.setModel(new DefaultTreeModel((TreeNode) get().get("deptRoot")));
-                    List<DefaultMutableTreeNode> selNodes = (List<DefaultMutableTreeNode>) get().get("selNodes");
+                    deptResult.forEach(deptSimpleRespVO -> {
+                        DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+                        DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
+                        if (parentNode != null) {
+                            parentNode.add(childNode);
+                        }
+                    });
                     if (selNodes != null) {
                         for (DefaultMutableTreeNode node : selNodes) {
                             if (node.isLeaf()) {
@@ -308,14 +292,12 @@ public class DataPermissionPane extends JPanel {
                     TreeUtils.expandAll(deptTree);
                     TreeUtils.expandAll(deptTree);
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
+
+
+
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

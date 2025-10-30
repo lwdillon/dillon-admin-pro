@@ -7,23 +7,17 @@ package com.lw.swing.view.system.dict.data;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSaveReqVO;
-import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.swing.request.Request;
-import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.system.DictDataFeign;
-import com.lw.ui.utils.DictTypeEnum;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.DictDataApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -127,7 +121,6 @@ public class DictDataFormPane extends JPanel {
         SpinnerModel model = new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1);
         sortSpinner.setModel(model);
 
-        List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_DATA_SCOPE);
         colorTypeComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -141,9 +134,10 @@ public class DictDataFormPane extends JPanel {
 
     }
 
-    public void setDictType(String dictType){
+    public void setDictType(String dictType) {
         dictTypeTextField.setText(dictType);
     }
+
     private void setValue(DictDataRespVO respVO) {
         if (respVO == null) {
             return;
@@ -178,61 +172,42 @@ public class DictDataFormPane extends JPanel {
     public void updateData(Long id) {
 
         this.id = id;
+        if (id == null) {
+            return;
+        }
 
-        SwingWorker<Map<String, Object>, DictDataRespVO> swingWorker = new SwingWorker<Map<String, Object>, DictDataRespVO>() {
-            @Override
-            protected Map<String, Object> doInBackground() throws Exception {
-                DictDataRespVO respVO = null;
-                if (id != null) {
-                    CommonResult<DictDataRespVO> userResult = Request.connector(DictDataFeign.class).getDictData(id);
-                    respVO = userResult.getData();
-                }
-
-                Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
-                colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
-                colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
-                colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
-                colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
-                colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
-                colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
-                ColorTypeOptions colorTypeOptionSel = null;
-                if (respVO != null) {
+        RetrofitServiceManager.getInstance().create(DictDataApi.class).getDictData(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(dictDataRespVO -> {
+                    Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
+                    colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
+                    ColorTypeOptions colorTypeOptionSel = null;
 
                     for (ColorTypeOptions colorTypeOptions : colorTypeOptionsVector) {
 
-                        if (StrUtil.equals(respVO.getColorType(), colorTypeOptions.getValue())) {
+                        if (StrUtil.equals(dictDataRespVO.getColorType(), colorTypeOptions.getValue())) {
                             colorTypeOptionSel = colorTypeOptions;
                         }
                     }
-                }
 
-                Map<String, Object> map = new HashMap<>();
-                map.put("respVO", respVO);
-                map.put("colorTypeOptionSel", colorTypeOptionSel);
-                map.put("colorTypeOptionsVector", colorTypeOptionsVector);
-                return map;
-            }
+                    setValue(dictDataRespVO);
+                    colorTypeComboBox.setModel(new DefaultComboBoxModel(colorTypeOptionsVector));
 
-
-            @Override
-            protected void done() {
-
-                try {
-                    setValue((DictDataRespVO) get().get("respVO"));
-                    colorTypeComboBox.setModel(new DefaultComboBoxModel((Vector) get().get("colorTypeOptionsVector")));
-
-                    ColorTypeOptions colorTypeOptionSel = (ColorTypeOptions) get().get("colorTypeOptionSel");
                     if (colorTypeOptionSel != null) {
                         colorTypeComboBox.setSelectedItem(colorTypeOptionSel);
                     }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
+
+
     }
 
     // 数据标签回显样式

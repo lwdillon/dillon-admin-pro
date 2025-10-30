@@ -1,0 +1,94 @@
+JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.5" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+			"$layoutConstraints": "fill,hidemode 3"
+			"$columnConstraints": "0[fill]0[380!,fill]0"
+			"$rowConstraints": "0[]0"
+		} ) {
+			name: "this"
+			"preferredSize": new java.awt.Dimension( 900, 580 )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.CardLayout ) ) {
+				name: "infoPane"
+				"opaque": false
+				"border": new javax.swing.border.EmptyBorder( 20, 40, 20, 40 )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 0,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$layoutConstraints": "fill,hidemode 3"
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[fill][45!]0[30!]0[10!]0[50!][50!][20!]0[30!,grow,fill]0[50!][]"
+			} ) {
+				name: "contentPane"
+				"border": new javax.swing.border.EmptyBorder( 5, 30, 5, 45 )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "logoLabel"
+					"text": "text"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,align center bottom,grow 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "titleLabel"
+					"text": "Dillon-Admin-Pro"
+					"font": new java.awt.Font( ".AppleSystemUIFont", 1, 30 )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 1,align center bottom,grow 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "subTitleLabel"
+					"text": "欢迎登录"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 2,align center top,grow 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JProgressBar" ) {
+					name: "progressBar"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 3"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "userNameField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 4,growy"
+				} )
+				add( new FormComponent( "javax.swing.JPasswordField" ) {
+					name: "passwordField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 5,growy"
+				} )
+				add( new FormComponent( "javax.swing.JCheckBox" ) {
+					name: "rememberCheckBox"
+					"text": "记住密码"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 6,alignx right,growx 0"
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "msgLabel"
+					"foreground": new java.awt.Color( 255, 0, 102, 255 )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 7,alignx center,grow 0 100"
+				} )
+				add( new FormComponent( "javax.swing.JButton" ) {
+					name: "loginButton"
+					"text": "登录"
+					"minimumSize": new java.awt.Dimension( 49, 34 )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 8,growy"
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "corporationText"
+					"text": "@liwen"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 9,align center bottom,grow 0 0"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 1 0,growy"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 0 )
+			"size": new java.awt.Dimension( 940, 580 )
+		} )
+	}
+}

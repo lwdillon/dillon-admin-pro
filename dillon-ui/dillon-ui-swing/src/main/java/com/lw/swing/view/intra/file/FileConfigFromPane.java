@@ -9,9 +9,11 @@ import cn.hutool.core.util.StrUtil;
 import com.google.gson.JsonObject;
 import com.lw.dillon.admin.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.ui.request.api.file.FileConfigFeign;
+import com.lw.ui.api.file.FileConfigApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.HorizontalLayout;
 
@@ -22,7 +24,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_FILE_STORAGE;
 
@@ -457,46 +458,37 @@ public class FileConfigFromPane extends JPanel {
     public void updateData(Long id) {
 
         this.id = id;
+        if (id != null) {
+            RetrofitServiceManager.getInstance().create(FileConfigApi.class).getFileConfig(id).map(new PayLoad<>())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                    .subscribe(jsonObject -> {
+                        FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
 
-        SwingWorker<FileConfigSaveReqVO, FileConfigSaveReqVO> swingWorker = new SwingWorker<FileConfigSaveReqVO, FileConfigSaveReqVO>() {
-            @Override
-            protected FileConfigSaveReqVO doInBackground() throws Exception {
-                FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
-                if (id != null) {
-                    JsonObject jsonObject = Request.connector(FileConfigFeign.class).getFileConfig(id).getData();
+                        saveReqVO.setName(jsonObject.get("name").getAsString());
+                        saveReqVO.setStorage(jsonObject.get("storage").getAsInt());
+                        saveReqVO.setRemark(jsonObject.get("remark").getAsString());
+                        saveReqVO.setId(jsonObject.get("id").getAsLong());
+                        JsonObject config = jsonObject.getAsJsonObject("config");
+                        Map<String, Object> map = new HashMap<>();
+                        Iterator<String> keys = config.keySet().iterator();
+                        while (keys.hasNext()) {
+                            String key = keys.next();
+                            Object value = config.get(key).getAsString();
+                            map.put(key, value);
+                        }
+                        saveReqVO.setConfig(map);
 
-                    saveReqVO.setName(jsonObject.get("name").getAsString());
-                    saveReqVO.setStorage(jsonObject.get("storage").getAsInt());
-                    saveReqVO.setRemark(jsonObject.get("remark").getAsString());
-                    saveReqVO.setId(jsonObject.get("id").getAsLong());
-                    JsonObject config = jsonObject.getAsJsonObject("config");
-                    Map<String, Object> map = new HashMap<>();
-                    Iterator<String> keys = config.keySet().iterator();
-                    while (keys.hasNext()) {
-                        String key = keys.next();
-                        Object value = config.get(key).getAsString();
-                        map.put(key, value);
-                    }
-                    saveReqVO.setConfig(map);
-                }
-
-                return saveReqVO;
-            }
+                        setValue(saveReqVO);
+                    }, throwable -> {
+                        throwable.printStackTrace();
+                    });
+        }else {
+            setValue(new FileConfigSaveReqVO());
+        }
 
 
-            @Override
-            protected void done() {
 
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     private void setValue(FileConfigSaveReqVO rel) {

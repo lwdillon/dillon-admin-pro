@@ -29,7 +29,7 @@ public interface DictDataFeign extends BaseFeignApi {
     CommonResult<List<DictDataSimpleRespVO>> getSimpleDictDataList();
 
     @RequestLine("GET /system/dict-data/page")
-    CommonResult<PageResult<DictDataRespVO>> getDictTypePage(@QueryMap Map<String,Object> map);
+    CommonResult<PageResult<DictDataRespVO>> getDictDataPage(@QueryMap Map<String,Object> map);
 
     @RequestLine("GET /system/dict-data/get?id={id}")
     CommonResult<DictDataRespVO> getDictData(@Param("id") Long id);

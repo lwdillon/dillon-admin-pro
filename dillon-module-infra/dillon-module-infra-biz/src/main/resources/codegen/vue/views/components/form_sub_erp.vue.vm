@@ -89,7 +89,9 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/';
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
   import ImageUpload from '@/components/ImageUpload';
   import FileUpload from '@/components/FileUpload';
   import Editor from '@/components/Editor';

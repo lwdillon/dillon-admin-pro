@@ -3,15 +3,15 @@ package com.lw.swing.view.system.user;
 import cn.hutool.core.date.DateUtil;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import com.lw.swing.components.WPanel;
 import com.lw.swing.components.notice.WMessage;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.UserProfileFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.UserProfileApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,7 +19,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ExecutionException;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
 
@@ -244,40 +243,28 @@ public class PersonalCenterPanel extends JPanel implements Observer {
      */
     public void updateData() {
 
-        SwingWorker<CommonResult<UserProfileRespVO>, Object> swingWorker = new SwingWorker<CommonResult<UserProfileRespVO>, Object>() {
-            @Override
-            protected CommonResult<UserProfileRespVO> doInBackground() throws Exception {
-                return Request.connector(UserProfileFeign.class).getUserProfile();
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
+        RetrofitServiceManager.getInstance().create(UserProfileApi.class).getUserProfile().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(sysUser -> {
 
-                        UserProfileRespVO sysUser = get().getData();
+                    userNameLabel.setText(sysUser.getUsername());
+                    phoneNumberLabel.setText(sysUser.getMobile());
+                    emailLabel.setText(sysUser.getEmail());
+                    deptLabel.setText(sysUser.getDept().getName());
+                    postLabel.setText(sysUser.getPosts() + "");
+                    roleLabel.setText(sysUser.getRoles() + "");
+                    createTimeLabel.setText(DateUtil.format(sysUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
 
-                        userNameLabel.setText(sysUser.getUsername());
-                        phoneNumberLabel.setText(sysUser.getMobile());
-                        emailLabel.setText(sysUser.getEmail());
-                        deptLabel.setText(sysUser.getDept().getName());
-                        postLabel.setText(sysUser.getPosts() + "");
-                        roleLabel.setText(sysUser.getRoles() + "");
-                        createTimeLabel.setText(DateUtil.format(sysUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                    nickNameTextField.setText(sysUser.getNickname());
+                    phoneTextField.setText(sysUser.getMobile());
+                    emailTextField.setText(sysUser.getEmail());
+                    sexComboBox.setSelectedItem(sysUser.getSex());
+                }, throwable -> throwable.printStackTrace());
 
-                        nickNameTextField.setText(sysUser.getNickname());
-                        phoneTextField.setText(sysUser.getMobile());
-                        emailTextField.setText(sysUser.getEmail());
-                        sexComboBox.setSelectedItem(sysUser.getSex());
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+
+
 
     }
 
@@ -292,26 +279,16 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         sysUser.setMobile(phoneTextField.getText());
         sysUser.setEmail(emailTextField.getText());
         sysUser.setSex(sexComboBox.getSelectedIndex());
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(UserProfileFeign.class).updateUserProfile(sysUser);
-            }
+        RetrofitServiceManager.getInstance().create(UserProfileApi.class).updateUserProfile(sysUser).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     /**
@@ -345,26 +322,18 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         UserProfileUpdatePasswordReqVO reqVO = new UserProfileUpdatePasswordReqVO();
         reqVO.setNewPassword(newPwd);
         reqVO.setOldPassword(oldPwd);
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(UserProfileFeign.class).updateUserProfilePassword(reqVO);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(UserProfileApi.class).updateUserProfilePassword(reqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                }, throwable -> {
+                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
+                    throwable.printStackTrace();
+                });
+
+
     }
 
     private boolean updateFieldValidity(JTextField textField, boolean valid) {

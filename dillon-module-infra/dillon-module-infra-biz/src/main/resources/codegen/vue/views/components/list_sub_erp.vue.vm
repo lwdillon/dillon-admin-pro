@@ -61,8 +61,14 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/';
-  import ${subSimpleClassName}Form from './';
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
+  import ${subSimpleClassName}
+
+  Form
+  from
+  './';
       #if ($table.templateType == 11)
       #end
   export default {

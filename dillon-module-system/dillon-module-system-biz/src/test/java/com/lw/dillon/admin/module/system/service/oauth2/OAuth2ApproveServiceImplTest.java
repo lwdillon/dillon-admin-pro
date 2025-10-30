@@ -23,8 +23,8 @@ import java.util.Map;
 
 import static cn.hutool.core.util.RandomUtil.*;
 import static com.lw.dillon.admin.framework.test.core.util.AssertUtils.assertPojoEquals;
-import static com.lw.dillon.admin.framework.test.core.util.RandomUtils.randomString;
 import static com.lw.dillon.admin.framework.test.core.util.RandomUtils.*;
+import static com.lw.dillon.admin.framework.test.core.util.RandomUtils.randomString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;

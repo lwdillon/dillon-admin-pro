@@ -6,21 +6,25 @@ package com.lw.swing.view.system.role;
 
 import com.jidesoft.swing.CheckBoxTree;
 import com.jidesoft.tree.TreeUtils;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.MenuFeign;
-import com.lw.ui.request.api.system.PermissionFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.MenuApi;
+import com.lw.ui.api.system.PermissionApi;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * @author wenli
@@ -201,56 +205,56 @@ public class RoleAssignMenuPane extends JPanel {
         nameTextField.setText(roleRespVO.getName());
         codeTextField.setText(roleRespVO.getCode());
 
-
-        SwingWorker<Map<String, Object>, RoleRespVO> swingWorker = new SwingWorker<Map<String, Object>, RoleRespVO>() {
-            @Override
-            protected Map<String, Object> doInBackground() throws Exception {
-                CommonResult<java.util.List<MenuSimpleRespVO>> menuResult = Request.connector(MenuFeign.class).getSimpleMenuList();
-                CommonResult<Set<Long>> roleMenuResult = Request.connector(PermissionFeign.class).getRoleMenuList(id);
-
-                DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
-                // Build the tree
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0L, menuRoot); // Root node
-
-                java.util.List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
-                for (MenuSimpleRespVO simpleRespVO : menuResult.getData()) {
-
-                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
-                    nodeMap.put(simpleRespVO.getId(), node);
-
-                    if (roleMenuResult.getData().contains(simpleRespVO.getId())) {
-                        selNodes.add(node);
-                    }
-                }
-
-                menuResult.getData().forEach(menuSimpleRespVO -> {
+        MenuApi menuApi=   RetrofitServiceManager.getInstance().create(MenuApi.class);
+        PermissionApi permissionApi=   RetrofitServiceManager.getInstance().create(PermissionApi.class);
 
 
-                    DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                    DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
-                    if (parentNode != null) {
-                        if (childNode != null) {
-                            parentNode.add(childNode);
+        Observable.zip(
+                        permissionApi.getRoleMenuList(id).map(new PayLoad<>()),
+                        menuApi.getSimpleMenuList().map(new PayLoad<>()),
+                        (permissionSet, menuList) -> {
+                            // 使用 LinkedHashMap 保持顺序
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("permissionSet", permissionSet);
+                            resultMap.put("menuList", menuList);
+                            return resultMap;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(resultMap -> {
+                    // 直接获取数据，无需强转
+                    Set<Long> permissionSet = (Set<Long>) resultMap.get("permissionSet");
+                    List<MenuSimpleRespVO> menuList = (List<MenuSimpleRespVO>) resultMap.get("menuList");
+
+                    DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
+                    // Build the tree
+                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                    nodeMap.put(0L, menuRoot); // Root node
+
+                    java.util.List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
+                    for (MenuSimpleRespVO simpleRespVO :menuList) {
+
+                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                        nodeMap.put(simpleRespVO.getId(), node);
+
+                        if (permissionSet.contains(simpleRespVO.getId())) {
+                            selNodes.add(node);
                         }
                     }
 
+                    menuList.forEach(menuSimpleRespVO -> {
 
-                });
+                        DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                        DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
+                        if (parentNode != null) {
+                            if (childNode != null) {
+                                parentNode.add(childNode);
+                            }
+                        }
+                    });
 
-                Map<String, Object> resultMap = new HashMap<>();
-                resultMap.put("menuRoot", menuRoot);
-                resultMap.put("selNodes", selNodes);
-
-                return resultMap;
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-                    menuTree.setModel(new DefaultTreeModel((TreeNode) get().get("menuRoot")));
-                    java.util.List<DefaultMutableTreeNode> selNodes = (List<DefaultMutableTreeNode>) get().get("selNodes");
+                    menuTree.setModel(new DefaultTreeModel(menuRoot));
                     if (selNodes != null) {
                         for (DefaultMutableTreeNode node : selNodes) {
                             if (node.isLeaf()) {
@@ -261,14 +265,9 @@ public class RoleAssignMenuPane extends JPanel {
                     }
                     TreeUtils.expandAll(menuTree);
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+                }, Throwable::printStackTrace);
+
+
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

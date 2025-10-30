@@ -9,7 +9,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
@@ -17,10 +16,12 @@ import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
-import com.lw.swing.view.MainFrame;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.swing.view.frame.MainFrame;
 import com.lw.swing.view.system.dict.data.DictDataManagementPanel;
-import com.lw.ui.request.api.system.DictTypeFeign;
+import com.lw.ui.api.system.DictTypeApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -29,9 +30,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.*;
 
@@ -175,6 +174,7 @@ public class DictTypeManagementPanel extends JPanel {
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
 
     }
+
     @Override
     public void updateUI() {
         super.updateUI();
@@ -182,6 +182,7 @@ public class DictTypeManagementPanel extends JPanel {
             table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
         }
     }
+
     private JToolBar creatBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
@@ -221,17 +222,18 @@ public class DictTypeManagementPanel extends JPanel {
             respVO = (DictTypeRespVO) table.getValueAt(selRow, 6);
         }
 
-        int tabIndex=MainFrame.getInstance().getTabbedPane().indexOfTab("字典数据");
+        int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("字典数据");
         DictDataManagementPanel dictDataManagementPanel;
         if (tabIndex == -1) {
-            dictDataManagementPanel=new DictDataManagementPanel();
+            dictDataManagementPanel = new DictDataManagementPanel();
             MainFrame.getInstance().getTabbedPane().addTab("字典数据", dictDataManagementPanel);
-        }else {
+        } else {
             dictDataManagementPanel = (DictDataManagementPanel) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
         }
         MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("字典数据"));
         dictDataManagementPanel.setDictTypeRespVO(respVO);
     }
+
     private void initListeners() {
 
         reseBut.addActionListener(e -> reset());
@@ -279,53 +281,31 @@ public class DictTypeManagementPanel extends JPanel {
      */
     private void add(DictTypeSaveReqVO createReqVO) {
 
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(DictTypeFeign.class).createDictType(createReqVO);
-            }
+        RetrofitServiceManager.getInstance().create(DictTypeApi.class).createDictType(createReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aLong -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
-                        updateData();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void edit(DictTypeSaveReqVO createReqVO) {
 
+        RetrofitServiceManager.getInstance().create(DictTypeApi.class).updateDictType(createReqVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aLong -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DictTypeFeign.class).updateDictType(createReqVO);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
-
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -344,29 +324,15 @@ public class DictTypeManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(DictTypeFeign.class).deleteDictType(finalId);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
-
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(DictTypeApi.class).deleteDictType(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(aLong -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
     }
 
@@ -391,75 +357,59 @@ public class DictTypeManagementPanel extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
+        queryMap.values().removeIf(Objects::isNull);
+
+        RetrofitServiceManager.getInstance().create(DictTypeApi.class).pageDictTypes(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    updateTableData(result);
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
+
+
+    }
+
+    private void updateTableData(PageResult<DictTypeRespVO> result) {
+        Vector<Vector> tableData = new Vector<>();
+
+        paginationPane.setTotal(result.getTotal());
+        result.getList().forEach(roleRespVO -> {
+            Vector rowV = new Vector();
+            rowV.add(roleRespVO.getId());
+            rowV.add(roleRespVO.getName());
+            rowV.add(roleRespVO.getType());
+            rowV.add(roleRespVO.getStatus());
+            rowV.add(roleRespVO.getRemark());
+            rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            rowV.add(roleRespVO);
+            tableData.add(rowV);
+        });
+
+        table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
             @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<DictTypeRespVO>> result = Request.connector(DictTypeFeign.class).pageDictTypes(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(roleRespVO.getId());
-                        rowV.add(roleRespVO.getName());
-                        rowV.add(roleRespVO.getType());
-                        rowV.add(roleRespVO.getStatus());
-                        rowV.add(roleRespVO.getRemark());
-                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(roleRespVO);
-                        tableData.add(rowV);
-                    });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                    return label.getForeground();
+                }));
+                label.setIcon(icon);
+                panel.add(label);
+                panel.setBackground(component.getBackground());
+                panel.setOpaque(isSelected);
+                return panel;
             }
+        });
 
+        tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+        table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+        table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
-
-                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                                return label.getForeground();
-                            }));
-                            label.setIcon(icon);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        swingWorker.execute();
 
     }
 

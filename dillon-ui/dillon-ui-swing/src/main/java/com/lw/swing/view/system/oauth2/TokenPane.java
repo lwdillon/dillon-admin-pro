@@ -8,17 +8,16 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.lw.dillon.admin.module.system.controller.admin.oauth2.vo.token.OAuth2AccessTokenRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.ui.request.api.system.OAuth2TokenFeign;
+import com.lw.ui.api.system.OAuth2TokenApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -27,9 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -137,7 +134,6 @@ public class TokenPane extends JPanel {
                 toolPane.add(reseBut, "cell 0 0");
 
 
-
             }
             centerPane.add(toolPane, BorderLayout.NORTH);
         }
@@ -170,7 +166,7 @@ public class TokenPane extends JPanel {
 
         JButton del = new JButton("强退");
         del.setIcon(new FlatSVGIcon("icons/logout.svg", 15, 15));
-        del.addActionListener(e -> delMenu());
+        del.addActionListener(e -> del());
         del.setForeground(UIManager.getColor("app-error-color-5"));
         optBar.add(Box.createGlue());
         optBar.add(del);
@@ -186,9 +182,6 @@ public class TokenPane extends JPanel {
     }
 
 
-
-
-
     private void reset() {
         userIdField.setText("");
         clientIdFiled.setText("");
@@ -197,7 +190,7 @@ public class TokenPane extends JPanel {
     }
 
 
-    private void delMenu() {
+    private void del() {
         String accessToken = null;
 
         int selRow = table.getSelectedRow();
@@ -210,31 +203,18 @@ public class TokenPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        String finalAccessToken = accessToken;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(OAuth2TokenFeign.class).deleteAccessToken(finalAccessToken);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(OAuth2TokenApi.class).deleteAccessToken(accessToken).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    updateData();
+                }, throwable -> {
+                    WOptionPane.showMessageDialog(this, throwable.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                });
+
 
     }
-
-   
 
 
     public void updateData() {
@@ -250,24 +230,17 @@ public class TokenPane extends JPanel {
             queryMap.put("clientId", clientIdFiled.getText());
         }
         if (userTypeComboBox.getSelectedItem() != null) {
-            DictDataSimpleRespVO userTypeDict= (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
+            DictDataSimpleRespVO userTypeDict = (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
             queryMap.put("userType", userTypeDict.getValue());
         }
 
-
-
-
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<OAuth2AccessTokenRespVO>> result = Request.connector(OAuth2TokenFeign.class).getAccessTokenPage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
+        queryMap.values().removeIf(Objects::isNull);
+        RetrofitServiceManager.getInstance().create(OAuth2TokenApi.class).getAccessTokenPage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
                         Vector rowV = new Vector();
                         rowV.add(roleRespVO.getAccessToken());
                         rowV.add(roleRespVO.getRefreshToken());
@@ -279,23 +252,7 @@ public class TokenPane extends JPanel {
                         tableData.add(rowV);
                     });
 
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
                     table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
@@ -313,15 +270,11 @@ public class TokenPane extends JPanel {
                         }
                     });
 
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                    paginationPane.setTotal(result.getTotal());
+                }, throwable -> {
+                    WOptionPane.showMessageDialog(this, throwable.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                });
 
-            }
-        };
-        swingWorker.execute();
 
     }
 

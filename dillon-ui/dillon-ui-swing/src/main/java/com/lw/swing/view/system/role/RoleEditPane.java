@@ -6,16 +6,16 @@ package com.lw.swing.view.system.role;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
-import com.lw.swing.request.Request;
-import com.lw.ui.request.api.system.RoleFeign;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
+import com.lw.ui.api.system.RoleApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author wenli
@@ -124,41 +124,20 @@ public class RoleEditPane extends JPanel {
 
         this.id = id;
 
-
-        SwingWorker<RoleRespVO, RoleRespVO> swingWorker = new SwingWorker<RoleRespVO, RoleRespVO>() {
-            @Override
-            protected RoleRespVO doInBackground() throws Exception {
-                RoleRespVO roleRespVO = new RoleRespVO();
-                if (id != null) {
-                    CommonResult<RoleRespVO> userResult = Request.connector(RoleFeign.class).getRole(id);
-                    roleRespVO = userResult.getData();
-                }
-
-                return roleRespVO;
-            }
+        RetrofitServiceManager.getInstance().create(RoleApi.class).getRole(id).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(roleRespVO -> setValue(roleRespVO), throwable -> throwable.printStackTrace());
 
 
-            @Override
-            protected void done() {
-
-                try {
-                    setValue(get());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
     }
 
     private void setValue(RoleRespVO roleRespVO) {
         nameTextField.setText(roleRespVO.getName());
         codeTextField.setText(roleRespVO.getCode());
-        sortSpinner.setValue(roleRespVO.getSort()==null?0:roleRespVO.getSort());
-        statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(roleRespVO.getStatus(),0));
-        typeComboBox.setSelectedIndex(roleRespVO.getType()==null?1:roleRespVO.getType()-1);
+        sortSpinner.setValue(roleRespVO.getSort() == null ? 0 : roleRespVO.getSort());
+        statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(roleRespVO.getStatus(), 0));
+        typeComboBox.setSelectedIndex(roleRespVO.getType() == null ? 1 : roleRespVO.getType() - 1);
         remarkTextArea.setText(roleRespVO.getRemark());
 
     }

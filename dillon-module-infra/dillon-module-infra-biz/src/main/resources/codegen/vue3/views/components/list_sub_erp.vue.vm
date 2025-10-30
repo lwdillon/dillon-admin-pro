@@ -83,7 +83,11 @@
 #end
 </template>
 <script setup lang="ts">
-  import {${simpleClassName}Api} from '@/api/'
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
       #if ($table.templateType == 11)
       #end
 

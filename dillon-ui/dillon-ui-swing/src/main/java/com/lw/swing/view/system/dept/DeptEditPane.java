@@ -5,27 +5,31 @@
 package com.lw.swing.view.system.dept;
 
 import cn.hutool.core.convert.Convert;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
+import cn.hutool.core.util.ObjectUtil;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
 import com.lw.dillon.admin.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.utils.TreeUtils;
-import com.lw.ui.request.api.system.DeptFeign;
-import com.lw.ui.request.api.system.UserFeign;
+import com.lw.ui.api.system.DeptApi;
+import com.lw.ui.api.system.UserApi;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTree;
 
 import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 /**
  * @author wenli
@@ -194,12 +198,77 @@ public class DeptEditPane extends JPanel {
         if (deptRespVO == null) {
             return;
         }
-        statusComboBox.setSelectedIndex(deptRespVO.getStatus());
-        sortSpinner.setValue(deptRespVO.getSort());
+
+        statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(deptRespVO.getStatus(),0));
+        sortSpinner.setValue(ObjectUtil.defaultIfNull(deptRespVO.getSort(),0));
         nameTextField.setText(deptRespVO.getName());
         emailTextField.setText(deptRespVO.getEmail());
         phoneTextField.setText(deptRespVO.getPhone());
 
+    }
+
+    private void updateData(Map<String, Object> resultMap, boolean isAdd) {
+        DeptRespVO deptRespVO = (DeptRespVO) resultMap.get("deptRespVO");
+        List<DeptSimpleRespVO> deptList = (List<DeptSimpleRespVO>) resultMap.get("deptList");
+        List<UserSimpleRespVO> userList = (List<UserSimpleRespVO>) resultMap.get("userList");
+
+        setDeptRespVO(deptRespVO);
+
+        DefaultMutableTreeNode selectDept = null;
+        Vector leaderUsers = new Vector();
+        leaderUsers.add(null);
+        UserSimpleRespVO leaderUserSel = null;
+        DefaultMutableTreeNode deptRootNode = new DefaultMutableTreeNode("主类目");
+        // Build the tree
+        Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+        nodeMap.put(0L, deptRootNode); // Root node
+
+
+        for (UserSimpleRespVO respVO : userList) {
+            leaderUsers.add(respVO);
+
+            if (deptRespVO != null && Objects.equals(deptRespVO.getLeaderUserId(), respVO.getId())) {
+                leaderUserSel = respVO;
+            }
+        }
+
+
+        for (DeptSimpleRespVO dept : deptList) {
+
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(dept);
+            nodeMap.put(dept.getId(), node);
+        }
+
+        deptList.forEach(deptSimpleRespVO -> {
+
+            DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+            DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
+            if (parentNode != null) {
+                parentNode.add(childNode);
+            }
+
+
+        });
+
+
+        if (deptRespVO != null) {
+            selectDept = nodeMap.get(isAdd ? deptRespVO.getId() : deptRespVO.getParentId());
+        }
+
+
+        deptTree.setModel(new DefaultTreeModel(deptRootNode));
+        if (selectDept != null) {
+            TreePath path = new TreePath(selectDept.getPath());
+            deptTree.setSelectionPath(path);
+            deptTree.scrollPathToVisible(path);
+            TreeUtils.expandTreeNode(deptTree, selectDept);
+        }
+
+        leaderUserIdComboBox.setModel(new DefaultComboBoxModel(leaderUsers));
+
+        if (leaderUserSel != null) {
+            leaderUserIdComboBox.setSelectedItem(leaderUserSel);
+        }
     }
 
 
@@ -211,115 +280,35 @@ public class DeptEditPane extends JPanel {
             this.id = id;
         }
 
+        // 获取 API 实例（避免重复调用 getInstance()）
+        DeptApi deptApi = RetrofitServiceManager.getInstance().create(DeptApi.class);
+        UserApi userApi = RetrofitServiceManager.getInstance().create(UserApi.class);
 
-        SwingWorker<Map<String, Object>, DeptRespVO> swingWorker = new SwingWorker<Map<String, Object>, DeptRespVO>() {
-
-            @Override
-            protected Map<String, Object> doInBackground() throws Exception {
-                DeptRespVO deptRespVO = null;
-                if (id != null) {
-                    CommonResult<DeptRespVO> deptRespVOCommonResult = Request.connector(DeptFeign.class).getDept(id);
-
-                    if (deptRespVOCommonResult.isSuccess() && deptRespVOCommonResult.getData() != null) {
-                        deptRespVO = deptRespVOCommonResult.getData();
-                        publish(deptRespVO);
-
-                    }
-                }
-
-                DefaultMutableTreeNode selectDept = null;
-                Vector leaderUsers = new Vector();
-                leaderUsers.add(null);
-                UserSimpleRespVO leaderUserSel = null;
-                DefaultMutableTreeNode deptRootNode = new DefaultMutableTreeNode("主类目");
-                // Build the tree
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                nodeMap.put(0L, deptRootNode); // Root node
-
-                CommonResult<java.util.List<DeptSimpleRespVO>> deptSimpleRespVOList = Request.connector(DeptFeign.class).getSimpleDeptList();
-                CommonResult<java.util.List<UserSimpleRespVO>> userSimpleRespVOList = Request.connector(UserFeign.class).getSimpleUserList();
-
-
-                if (userSimpleRespVOList.isSuccess()) {
-
-                    for (UserSimpleRespVO respVO : userSimpleRespVOList.getData()) {
-                        leaderUsers.add(respVO);
-
-                        if (deptRespVO != null && deptRespVO.getLeaderUserId().equals(respVO.getId())) {
-                            leaderUserSel = respVO;
+        Observable.zip(
+                        Observable.defer(() -> {
+                            if (id == null) {
+                                return Observable.just(new DeptRespVO());// 返回一个默认的空对象
+                            }
+                            return deptApi.getDept(id).map(new PayLoad<>());
+                        }),
+                        deptApi.getSimpleDeptList().map(new PayLoad<>()),
+                        userApi.getSimpleUserList().map(new PayLoad<>()),
+                        (deptRespVO, deptList, userList) -> {
+                            // 使用 LinkedHashMap 保持顺序
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("deptRespVO", deptRespVO);
+                            resultMap.put("deptList", deptList);
+                            resultMap.put("userList", userList);
+                            return resultMap;
                         }
-                    }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(resultMap -> {
+                    // 直接获取数据，无需强转
+                    updateData(resultMap, isAdd);
+                }, Throwable::printStackTrace);
 
-
-                }
-                if (deptSimpleRespVOList.isSuccess()) {
-                    for (DeptSimpleRespVO dept : deptSimpleRespVOList.getData()) {
-
-                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(dept);
-                        nodeMap.put(dept.getId(), node);
-                    }
-
-                    deptSimpleRespVOList.getData().forEach(deptSimpleRespVO -> {
-
-                        DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
-                        DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.add(childNode);
-                        }
-
-
-                    });
-
-
-                    if (deptRespVO!= null) {
-                        selectDept = nodeMap.get(isAdd ? deptRespVO.getId() : deptRespVO.getParentId());
-                    }
-
-
-                }
-
-
-                Map<String, Object> map = new HashMap<>();
-                map.put("deptRootNode", deptRootNode);
-                map.put("selectDept", selectDept);
-                map.put("leaderUserSel", leaderUserSel);
-                map.put("leaderUsers", leaderUsers);
-                return map;
-            }
-
-            @Override
-            protected void process(List<DeptRespVO> chunks) {
-
-                chunks.forEach(chunk -> setDeptRespVO(chunk));
-            }
-
-
-            @Override
-            protected void done() {
-
-                try {
-                    deptTree.setModel(new DefaultTreeModel((TreeNode) get().get("deptRootNode")));
-                    DefaultMutableTreeNode selectDept = (DefaultMutableTreeNode) get().get("selectDept");
-                    if (selectDept != null) {
-                        TreePath path = new TreePath(selectDept.getPath());
-                        deptTree.setSelectionPath(path);
-                        deptTree.scrollPathToVisible(path);
-                        TreeUtils.expandTreeNode(deptTree, selectDept);
-                    }
-
-                    leaderUserIdComboBox.setModel(new DefaultComboBoxModel((Vector) get().get("leaderUsers")));
-
-                    UserSimpleRespVO leaderUserSel = (UserSimpleRespVO) get().get("leaderUserSel");
-                    if (leaderUserSel != null) {
-                        leaderUserIdComboBox.setSelectedItem(leaderUserSel);
-                    }
-
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 

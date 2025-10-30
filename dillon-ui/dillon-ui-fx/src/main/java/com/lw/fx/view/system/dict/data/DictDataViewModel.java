@@ -74,7 +74,7 @@ public class DictDataViewModel implements ViewModel, SceneLifecycle {
         }
 
         ProcessChain.create()
-                .addSupplierInExecutor(() -> Request.connector(DictDataFeign.class).getDictTypePage(queryMap))
+                .addSupplierInExecutor(() -> Request.connector(DictDataFeign.class).getDictDataPage(queryMap))
                 .addConsumerInPlatformThread(listCommonResult -> {
 
                     if (listCommonResult.isSuccess()) {

@@ -8,8 +8,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.lw.swing.components.*;
@@ -17,11 +15,13 @@ import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.CheckHeaderCellRenderer;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.NotifyMessageFeign;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.NotifyMessageApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -30,9 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.lw.ui.utils.DictTypeEnum.SYSTEM_NOTIFY_TEMPLATE_TYPE;
@@ -282,57 +281,26 @@ public class MyNotifyMessagePane extends JPanel {
             return;
         }
 
+        RetrofitServiceManager.getInstance().create(NotifyMessageApi.class).updateNotifyMessageRead(ids).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "批量已读成功！");
+                    updateData();
+                });
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(NotifyMessageFeign.class).updateNotifyMessageRead(ids);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "批量已读成功！");
-
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
     private void updateAllNotifyMessageRead() {
 
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(NotifyMessageFeign.class).updateAllNotifyMessageRead();
-            }
+        RetrofitServiceManager.getInstance().create(NotifyMessageApi.class).updateAllNotifyMessageRead().map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "全部已读成功！");
+                    updateData();
+                });
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "全部已读成功！");
-
-                        updateData();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
@@ -363,18 +331,15 @@ public class MyNotifyMessagePane extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
 
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<NotifyMessageRespVO>> result = Request.connector(NotifyMessageFeign.class).getMyMyNotifyMessagePage(queryMap);
-
-                Vector<Vector> tableData = new Vector<>();
-
-
-                if (result.isSuccess()) {
-
-                    result.getData().getList().forEach(roleRespVO -> {
+        RetrofitServiceManager.getInstance().create(NotifyMessageApi.class).getNotifyMessagePage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                    paginationPane.setTotal(result.getTotal());
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
                         Vector rowV = new Vector();
                         rowV.add(false);
                         rowV.add(roleRespVO.getTemplateNickname());
@@ -386,24 +351,7 @@ public class MyNotifyMessagePane extends JPanel {
                         rowV.add(roleRespVO);
                         tableData.add(rowV);
                     });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
                     table.getColumn("").setMinWidth(40);
                     table.getColumn("").setMaxWidth(40);
                     table.getColumn("").setHeaderRenderer(new CheckHeaderCellRenderer(table));
@@ -435,15 +383,12 @@ public class MyNotifyMessagePane extends JPanel {
                             return panel;
                         }
                     });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
 
-            }
-        };
-        swingWorker.execute();
+
+
 
     }
 

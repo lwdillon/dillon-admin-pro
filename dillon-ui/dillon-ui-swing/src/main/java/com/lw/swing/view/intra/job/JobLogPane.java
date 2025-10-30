@@ -9,18 +9,18 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
-import com.lw.dillon.admin.framework.common.pojo.PageResult;
 import com.lw.dillon.admin.module.infra.controller.admin.job.vo.log.JobLogRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
 import com.lw.swing.utils.BadgeLabelUtil;
-import com.lw.ui.request.api.job.JobLogFeign;
+import com.lw.ui.api.job.JobLogApi;
 import com.lw.ui.utils.DictTypeEnum;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -29,9 +29,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 import static com.lw.ui.utils.DictTypeEnum.INFRA_JOB_LOG_STATUS;
 import static com.lw.ui.utils.DictTypeEnum.INFRA_JOB_STATUS;
@@ -164,7 +162,7 @@ public class JobLogPane extends JPanel {
 
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
 
-        centerPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        centerPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     }
 
@@ -229,7 +227,7 @@ public class JobLogPane extends JPanel {
 
 
     private void addMessageInfo(String text, Object value, JPanel panel, int row) {
-        JLabel label = new JLabel(text,JLabel.RIGHT);
+        JLabel label = new JLabel(text, JLabel.RIGHT);
         JTextField textField = new JTextField(Convert.toStr(value));
         textField.setEditable(false);
 
@@ -240,7 +238,7 @@ public class JobLogPane extends JPanel {
     private void addMessageInfo(String text, DictTypeEnum dictType, Object value, JPanel panel, int row) {
 
 
-        JLabel label = new JLabel(text,JLabel.RIGHT);
+        JLabel label = new JLabel(text, JLabel.RIGHT);
         JLabel badge = BadgeLabelUtil.getBadgeLabel(dictType, value);
 
 
@@ -286,74 +284,50 @@ public class JobLogPane extends JPanel {
         queryMap.put("handlerName", handlerName);
         queryMap.put("stauts", stauts);
 
+        queryMap.values().removeIf(Objects::isNull);
 
-        SwingWorker<Vector<Vector>, Long> swingWorker = new SwingWorker<Vector<Vector>, Long>() {
-            @Override
-            protected Vector<Vector> doInBackground() throws Exception {
-                CommonResult<PageResult<JobLogRespVO>> result = Request.connector(JobLogFeign.class).getJobLogPage(queryMap);
+        RetrofitServiceManager.getInstance().create(JobLogApi.class).getJobLogPage(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
+                .subscribe(result -> {
+                        paginationPane.setTotal(result.getTotal());
+                        Vector<Vector> tableData = new Vector<>();
+                        result.getList().forEach(respVO -> {
+                            Vector rowV = new Vector();
+                            rowV.add(respVO.getId());
+                            rowV.add(respVO.getJobId());
+                            rowV.add(respVO.getHandlerName());
+                            rowV.add(respVO.getHandlerParam());
+                            rowV.add(respVO.getExecuteIndex());
+                            rowV.add(DateUtil.format(Convert.toLocalDateTime(respVO.getBeginTime()), "yyyy-MM-dd HH:mm:ss") + " ~ " + DateUtil.format(Convert.toLocalDateTime(respVO.getEndTime()), "yyyy-MM-dd HH:mm:ss"));
+                            rowV.add(respVO.getDuration() + " 毫秒");
+                            rowV.add(respVO.getStatus());
+                            rowV.add(respVO);
+                            tableData.add(rowV);
+                        });
 
-                Vector<Vector> tableData = new Vector<>();
+                        tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                        table.getColumn("执行时间").setMinWidth(300);
+                        table.getColumn("操作").setMinWidth(80);
+                        table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                        table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
+                        table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
+                            @Override
+                            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                                Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                                JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                                JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
+                                panel.add(label);
+                                panel.setBackground(component.getBackground());
+                                panel.setOpaque(isSelected);
+                                return panel;
+                            }
+                        });
+                        paginationPane.setTotal(result.getTotal());
 
-                if (result.isSuccess()) {
+                }, throwable -> throwable.printStackTrace());
 
-                    result.getData().getList().forEach(respVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(respVO.getId());
-                        rowV.add(respVO.getJobId());
-                        rowV.add(respVO.getHandlerName());
-                        rowV.add(respVO.getHandlerParam());
-                        rowV.add(respVO.getExecuteIndex());
-                        rowV.add(DateUtil.format(Convert.toLocalDateTime(respVO.getBeginTime()), "yyyy-MM-dd HH:mm:ss") + " ~ " + DateUtil.format(Convert.toLocalDateTime(respVO.getEndTime()), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(respVO.getDuration() + " 毫秒");
-                        rowV.add(respVO.getStatus());
-                        rowV.add(respVO);
-                        tableData.add(rowV);
-                    });
-
-                    publish(result.getData().getTotal());
-                }
-                return tableData;
-            }
-
-
-            @Override
-            protected void process(List<Long> chunks) {
-                chunks.forEach(total -> paginationPane.setTotal(total));
-            }
-
-            @Override
-            protected void done() {
-                try {
-
-
-                    tableModel.setDataVector(get(), new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("执行时间").setMinWidth(300);
-                    table.getColumn("操作").setMinWidth(80);
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
-
-                    table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        swingWorker.execute();
 
     }
 

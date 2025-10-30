@@ -1,6 +1,6 @@
 package com.lw.swing.view.system.menu;
 
-import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
@@ -8,18 +8,18 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.lw.dillon.admin.framework.common.pojo.CommonResult;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
-import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.lw.dillon.admin.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.lw.swing.components.*;
 import com.lw.swing.components.notice.WMessage;
 import com.lw.swing.components.table.renderer.OptButtonTableCellEditor;
 import com.lw.swing.components.table.renderer.OptButtonTableCellRenderer;
-import com.lw.swing.request.Request;
+import com.lw.swing.http.PayLoad;
+import com.lw.swing.http.RetrofitServiceManager;
 import com.lw.swing.store.AppStore;
-import com.lw.swing.view.MainFrame;
-import com.lw.ui.request.api.system.MenuFeign;
+import com.lw.swing.view.frame.MainFrame;
+import com.lw.ui.api.system.MenuApi;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -29,9 +29,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ExecutionException;
 
 import static javax.swing.JOptionPane.*;
 
@@ -51,7 +51,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
 
     private JTextField nameTextField;
     private JComboBox statusCombo;
-   private JToggleButton exButton;
+    private JToggleButton exButton;
 
     private WaitPane waitPane;
 
@@ -90,7 +90,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         });
         addButton.setBackground(new Color(0x1c7dfa));
 
-        exButton= new JToggleButton("展开/折叠");
+        exButton = new JToggleButton("展开/折叠");
         toolBar.add(exButton);
         exButton.addActionListener(e -> {
             if (exButton.isSelected()) {
@@ -220,53 +220,34 @@ public class MenuManagementPanel extends JPanel implements Observer {
         int selectIndex = statusCombo.getSelectedIndex();
         if (selectIndex != 0) {
             sysMenuModel.setStatus(selectIndex == 1 ? 0 : 1);
-
         }
-        SwingWorker<Tree<Long>, Object> worker = new SwingWorker<Tree<Long>, Object>() {
-            @Override
-            protected Tree<Long> doInBackground() throws Exception {
+        Map<String, Object> queryMap= BeanUtil.beanToMap(sysMenuModel, false, true);
 
-                List<MenuRespVO> sysMenuModelList = Request.connector(MenuFeign.class).getMenuList(sysMenuModel).getData();
-                long min = sysMenuModelList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-                TreeNodeConfig config = new TreeNodeConfig();
-                config.setWeightKey("orderNum");
-                config.setParentIdKey("parentId");
-                config.setNameKey("menuName");
-                Tree<Long> treeList = TreeUtil.buildSingle(sysMenuModelList, min, config, ((object, treeNode) -> {
-                    treeNode.setId(object.getId());
-                    treeNode.setParentId(object.getParentId());
-                    treeNode.setName(object.getName());
-                    treeNode.putExtra("icon", object.getIcon());
-                    treeNode.putExtra("component", object.getComponentSwing());
-                    treeNode.putExtra("orderNum", object.getSort());
-                    treeNode.putExtra("status", object.getStatus());
-                    treeNode.putExtra("perms", object.getPermission());
-                    treeNode.putExtra("menuType", object.getType());
-                    treeNode.putExtra("componentName", object.getComponentName());
-                }));
-                return treeList;
-
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (CollUtil.isNotEmpty(get())) {
-                        updateTreeTableRoot(get());
-                        if (exButton.isSelected()) {
-                            treeTable.expandAll();
-                        }
+        RetrofitServiceManager.getInstance().create(MenuApi.class).getMenuList(queryMap).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(data -> {
+                    long min = data.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+                    TreeNodeConfig config = new TreeNodeConfig();
+                    config.setWeightKey("orderNum");
+                    config.setParentIdKey("parentId");
+                    config.setNameKey("menuName");
+                    Tree<Long> treeList = TreeUtil.buildSingle(data, min, config, ((object, treeNode) -> {
+                        treeNode.setId(object.getId());
+                        treeNode.setParentId(object.getParentId());
+                        treeNode.setName(object.getName());
+                        treeNode.putExtra("icon", object.getIcon());
+                        treeNode.putExtra("component", object.getComponentSwing());
+                        treeNode.putExtra("orderNum", object.getSort());
+                        treeNode.putExtra("status", object.getStatus());
+                        treeNode.putExtra("perms", object.getPermission());
+                        treeNode.putExtra("menuType", object.getType());
+                        treeNode.putExtra("componentName", object.getComponentName());
+                    }));
+                    updateTreeTableRoot(treeList);
+                    if (exButton.isSelected()) {
+                        treeTable.expandAll();
                     }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-
-                }
-            }
-        };
-
-        worker.execute();
+                }, throwable -> throwable.printStackTrace());
     }
 
     private void updateTreeTableRoot(Object root) {
@@ -351,26 +332,15 @@ public class MenuManagementPanel extends JPanel implements Observer {
     private void addMenu() {
 
         MenuSaveVO menuSaveVO = menuEditPane.getMenuRespVO();
-        SwingWorker<CommonResult<Long>, Object> swingWorker = new SwingWorker<CommonResult<Long>, Object>() {
-            @Override
-            protected CommonResult<Long> doInBackground() throws Exception {
-                return Request.connector(MenuFeign.class).createMenu(menuSaveVO);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"添加成功！");
-                        updateData();
-                        AppStore.getMenuRefreshObservable().refresh();
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(MenuApi.class).createMenu(menuSaveVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(data -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                    AppStore.getMenuRefreshObservable().refresh();
+                }, throwable -> throwable.printStackTrace());
+
 
     }
 
@@ -378,29 +348,13 @@ public class MenuManagementPanel extends JPanel implements Observer {
 
         MenuSaveVO menuSaveVO = menuEditPane.getMenuRespVO();
 
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(MenuFeign.class).updateMenu(menuSaveVO);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"修改成功！");
-
-                        updateData();
-                        AppStore.getMenuRefreshObservable().refresh();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
+        RetrofitServiceManager.getInstance().create(MenuApi.class).updateMenu(menuSaveVO).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(data -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                    AppStore.getMenuRefreshObservable().refresh();
+                }, throwable -> throwable.printStackTrace());
 
     }
 
@@ -423,30 +377,15 @@ public class MenuManagementPanel extends JPanel implements Observer {
         if (opt != 0) {
             return;
         }
-        Long finalMenuId = menuId;
-        SwingWorker<CommonResult<Boolean>, Object> swingWorker = new SwingWorker<CommonResult<Boolean>, Object>() {
-            @Override
-            protected CommonResult<Boolean> doInBackground() throws Exception {
-                return Request.connector(MenuFeign.class).deleteMenu(finalMenuId);
-            }
 
-            @Override
-            protected void done() {
-                try {
-                    if (get().isSuccess()) {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(),"删除成功！");
+        RetrofitServiceManager.getInstance().create(MenuApi.class).deleteMenu(menuId).map(new PayLoad<>())
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(data -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                    AppStore.getMenuRefreshObservable().refresh();
+                }, throwable -> throwable.printStackTrace());
 
-                        updateData();
-                        AppStore.getMenuRefreshObservable().refresh();
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
 
     }
 
