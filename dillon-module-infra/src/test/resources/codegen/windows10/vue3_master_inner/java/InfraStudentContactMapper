@@ -1,0 +1,28 @@
+package com.dillon.lw.module.infra.dal.mysql.demo;
+
+import java.util.*;
+
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.framework.common.pojo.PageParam;
+import com.dillon.lw.framework.mybatis.core.query.LambdaQueryWrapperX;
+import com.dillon.lw.framework.mybatis.core.mapper.BaseMapperX;
+import com.dillon.lw.module.infra.dal.dataobject.demo.InfraStudentContactDO;
+import org.apache.ibatis.annotations.Mapper;
+
+/**
+ * 学生联系人 Mapper
+ *
+ * @author 芋道源码
+ */
+@Mapper
+public interface InfraStudentContactMapper extends BaseMapperX<InfraStudentContactDO> {
+
+    default List<InfraStudentContactDO> selectListByStudentId(Long studentId) {
+        return selectList(InfraStudentContactDO::getStudentId, studentId);
+    }
+
+    default int deleteByStudentId(Long studentId) {
+        return delete(InfraStudentContactDO::getStudentId, studentId);
+    }
+
+}

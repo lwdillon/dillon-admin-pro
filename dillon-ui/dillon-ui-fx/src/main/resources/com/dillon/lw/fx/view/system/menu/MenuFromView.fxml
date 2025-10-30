@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox fx:id="rootBox" alignment="TOP_CENTER" prefHeight="638.0" prefWidth="620.0" spacing="7.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.menu.MenuFromView">
+    <children>
+      <HBox alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="上级菜单" />
+            <CustomTextField fx:id="menuTreeTextField" editable="false" promptText="请输入菜单名称" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*菜单名称" />
+            <TextField fx:id="nameTextField" promptText="请选择上级菜单" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="菜单类型" />
+            <HBox alignment="CENTER">
+               <children>
+                  <ToggleButton fx:id="dirToggleBut" mnemonicParsing="false" styleClass="left-pill" text="目录">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="toggleGroup1" />
+                     </toggleGroup>
+                  </ToggleButton>
+                  <ToggleButton fx:id="menuToggleBut" mnemonicParsing="false" styleClass="center-pill" text="菜单" toggleGroup="$toggleGroup1" />
+                  <ToggleButton fx:id="buttonToggleBut" mnemonicParsing="false" styleClass="right-pill" text="按钮" toggleGroup="$toggleGroup1" />
+               </children>
+            </HBox>
+         </children>
+      </HBox>
+      <HBox fx:id="iconBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="菜单图标" />
+            <TextField fx:id="iconTextField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="pathBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*路由地址" />
+            <TextField fx:id="pathTextField" promptText="请输入路由地址" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="componentBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="组件地址" />
+            <TextField fx:id="componentTextField" promptText="例如说：xxx.xxx.xxxxView" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="componentNameBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="组件名字" />
+            <TextField fx:id="componentNameTextField" promptText="例如说：SystemUser" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="permissionBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="权限标识" />
+            <TextField fx:id="permissionTextField" promptText="请输入权限标识" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="sortBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*显示排序" />
+            <Spinner fx:id="sortNumFeild" />
+         </children>
+      </HBox>
+      <HBox fx:id="statusBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="*菜单状态" />
+            <ToggleSwitch fx:id="statusToggleBut" labelPosition="RIGHT" selected="true" text="开启" />
+         </children>
+      </HBox>
+      <HBox fx:id="visibleBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="显示状态" />
+            <ToggleSwitch fx:id="visibleToggleBut" labelPosition="RIGHT" selected="true" text="显示" />
+         </children>
+      </HBox>
+      <HBox fx:id="alwaysShowBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="总是显示" />
+            <ToggleSwitch fx:id="alwaysShowToggleBut" labelPosition="RIGHT" selected="true" text="总是" />
+         </children>
+      </HBox>
+      <HBox fx:id="keepAliveBox" alignment="CENTER_LEFT" minHeight="40.0" prefHeight="40.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" maxWidth="80.0" prefWidth="80.0" text="缓存状态" />
+            <ToggleSwitch fx:id="keepAliveToggleBut" labelPosition="RIGHT" selected="true" text="缓存" />
+         </children>
+      </HBox>
+
+    </children>
+    <padding>
+        <Insets right="10.0" />
+    </padding>
+
+</VBox>

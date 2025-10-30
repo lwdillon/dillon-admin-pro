@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<StackPane fx:id="rootPane" prefHeight="609.0" prefWidth="1223.0" styleClass="tab-center-pane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.infra.file.FileListView">
+    <children>
+        <VBox fx:id="contentPane" prefHeight="200.0" prefWidth="100.0" spacing="7.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="5.0" styleClass="sample">
+                    <children>
+                        <Label text="文件路径" />
+                        <TextField fx:id="pathField" prefWidth="150.0" promptText="请输入文件路径" />
+                        <Label text="文件类型" />
+                        <TextField fx:id="typeField" promptText="请输入文件类型" />
+                        <Label text="创建日期" />
+                        <DatePicker fx:id="startDatePicker" prefWidth="140.0" />
+                        <Label text="-" />
+                        <DatePicker fx:id="endDatePicker" prefWidth="140.0" />
+                        <Button fx:id="searchBut" mnemonicParsing="false" text="查询">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-search" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="resetBut" mnemonicParsing="false" text="重置">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-refresh-cw" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="uploadBut" mnemonicParsing="false" text="上传文件">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-plus" />
+                            </graphic>
+                        </Button>
+                    </children>
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                </HBox>
+            <StackPane styleClass="sample" VBox.vgrow="ALWAYS">
+               <children>
+                      <TableView fx:id="tableView" editable="true">
+                          <columns>
+                              <TableColumn fx:id="nameCol" text="文件名" />
+                              <TableColumn fx:id="pathCol" text="文件路径" />
+                              <TableColumn fx:id="urlCol" text="URL" />
+                              <TableColumn fx:id="sizeCol" text="文件大小" />
+                              <TableColumn fx:id="typeCol" text="文件类型" />
+                              <TableColumn fx:id="centerCol" text="文件内容" />
+                              <TableColumn fx:id="createTimeCol" text="上传时间" />
+                              <TableColumn fx:id="optCol" text="操作" />
+                          </columns>
+                          <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                          </columnResizePolicy>
+                      </TableView>
+               </children>
+            </StackPane>
+            </children>
+        </VBox>
+    </children>
+
+</StackPane>

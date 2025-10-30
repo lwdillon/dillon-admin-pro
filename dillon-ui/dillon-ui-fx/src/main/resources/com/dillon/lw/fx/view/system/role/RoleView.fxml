@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import java.lang.String?>
+<StackPane fx:id="rootPane" prefHeight="609.0" prefWidth="1223.0" styleClass="tab-center-pane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.role.RoleView">
+    <children>
+        <VBox fx:id="contentPane" prefHeight="200.0" prefWidth="100.0" spacing="7.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="5.0" styleClass="sample">
+                    <children>
+                        <TextField fx:id="nameField" prefWidth="151.0" promptText="请输入角色名称" />
+                  <TextField fx:id="codeField" promptText="请输入角色标识" />
+                        <ComboBox fx:id="statusCombo" prefWidth="81.0" promptText="请选择状态">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="" />
+                                    <String fx:value="0" />
+                                    <String fx:value="1" />
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                        <Label text="创建日期" />
+                        <DatePicker fx:id="startDatePicker" prefWidth="140.0" />
+                        <Label text="-" />
+                        <DatePicker fx:id="endDatePicker" prefWidth="140.0" />
+                        <Button fx:id="searchBut" mnemonicParsing="false" text="查询">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-search" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="resetBut" mnemonicParsing="false" text="重置">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-refresh-cw" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="addBut" mnemonicParsing="false" text="新增">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-plus" />
+                            </graphic>
+                        </Button>
+                    </children>
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                </HBox>
+            <StackPane styleClass="sample" VBox.vgrow="ALWAYS">
+               <children>
+                      <TableView fx:id="tableView" editable="true">
+                          <columns>
+                              <TableColumn fx:id="idCol" prefWidth="141.0" text="角色编号" />
+                              <TableColumn fx:id="nameCol" prefWidth="75.0" text="角色名称" />
+                              <TableColumn fx:id="typeCol" prefWidth="75.0" text="角色类型" />
+                        <TableColumn fx:id="codeCol" prefWidth="75.0" text="角色标识" />
+                              <TableColumn fx:id="sortCol" prefWidth="75.0" text="显示顺序" />
+                              <TableColumn fx:id="statusCol" prefWidth="75.0" text="状态" />
+                              <TableColumn fx:id="createTimeCol" minWidth="170.0" prefWidth="75.0" text="创建时间" />
+                              <TableColumn fx:id="optCol" minWidth="250.0" prefWidth="75.0" text="操作" />
+                          </columns>
+                          <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                          </columnResizePolicy>
+                      </TableView>
+               </children>
+            </StackPane>
+
+            </children>
+        </VBox>
+    </children>
+</StackPane>

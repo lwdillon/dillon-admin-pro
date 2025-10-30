@@ -1,0 +1,343 @@
+JFDML JFormDesigner: "8.2.3.0.386" Java: "17.0.11" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+			"$layoutConstraints": "fill,insets 0,gap 10 5"
+			"$columnConstraints": "[500,grow,fill]"
+			"$rowConstraints": "[][][][][][][][][][][][][][]"
+		} ) {
+			name: "this"
+			"minimumSize": new java.awt.Dimension( 340, 500 )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[320,fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "namePane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label1"
+					"text": "配置名"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "nameField"
+					"minimumSize": new java.awt.Dimension( 180, 34 )
+					"preferredSize": new java.awt.Dimension( 240, 34 )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 0,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "remarkPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label2"
+					"text": "备注"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "remarkField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 1,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "storagePane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label3"
+					"text": "存储器"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JComboBox" ) {
+					name: "storageComboBox"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 2,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "basePathPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label4"
+					"text": "基础路径"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "basePathField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 3,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "hostPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label5"
+					"text": "主机地址"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "hostField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 4,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "portPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label6"
+					"text": "主机端口"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "portField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 5,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "usernamePane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label7"
+					"text": "用户名"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "usernameField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 6,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "passwordPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label8"
+					"text": "密码"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "passwordField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 7,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "modePane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label9"
+					"text": "连接模式"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class org.jdesktop.swingx.HorizontalLayout ) ) {
+					name: "panel3"
+					add( new FormComponent( "javax.swing.JRadioButton" ) {
+						name: "activeRb"
+						"text": "主动模式"
+						"$buttonGroup": new FormReference( "buttonGroup1" )
+					} )
+					add( new FormComponent( "javax.swing.JRadioButton" ) {
+						name: "passiveRb"
+						"text": "被动模式"
+						"$buttonGroup": new FormReference( "buttonGroup1" )
+					} )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 8,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "endpointPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label10"
+					"text": "节点地址"
+					"horizontalAlignment": 4
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,alignx left,growx 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "endpointField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 9,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "bucketPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label11"
+					"text": "存储 bucket"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "bucketField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 10,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "accessKeyPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label13"
+					"text": "accessKey"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "accessKeyField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 11,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "accessSecretPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label14"
+					"text": "accessSecret"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "accessSecretField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 12,grow"
+			} )
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+				"$columnConstraints": "[fill]"
+				"$rowConstraints": "[]"
+				"$layoutConstraints": "fill,insets 0,hidemode 3"
+			} ) {
+				name: "domainPane"
+				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "label15"
+					"text": "自定义域名"
+					"minimumSize": new java.awt.Dimension( 80, 16 )
+					"horizontalAlignment": 4
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0"
+				} )
+				add( new FormComponent( "javax.swing.JTextField" ) {
+					name: "domainField"
+				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+					"value": "cell 0 0,growx"
+				} )
+			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+				"value": "cell 0 13,grow"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 0 )
+			"size": new java.awt.Dimension( 550, 880 )
+		} )
+		add( new FormNonVisual( "javax.swing.ButtonGroup" ) {
+			name: "buttonGroup1"
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 896 )
+		} )
+	}
+}

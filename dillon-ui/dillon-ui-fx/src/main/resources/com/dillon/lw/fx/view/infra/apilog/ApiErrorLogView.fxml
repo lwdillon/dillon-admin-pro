@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<StackPane fx:id="rootPane" prefHeight="609.0" prefWidth="1223.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.infra.apilog.ApiErrorLogView">
+    <children>
+        <VBox fx:id="contentPane" prefHeight="200.0" prefWidth="100.0" spacing="7.0">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="5.0" styleClass="sample">
+                    <children>
+                        <TextField fx:id="userIdField" prefWidth="150.0" promptText="请输入用户编号" />
+                  <ComboBox fx:id="userTypeComboBox" prefWidth="150.0" promptText="请选择用户类型" />
+                        <TextField fx:id="applicationNameField" promptText="请输入应用名" />
+                  <ComboBox fx:id="processStatusComBox" prefWidth="150.0" promptText="请选择处理状态" />
+                        <Label text="异常时间" />
+                        <DatePicker fx:id="startDatePicker" prefWidth="140.0" />
+                        <Label text="-" />
+                        <DatePicker fx:id="endDatePicker" prefWidth="140.0" />
+                        <Button fx:id="searchBut" mnemonicParsing="false" text="查询">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-search" />
+                            </graphic>
+                        </Button>
+                        <Button fx:id="resetBut" mnemonicParsing="false" text="重置">
+                            <graphic>
+                                <FontIcon iconLiteral="fth-refresh-cw" />
+                            </graphic>
+                        </Button>
+                    </children>
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                </HBox>
+            <StackPane styleClass="sample" VBox.vgrow="ALWAYS">
+               <children>
+                      <TableView fx:id="tableView" editable="true">
+                          <columns>
+                        <TableColumn fx:id="idCol" text="日志编号" />
+                              <TableColumn fx:id="userIdCol" text="用户编号" />
+                              <TableColumn fx:id="userTypeCol" text="用户类型" />
+                              <TableColumn fx:id="applicationNameCol" text="应用名" />
+                              <TableColumn fx:id="requestMethodCol" text="请求方法" />
+                              <TableColumn fx:id="requestUrlCol" text="请求地址" />
+                              <TableColumn fx:id="exceptionTimeCol" text="异常发生时间" />
+                              <TableColumn fx:id="exceptionNameCol" text="异常名" />
+                        <TableColumn fx:id="processStatusCol" text="处理状态" />
+                        <TableColumn fx:id="optCol" minWidth="180.0" text="操作" />
+                          </columns>
+                          <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                          </columnResizePolicy>
+                      </TableView>
+               </children>
+            </StackPane>
+
+            </children>
+        </VBox>
+    </children>
+
+</StackPane>

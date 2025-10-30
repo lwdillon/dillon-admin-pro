@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.CustomTextField?>
+<?import atlantafx.base.controls.PasswordTextField?>
+<?import com.dlsc.gemsfx.SVGImageView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<StackPane fx:id="rootPane" style="-fx-background-color: -color-bg-default;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.login.LoginView">
+   <children>
+      <HBox prefHeight="511.0" prefWidth="905.0" style="-fx-background-color: linear-gradient(    from 0% 100% to 100% 0%,    rgba(7, 7, 9, 0.08) 30%,    rgba(0, 102, 255, 0.3) 48%,    rgba(7, 7, 9, 0.08) 64%);;">
+         <children>
+            <VBox prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER" spacing="7.0">
+                     <children>
+                        <SVGImageView fx:id="logoSvgView" fitHeight="40.0" fitWidth="40.0" />
+                        <Label fx:id="logoLabel" maxHeight="50.0" maxWidth="1.7976931348623157E308" minHeight="50.0" styleClass="title-3" text="Dillon-Admin" HBox.hgrow="ALWAYS" />
+                     </children>
+                     <padding>
+                        <Insets bottom="7.0" left="7.0" right="7.0" top="7.0" />
+                     </padding>
+                  </HBox>
+                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <SVGImageView fx:id="svgImageView" fitHeight="450.0" fitWidth="450.0" VBox.vgrow="ALWAYS" />
+                        <Label styleClass="title-2" text="开箱即用的大型中后台管理系统">
+                           <padding>
+                              <Insets top="15.0" />
+                           </padding></Label>
+                        <Label styleClass="title-4" text="工程化、高性能、跨组件库的前端模版" />
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets left="10.0" />
+               </padding>
+            </VBox>
+            <StackPane>
+               <children>
+                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="500.0" style="-fx-background-color: -color-bg-default; -fx-opacity: 0.2;" />
+                  <AnchorPane>
+                     <children>
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label styleClass="title-1" text="欢迎回来 " />
+                              <Label styleClass="title-4" text="请输入您的帐户信息" />
+                              <ProgressBar fx:id="progressbar" maxHeight="8.0" maxWidth="1.7976931348623157E308" prefWidth="200.0" progress="0.0" />
+                              <CustomTextField fx:id="usernameTextField" prefHeight="45.0" promptText="请输入用户名" text="admin" />
+                              <PasswordTextField fx:id="passwordTextField" prefHeight="45.0" promptText="请输入密码" text="admin123" />
+                              <CheckBox fx:id="rememberMeCheckBox" mnemonicParsing="false" text="记住账号" />
+                              <Label fx:id="messageLabel" text="Label" />
+                              <Button fx:id="loginButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" prefHeight="45.0" style="-fx-background-color: -color-accent-emphasis; -fx-text-fill: #ffffff;" styleClass="title-2" text="登  录">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                           <padding>
+                              <Insets left="80.0" right="80.0" />
+                           </padding>
+                        </VBox>
+                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text=" Copyright © 2025 " AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                        <Button fx:id="closeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
+                     </children>
+                  </AnchorPane>
+               </children>
+            </StackPane>
+         </children>
+      </HBox>
+   </children>
+</StackPane>

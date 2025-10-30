@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import atlantafx.base.controls.ToggleSwitch?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="444.0" prefWidth="422.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.role.RoleDataPermissionFormView">
+   <children>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" text="角色名称" />
+            <Button fx:id="nameBut" disable="true" mnemonicParsing="false" text="Button" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" text="角色标识" />
+            <Button fx:id="codeBut" disable="true" mnemonicParsing="false" text="Button" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" text="权限范围" />
+            <ComboBox fx:id="dataScopeCombox" maxWidth="1.7976931348623157E308" prefWidth="150.0" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="treeBox" spacing="10.0" VBox.vgrow="ALWAYS">
+         <children>
+            <Label alignment="CENTER" contentDisplay="CENTER" text="菜单权限" />
+            <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <ToggleSwitch fx:id="selAllBut" text="全选/全不选" />
+                        <ToggleSwitch fx:id="expandedBut" text="展开/折叠" />
+                     </children>
+                  </HBox>
+                  <TreeView fx:id="treeView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</VBox>

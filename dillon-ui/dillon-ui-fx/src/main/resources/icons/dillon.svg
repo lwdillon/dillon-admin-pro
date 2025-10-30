@@ -1,0 +1,34 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <!-- 多色渐变背景 -->
+        <linearGradient id="multiColorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff7e5f" />
+            <stop offset="25%" stop-color="#feb47b" />
+            <stop offset="50%" stop-color="#f6d02f" />
+            <stop offset="75%" stop-color="#56ccf2" />
+            <stop offset="100%" stop-color="#6a11cb" />
+        </linearGradient>
+    </defs>
+
+    <!-- 圆角正方形背景 -->
+    <rect x="0" y="0" width="200" height="200" rx="30" ry="30" fill="url(#multiColorGrad)" />
+
+    <!-- 渐变多边形背景元素 -->
+    <polygon points="0,150 60,50 140,10 200,120 120,190" fill="url(#multiColorGrad)" />
+<!--    <polygon points="30,180 90,130 180,160 130,220" fill="url(#multiColorGrad)" />-->
+    <polygon points="50,170 100,100 150,50 200,150" fill="url(#multiColorGrad)" />
+    <polygon points="20,160 70,90 160,40 210,130" fill="url(#multiColorGrad)" />
+    <polygon points="10,140 80,60 160,20 210,110" fill="url(#multiColorGrad)" />
+    <polygon points="40,150 110,80 190,30 240,120" fill="url(#multiColorGrad)" />
+
+    <!-- 深色半透明圆角内块 -->
+    <rect x="40" y="40" width="120" height="120" rx="20" ry="20" fill="#000" opacity="0.5"/>
+
+    <!-- 白色粗体“LW”文字 -->
+    <text x="100" y="125"
+          font-family="Arial, sans-serif"
+          font-size="64" fill="#fff"
+          text-anchor="middle" font-weight="bold">
+        LW
+    </text>
+</svg>

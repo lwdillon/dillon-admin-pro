@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.dlsc.gemsfx.AvatarView?>
+<?import com.dlsc.gemsfx.SVGImageView?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<StackPane fx:id="rootPane" prefHeight="609.0" prefWidth="861.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.main.MainView">
+    <children>
+        <Pane id="background-image-pane" fx:id="backgroundImgPane" prefHeight="200.0" prefWidth="200.0" />
+        <HBox fx:id="contentPane" prefHeight="100.0" prefWidth="200.0">
+            <children>
+                <VBox fx:id="sidebarBox" alignment="TOP_CENTER" maxWidth="300.0" minWidth="0.0" prefHeight="609.0" prefWidth="260.0" style="-fx-border-color: -color-border-default; -fx-border-width: 0 1 0 0;" styleClass="cord-pane">
+                    <children>
+                  <HBox alignment="CENTER" spacing="7.0">
+                     <children>
+                        <SVGImageView fx:id="logoSvgView" fitHeight="40.0" fitWidth="40.0" />
+                        <Label fx:id="logoLabel" maxHeight="50.0" maxWidth="1.7976931348623157E308" minHeight="50.0" styleClass="title-3" text="Dillon-Admin" HBox.hgrow="ALWAYS" />
+                     </children>
+                     <padding>
+                        <Insets bottom="7.0" left="7.0" right="7.0" top="7.0" />
+                     </padding>
+                  </HBox>
+                  <StackPane id="sidebar" VBox.vgrow="ALWAYS">
+                     <children>
+                        <ScrollPane hbarPolicy="NEVER">
+                           <content>
+                              <VBox fx:id="sidebMenuBarBox" alignment="TOP_CENTER" visible="false" />
+                           </content>
+                        </ScrollPane>
+                              <TreeView fx:id="siderTreeView" />
+                     </children>
+                  </StackPane>
+                  <HBox alignment="CENTER_RIGHT">
+                     <children>
+                              <Button fx:id="foldMenuButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button">
+                                  <graphic>
+                                      <FontIcon iconLiteral="fth-chevrons-left" />
+                                  </graphic>
+                              </Button>
+                     </children>
+                  </HBox>
+                    </children>
+               <padding>
+                  <Insets left="7.0" right="7.0" />
+               </padding>
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+                </VBox>
+                <VBox fx:id="contentBox" prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <HBox fx:id="titleBox" alignment="CENTER_RIGHT" maxHeight="50.0" minWidth="50.0" prefHeight="50.0" prefWidth="200.0" spacing="3.0" style="-fx-border-color: -color-border-default; -fx-border-width: 0 0 1 0;" styleClass="cord-pane">
+                            <children>
+                                <Button fx:id="showSidebarButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-menu" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="refreshButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-rotate-cw" />
+                                    </graphic>
+                                </Button>
+                                <HBox fx:id="crumbsBox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                        <HBox id="search-box" fx:id="searchBox" alignment="CENTER" maxHeight="32.0" maxWidth="120.0" minHeight="32.0" minWidth="120.0" prefHeight="32.0" prefWidth="120.0" style="-fx-background-color: -color-bg-subtle; -fx-background-radius: 16;">
+                           <children>
+                              <Label graphicTextGap="5.0" maxWidth="1.7976931348623157E308" text="搜索" HBox.hgrow="ALWAYS">
+                                 <graphic>
+                                    <FontIcon iconLiteral="fth-search" />
+                                 </graphic>
+                              </Label>
+                              <Label graphicTextGap="5.0" maxHeight="20.0" minWidth="20.0" style="-fx-background-color: -color-bg-overlay; -fx-background-radius: 0 16 16 0;" text="K">
+                                 <graphic>
+                                    <FontIcon iconLiteral="fth-command" />
+                                 </graphic>
+                                 <padding>
+                                    <Insets left="5.0" right="7.0" />
+                                 </padding>
+                              </Label>
+                           </children>
+                           <padding>
+                              <Insets left="8.0" right="8.0" />
+                           </padding>
+                        </HBox>
+                                <Button fx:id="setButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-settings" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="themeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-sun" />
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="bellButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false">
+                                    <graphic>
+                                        <FontIcon iconLiteral="fth-bell" />
+                                    </graphic>
+                                </Button>
+                        <AvatarView fx:id="userAvatarView" avatarShape="ROUND" size="35.0" />
+                                <Button fx:id="minimizeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                                <Button fx:id="maximizeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                                <Button fx:id="closeBut" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" text="Button" />
+                            </children>
+                        </HBox>
+                        <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" />
+                        <HBox fx:id="statusBox" alignment="CENTER" maxHeight="50.0" minWidth="35.0" prefHeight="35.0" prefWidth="200.0" style="-fx-border-color: -color-border-default; -fx-border-width: 1 0 0 0;" styleClass="cord-pane">
+                            <children>
+                                <Label text=" Copyright © 2025 " />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+</StackPane>

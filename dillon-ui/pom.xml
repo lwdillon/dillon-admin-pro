@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.dillon.lw</groupId>
+        <artifactId>dillon</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>dillon-ui</artifactId>
+    <packaging>pom</packaging>
+
+    <name>dillon-ui</name>
+    <url>http://maven.apache.org</url>
+    <modules>
+        <module>dillon-ui-common</module>
+        <module>dillon-ui-fx</module>
+        <module>dillon-ui-swing</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <flatlaf.version>3.6.2</flatlaf.version>
+        <!-- jfreechart -->
+        <jfreechart.version>1.5.3</jfreechart.version>
+        <!-- pinyin4j -->
+        <pinyin4j.version>2.5.1</pinyin4j.version>
+        <okhttp3.version>4.11.0</okhttp3.version>
+    </properties>
+
+
+</project>

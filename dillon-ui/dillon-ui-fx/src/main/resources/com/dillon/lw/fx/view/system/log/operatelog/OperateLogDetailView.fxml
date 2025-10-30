@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="498.0" prefWidth="617.0" spacing="10.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.log.operatelog.OperateLogDetailView">
+    <children>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="日志主键" />
+                <TextField fx:id="idField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="链路追踪" />
+                <TextField fx:id="traceIdField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作人编号" />
+                <TextField fx:id="userIdField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作人名字" />
+                <TextField fx:id="userNameField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作人 IP" />
+            <TextField fx:id="userIpField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作人 UA" />
+            <TextField fx:id="userAgentField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作模块" />
+            <TextField fx:id="typeField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作名" />
+            <TextField fx:id="subTypeField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+        <HBox prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作内容" />
+                <TextArea fx:id="actionTextArea" editable="false" minHeight="120.0" prefHeight="320.0" prefWidth="200.0" wrapText="true" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作拓展参数" />
+                <TextArea fx:id="extraArea" editable="false" minHeight="80.0" prefHeight="320.0" prefWidth="200.0" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="请求 URL" />
+            <TextField fx:id="requestMethodField" alignment="CENTER" editable="false" prefHeight="26.0" prefWidth="93.0" />
+                <TextField fx:id="requestUrlField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+            <children>
+                <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="操作时间" />
+                <TextField fx:id="createTimeField" editable="false" HBox.hgrow="ALWAYS" />
+            </children>
+        </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="433.0" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="业务编号" />
+            <TextField fx:id="bizIdField" editable="false" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+
+    </children>
+    <padding>
+        <Insets bottom="10.0" right="10.0" top="10.0" />
+    </padding>
+</VBox>
