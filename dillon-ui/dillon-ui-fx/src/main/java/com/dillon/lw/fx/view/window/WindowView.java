@@ -5,8 +5,6 @@ import atlantafx.base.controls.Message;
 import atlantafx.base.controls.ModalPane;
 import atlantafx.base.theme.Styles;
 import atlantafx.base.util.Animations;
-import com.google.common.eventbus.Subscribe;
-import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LoginSuccessEvent;
 import com.dillon.lw.fx.eventbus.event.LogoutEvent;
@@ -16,6 +14,8 @@ import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.login.LoginView;
 import com.dillon.lw.fx.view.main.MainView;
+import com.google.common.eventbus.Subscribe;
+import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.ParallelTransition;
@@ -35,8 +35,6 @@ import org.kordamp.ikonli.material2.Material2OutlinedAL;
 import org.kordamp.ikonli.material2.Material2OutlinedMZ;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class WindowView extends BaseView<WindowViewModel> {
@@ -121,10 +119,7 @@ public class WindowView extends BaseView<WindowViewModel> {
             contentPane.getChildren().removeAll(oldNode);
 
         });
-
         parallelTransition.play();
-
-
     }
 
     private void showLogin() {
