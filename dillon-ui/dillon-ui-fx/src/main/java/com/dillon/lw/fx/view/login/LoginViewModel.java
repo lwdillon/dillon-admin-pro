@@ -37,11 +37,10 @@ public class LoginViewModel extends BaseViewModel {
                     // 更新 UI：loading 开始
                     progressbarVisible.set(true);
                     loginButDisable.setValue(true);
-                    System.out.println("init------" + Thread.currentThread().getName());
                 })
                 .observeOn(Schedulers.io()) // 2️⃣ 切到 IO 线程执行 login()
                 .flatMap(ignore -> {
-                            System.out.println("io------" + Thread.currentThread().getName());
+
                             return Request.getInstance().create(AuthApi.class).login(loginReqVO);
                         }
                 ).map(new PayLoad<>())
@@ -50,11 +49,9 @@ public class LoginViewModel extends BaseViewModel {
                     // loading 结束
                     progressbarVisible.setValue(false);
                     loginButDisable.set(false);
-                    System.out.println("finally------" + Thread.currentThread().getName());
                 })
                 .subscribe(
                         data -> {
-                            System.out.println("subscribe------" + Thread.currentThread().getName());
                             AppStore.setToken(data.getAccessToken());
                             AppStore.loadDictData();
                             EventBusCenter.get().post(new LoginSuccessEvent());

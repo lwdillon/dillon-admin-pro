@@ -84,15 +84,7 @@ public class WindowView extends BaseView<WindowViewModel> {
 
     private void showMainView() {
 
-        if (rootPane.getScene() instanceof BorderlessScene) {
-
-            if (((BorderlessScene) rootPane.getScene()).isMaximized() == false) {
-                ((BorderlessScene) rootPane.getScene()).maximizeStage();
-            }
-
-        }
-
-        List<Node> oldNodes = new ArrayList<>(contentPane.getChildren());
+        Node oldNode = contentPane.getChildren().getFirst();
 
         // 加载新视图但不添加到 contentPane 中
         MainView mainView = ViewLoader.load(MainView.class);
@@ -101,36 +93,57 @@ public class WindowView extends BaseView<WindowViewModel> {
         contentPane.getChildren().add(newView); // 先添加新视图
 
         // 创建旧节点的淡出动画
-        List<FadeTransition> fadeOutTransitions = oldNodes.stream().map(node -> {
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(500), node);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-            return fadeOut;
-        }).toList();
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(800), oldNode);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(event -> {
+            if (rootPane.getScene() instanceof BorderlessScene) {
+
+                if (((BorderlessScene) rootPane.getScene()).isMaximized() == false) {
+                    ((BorderlessScene) rootPane.getScene()).maximizeStage();
+                }
+
+            }
+        });
 
         // 创建新视图的淡入动画
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), newView);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(800), newView);
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
 
+
         // 合并为并行动画
         ParallelTransition parallelTransition = new ParallelTransition();
-        parallelTransition.getChildren().addAll(fadeOutTransitions);
-        parallelTransition.getChildren().add(fadeIn);
+        parallelTransition.getChildren().addAll(fadeOut, fadeIn);
 
         // 动画完成后移除旧节点
         parallelTransition.setOnFinished(e -> {
-            contentPane.getChildren().removeAll(oldNodes);
+            contentPane.getChildren().removeAll(oldNode);
+
         });
 
         parallelTransition.play();
 
+
     }
 
     private void showLogin() {
-
+        FadeTransition fadeOut = null;
+        ParallelTransition parallelTransition = new ParallelTransition();
+        if (contentPane.getChildren().size() > 0) {
+            Node oldNode = contentPane.getChildren().getFirst();
+            // 创建旧节点的淡出动画
+            fadeOut = new FadeTransition(Duration.millis(500), oldNode);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            parallelTransition.getChildren().add(fadeOut);
+            // 动画完成后移除旧节点
+            parallelTransition.setOnFinished(e -> {
+                contentPane.getChildren().removeAll(oldNode);
+            });
+        }
 //保存旧节点
-        List<Node> oldNodes = new ArrayList<>(contentPane.getChildren());
+
 
         // 加载新视图但不添加到 contentPane 中
         LoginView loginView = ViewLoader.load(LoginView.class);
@@ -138,13 +151,6 @@ public class WindowView extends BaseView<WindowViewModel> {
         newView.setOpacity(0); // 设置为全透明，准备淡入
         contentPane.getChildren().add(newView); // 先添加新视图
 
-        // 创建旧节点的淡出动画
-        List<FadeTransition> fadeOutTransitions = oldNodes.stream().map(node -> {
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(500), node);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
-            return fadeOut;
-        }).toList();
 
         // 创建新视图的淡入动画
         FadeTransition fadeIn = new FadeTransition(Duration.millis(500), newView);
@@ -152,14 +158,8 @@ public class WindowView extends BaseView<WindowViewModel> {
         fadeIn.setToValue(1.0);
 
         // 合并为并行动画
-        ParallelTransition parallelTransition = new ParallelTransition();
-        parallelTransition.getChildren().addAll(fadeOutTransitions);
         parallelTransition.getChildren().add(fadeIn);
 
-        // 动画完成后移除旧节点
-        parallelTransition.setOnFinished(e -> {
-            contentPane.getChildren().removeAll(oldNodes);
-        });
 
         parallelTransition.play();
 
