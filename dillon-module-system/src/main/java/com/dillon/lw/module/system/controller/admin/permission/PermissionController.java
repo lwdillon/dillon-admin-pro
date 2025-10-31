@@ -23,7 +23,7 @@ import static com.dillon.lw.framework.common.pojo.CommonResult.success;
 /**
  * 权限 Controller，提供赋予用户、角色的权限的 API 接口
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Tag(name = "管理后台 - 权限")
 @RestController

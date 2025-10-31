@@ -10,7 +10,7 @@ import static com.dillon.lw.framework.web.core.util.WebFrameworkUtils.HEADER_TEN
 /**
  * 多租户 Util
  *
- * @author 芋道源码
+ * @author liwen
  */
 public class TenantUtils {
 

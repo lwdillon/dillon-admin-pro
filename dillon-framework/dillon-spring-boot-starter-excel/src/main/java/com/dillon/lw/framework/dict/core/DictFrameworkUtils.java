@@ -18,7 +18,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * 字典工具类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Slf4j
 public class DictFrameworkUtils {

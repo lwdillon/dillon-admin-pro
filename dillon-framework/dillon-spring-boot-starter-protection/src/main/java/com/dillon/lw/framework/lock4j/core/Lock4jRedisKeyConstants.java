@@ -3,7 +3,7 @@ package com.dillon.lw.framework.lock4j.core;
 /**
  * Lock4j Redis Key 枚举类
  *
- * @author 芋道源码
+ * @author liwen
  */
 public interface Lock4jRedisKeyConstants {
 

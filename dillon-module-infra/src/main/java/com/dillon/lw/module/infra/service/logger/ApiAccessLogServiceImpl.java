@@ -22,7 +22,7 @@ import static com.dillon.lw.module.infra.dal.dataobject.logger.ApiAccessLogDO.RE
 /**
  * API 访问日志 Service 实现类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Slf4j
 @Service

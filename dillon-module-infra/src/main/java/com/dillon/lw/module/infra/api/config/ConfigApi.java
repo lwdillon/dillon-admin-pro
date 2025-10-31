@@ -3,7 +3,7 @@ package com.dillon.lw.module.infra.api.config;
 /**
  * 参数配置 API 接口
  *
- * @author 芋道源码
+ * @author liwen
  */
 public interface ConfigApi {
 

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 /**
  * {@link InfraCategoryServiceImpl} 的单元测试类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Import(InfraCategoryServiceImpl.class)
 public class InfraCategoryServiceImplTest extends BaseDbUnitTest {

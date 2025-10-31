@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link OAuth2OpenController} 的单元测试
  *
- * @author 芋道源码
+ * @author liwen
  */
 public class OAuth2OpenControllerTest extends BaseMockitoUnitTest {
 

@@ -3,7 +3,7 @@ package com.dillon.lw.module.system.service.member;
 /**
  * Member Service 接口
  *
- * @author 芋道源码
+ * @author liwen
  */
 public interface MemberService {
 

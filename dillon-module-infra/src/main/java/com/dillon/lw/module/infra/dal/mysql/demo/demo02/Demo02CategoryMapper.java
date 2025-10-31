@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 示例分类 Mapper
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Mapper
 public interface Demo02CategoryMapper extends BaseMapperX<Demo02CategoryDO> {

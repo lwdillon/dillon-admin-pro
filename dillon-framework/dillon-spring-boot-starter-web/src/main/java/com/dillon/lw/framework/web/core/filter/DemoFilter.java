@@ -15,7 +15,7 @@ import static com.dillon.lw.framework.common.exception.enums.GlobalErrorCodeCons
 /**
  * 演示 Filter，禁止用户发起写操作，避免影响测试数据
  *
- * @author 芋道源码
+ * @author liwen
  */
 public class DemoFilter extends OncePerRequestFilter {
 

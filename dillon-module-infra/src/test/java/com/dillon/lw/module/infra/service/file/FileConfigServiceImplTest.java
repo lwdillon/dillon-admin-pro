@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 /**
  * {@link FileConfigServiceImpl} 的单元测试类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Import(FileConfigServiceImpl.class)
 public class FileConfigServiceImplTest extends BaseDbUnitTest {
@@ -179,7 +179,7 @@ public class FileConfigServiceImplTest extends BaseDbUnitTest {
     @Test
     public void testGetFileConfigPage() {
         // mock 数据
-        FileConfigDO dbFileConfig = randomFileConfigDO().setName("芋道源码")
+        FileConfigDO dbFileConfig = randomFileConfigDO().setName("dillon")
                 .setStorage(FileStorageEnum.LOCAL.getStorage());
         dbFileConfig.setCreateTime(LocalDateTimeUtil.parse("2020-01-23", DatePattern.NORM_DATE_PATTERN));// 等会查询到
         fileConfigMapper.insert(dbFileConfig);

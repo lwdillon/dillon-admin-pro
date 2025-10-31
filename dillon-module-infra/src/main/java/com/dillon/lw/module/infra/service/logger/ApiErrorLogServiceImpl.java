@@ -25,7 +25,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.API_ERROR_LOG_
 /**
  * API 错误日志 Service 实现类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Service
 @Validated

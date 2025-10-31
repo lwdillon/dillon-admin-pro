@@ -38,7 +38,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * OAuth2.0 Token Service 实现类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Service
 public class OAuth2TokenServiceImpl implements OAuth2TokenService {

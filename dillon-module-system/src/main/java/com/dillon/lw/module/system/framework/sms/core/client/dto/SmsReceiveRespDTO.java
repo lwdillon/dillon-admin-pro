@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * 消息接收 Response DTO
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Data
 public class SmsReceiveRespDTO {

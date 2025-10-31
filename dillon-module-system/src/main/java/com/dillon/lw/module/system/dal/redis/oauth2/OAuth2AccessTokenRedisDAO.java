@@ -19,7 +19,7 @@ import static com.dillon.lw.module.system.dal.redis.RedisKeyConstants.OAUTH2_ACC
 /**
  * {@link OAuth2AccessTokenDO} 的 RedisDAO
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Repository
 public class OAuth2AccessTokenRedisDAO {

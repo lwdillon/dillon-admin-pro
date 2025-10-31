@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Xss 配置属性
  *
- * @author 芋道源码
+ * @author liwen
  */
 @ConfigurationProperties(prefix = "dillon.xss")
 @Validated

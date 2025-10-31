@@ -13,7 +13,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * Array 工具类
  *
- * @author 芋道源码
+ * @author liwen
  */
 public class ArrayUtils {
 

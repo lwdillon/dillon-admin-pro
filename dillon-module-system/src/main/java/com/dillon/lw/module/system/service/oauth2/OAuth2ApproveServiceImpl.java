@@ -20,7 +20,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * OAuth2 批准 Service 实现类
  *
- * @author 芋道源码
+ * @author liwen
  */
 @Service
 @Validated

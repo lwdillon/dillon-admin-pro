@@ -48,7 +48,7 @@ public class CodegenTableSaveReqVO {
     @NotNull(message = "类描述不能为空")
     private String classComment;
 
-    @Schema(description = "作者", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋道源码")
+    @Schema(description = "作者", requiredMode = Schema.RequiredMode.REQUIRED, example = "dillon")
     @NotNull(message = "作者不能为空")
     private String author;
 

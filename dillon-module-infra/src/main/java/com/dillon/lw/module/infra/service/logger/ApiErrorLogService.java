@@ -8,7 +8,7 @@ import com.dillon.lw.module.infra.dal.dataobject.logger.ApiErrorLogDO;
 /**
  * API 错误日志 Service 接口
  *
- * @author 芋道源码
+ * @author liwen
  */
 public interface ApiErrorLogService {
 
