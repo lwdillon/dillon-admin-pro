@@ -401,7 +401,7 @@ public class DashboardView extends BaseView<DashboardViewModel> {
                 }
             }
         };
-//        timer.start();
+        timer.start();
     }
 
     private void barChart() {

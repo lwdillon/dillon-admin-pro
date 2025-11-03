@@ -228,7 +228,6 @@ public class WindowView extends BaseView<WindowViewModel> {
 
 
     }
-
     @Override
     public void onRemove() {
         super.onRemove();
