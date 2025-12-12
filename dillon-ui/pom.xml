@@ -21,7 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flatlaf.version>3.6.2</flatlaf.version>
+        <flatlaf.version>3.7</flatlaf.version>
         <!-- jfreechart -->
         <jfreechart.version>1.5.3</jfreechart.version>
         <!-- pinyin4j -->

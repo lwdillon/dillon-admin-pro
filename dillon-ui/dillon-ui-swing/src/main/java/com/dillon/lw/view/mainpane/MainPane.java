@@ -97,6 +97,8 @@ public class MainPane extends JPanel {
         updateTreeTableRoot();
     }
 
+
+
     private void initCustomComponents() {
 
         scrollPane1.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
@@ -184,16 +186,21 @@ public class MainPane extends JPanel {
     }
 
     private void initListeners() {
-        navBarTreeTable.addTreeSelectionListener(e -> {
-            if (e.getNewLeadSelectionPath() == null) {
-                return;
-            }
-            Object object = e.getNewLeadSelectionPath().getLastPathComponent();
+        navBarTreeTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = navBarTreeTable.rowAtPoint(e.getPoint());
+                if (row < 0) return;
 
-            if (object instanceof AuthPermissionInfoRespVO.MenuVO) {
-                AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) object;
-                if (StrUtil.isNotBlank(((AuthPermissionInfoRespVO.MenuVO) object).getComponentSwing())) {
-                    addTab((AuthPermissionInfoRespVO.MenuVO) object);
+                // 获取节点（JXTreeTable 专用方法）
+                Object obj = navBarTreeTable.getPathForRow(row).getLastPathComponent();
+
+                if (obj instanceof AuthPermissionInfoRespVO.MenuVO) {
+                    AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) obj;
+
+                    if (StrUtil.isNotBlank(menuVO.getComponentSwing())) {
+                        addTab(menuVO);   // ✔ 点击同一节点也能重复触发
+                    }
                 }
             }
         });

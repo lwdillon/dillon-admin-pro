@@ -17,7 +17,7 @@
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>24.0.1</javafx.version>
+        <javafx.version>25.0.1</javafx.version>
         <lib.atlantafx.version>2.1.0</lib.atlantafx.version>
         <lib.ikonli.version>12.4.0</lib.ikonli.version>
         <lib.jspecify.version>1.0.0</lib.jspecify.version>
