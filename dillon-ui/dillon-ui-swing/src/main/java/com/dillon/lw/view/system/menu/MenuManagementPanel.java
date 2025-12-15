@@ -137,8 +137,6 @@ public class MenuManagementPanel extends JPanel implements Observer {
                 ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
                 treeTable.setHighlighters(rollover);
                 treeTable.setIntercellSpacing(new Dimension(0, 1));
-
-
             }
         });
         super.updateUI();
