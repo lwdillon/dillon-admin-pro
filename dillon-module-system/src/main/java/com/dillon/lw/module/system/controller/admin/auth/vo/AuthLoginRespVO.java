@@ -1,5 +1,6 @@
 package com.dillon.lw.module.system.controller.admin.auth.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public class AuthLoginRespVO {
     private String refreshToken;
 
     @Schema(description = "过期时间", requiredMode = Schema.RequiredMode.REQUIRED)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private LocalDateTime expiresTime;
 
 }

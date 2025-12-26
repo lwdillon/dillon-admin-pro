@@ -21,6 +21,7 @@ public class TokenInterceptor implements Interceptor {
 //                .header("tenant-id", "1")
                 .build();
 
+        System.err.println(AppStore.getAccessToken());
         return chain.proceed(newRequest);
     }
 

@@ -21,6 +21,16 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class DillonSwingUiApplication {
 
     public static void main(String[] args) {
+
+        // 1️⃣ EDT 异常统一兜底（Swing 核心）
+        Toolkit.getDefaultToolkit()
+                .getSystemEventQueue()
+                .push(new ExceptionEventQueue());
+
+        // 2️⃣ 后台线程异常兜底
+        Thread.setDefaultUncaughtExceptionHandler(
+                (t, e) -> SwingExceptionHandler.handle(e)
+        );
         loadApplicationProperties();
         RetrofitServiceManager.getInstance();
         SwingUtilities.invokeLater(() -> {
