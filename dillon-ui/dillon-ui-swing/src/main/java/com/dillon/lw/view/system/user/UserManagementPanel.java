@@ -9,23 +9,24 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DeptApi;
+import com.dillon.lw.api.system.PermissionApi;
+import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserUpdatePasswordReqVO;
-import com.dillon.lw.components.*;
-import com.dillon.lw.components.notice.WMessage;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.DeptApi;
-import com.dillon.lw.api.system.PermissionApi;
-import com.dillon.lw.api.system.UserApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.JXTable;
@@ -39,8 +40,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.util.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -322,51 +327,31 @@ public class UserManagementPanel extends JPanel {
      * 添加
      */
     private void add(UserSaveReqVO userSaveReqVO) {
-        RetrofitServiceManager.getInstance().create(UserApi.class).createUser(userSaveReqVO)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                            loadTableData();
-                        }, // 成功回调
-                        throwable -> {
-                            WMessage.showMessageWarning(MainFrame.getInstance(), throwable.getMessage());
-                            throwable.printStackTrace();
-                        } // 错误回调
-                );
-
-
+        CompletableFuture.runAsync(() -> {
+            Forest.client(UserApi.class).createUser(userSaveReqVO).getCheckedData();
+        }).thenAcceptAsync(unused -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加用户成功");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void edit(UserSaveReqVO userSaveReqVO) {
-
-        RetrofitServiceManager.getInstance().create(UserApi.class).updateUser(userSaveReqVO)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                            loadTableData();
-                        }, // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
-
+        CompletableFuture.runAsync(() -> {
+            Forest.client(UserApi.class).updateUser(userSaveReqVO).getCheckedData();
+        }).thenAcceptAsync(unused -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改用户成功");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void delMenu() {
@@ -385,25 +370,17 @@ public class UserManagementPanel extends JPanel {
             return;
         }
         Long finalUserId = userId;
-        RetrofitServiceManager.getInstance().create(UserApi.class).deleteUser(finalUserId)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                            loadTableData();
-                        }, // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
-
+        CompletableFuture.runAsync(() -> {
+            Forest.client(UserApi.class).deleteUser(finalUserId).getCheckedData();
+        }).thenAcceptAsync(unused -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除用户成功");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     /**
@@ -419,67 +396,43 @@ public class UserManagementPanel extends JPanel {
         userUpdatePasswordReqVO.setId(id);
         userUpdatePasswordReqVO.setPassword(pwd);
 
-        RetrofitServiceManager.getInstance().create(UserApi.class).updateUserPassword(userUpdatePasswordReqVO)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "重置成功！");
-                        }, // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
-
+        CompletableFuture.runAsync(() -> {
+            Forest.client(UserApi.class).updateUserPassword(userUpdatePasswordReqVO).getCheckedData();
+        }).thenAcceptAsync(unused -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "重置密码成功");
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void permissionAssignUserRole(PermissionAssignUserRoleReqVO permissionAssignUserRoleReqVO) {
-
-        RetrofitServiceManager.getInstance().create(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            WMessage.showMessageSuccess(MainFrame.getInstance(), "操作成功！");
-                            loadTableData();
-                        }, // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
-
+        CompletableFuture.runAsync(() -> {
+            Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
+        }).thenAcceptAsync(unused -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "分配角色成功");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     public void loadTreeData() {
-
-        RetrofitServiceManager.getInstance().create(DeptApi.class).getSimpleDeptList()
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        authPermissionInfo -> updateTreeUI(authPermissionInfo), // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
+        }).thenAcceptAsync(deptSimpleRespVOS -> {
+            updateTreeUI(deptSimpleRespVOS);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     @NotNull
@@ -545,21 +498,16 @@ public class UserManagementPanel extends JPanel {
 
         // 过滤掉 null 值
         queryMap.entrySet().removeIf(entry -> entry.getValue() == null);
-        RetrofitServiceManager.getInstance().create(UserApi.class).getUserPage(queryMap)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> updateTableDataUI(result), // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateTableDataUI(result);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 

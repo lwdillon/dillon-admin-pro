@@ -9,20 +9,21 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
+import com.dillon.lw.api.system.PermissionApi;
+import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.PermissionApi;
-import com.dillon.lw.api.system.RoleApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -31,7 +32,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -297,38 +300,31 @@ public class RoleManagementPanel extends JPanel {
      * 添加
      */
     private void add(RoleSaveReqVO roleSaveReqVO) {
-
-        RetrofitServiceManager.getInstance().create(RoleApi.class).createRole(roleSaveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(RoleApi.class).createRole(roleSaveReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void edit(RoleSaveReqVO roleSaveReqVO) {
-
-
-        RetrofitServiceManager.getInstance().create(RoleApi.class).updateRole(roleSaveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(roleRespVO -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(RoleApi.class).updateRole(roleSaveReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void del() {
@@ -346,51 +342,50 @@ public class RoleManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(RoleApi.class).deleteRole(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
 
-
+        Long finalId = id;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(RoleApi.class).deleteRole(finalId).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     /**
      * 重置pwd
      */
     private void assignRoleMenu(PermissionAssignRoleMenuReqVO permissionAssignRoleMenuReqVO) {
-        RetrofitServiceManager.getInstance().create(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void assignRoleDataScope(PermissionAssignRoleDataScopeReqVO permissionAssignRoleDataScopeReqVO) {
-
-        RetrofitServiceManager.getInstance().create(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
 
@@ -416,55 +411,53 @@ public class RoleManagementPanel extends JPanel {
         }
         queryMap.values().removeIf(Objects::isNull);
 
-        RetrofitServiceManager.getInstance().create(RoleApi.class).getRolePage(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-                    result.getList().forEach(roleRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(roleRespVO.getId());
-                        rowV.add(roleRespVO.getName());
-                        rowV.add(roleRespVO.getType());
-                        rowV.add(roleRespVO.getCode());
-                        rowV.add(roleRespVO.getSort());
-                        rowV.add(roleRespVO.getRemark());
-                        rowV.add(roleRespVO.getStatus());
-                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(roleRespVO);
-                        tableData.add(rowV);
-                    });
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setMinWidth(240);
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(roleRespVO -> {
+                Vector rowV = new Vector();
+                rowV.add(roleRespVO.getId());
+                rowV.add(roleRespVO.getName());
+                rowV.add(roleRespVO.getType());
+                rowV.add(roleRespVO.getCode());
+                rowV.add(roleRespVO.getSort());
+                rowV.add(roleRespVO.getRemark());
+                rowV.add(roleRespVO.getStatus());
+                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(roleRespVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setMinWidth(240);
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                                return label.getForeground();
-                            }));
-                            label.setIcon(icon);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                    paginationPane.setTotal(result.getTotal());
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
-
+            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                        return label.getForeground();
+                    }));
+                    label.setIcon(icon);
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+            paginationPane.setTotal(result.getTotal());
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

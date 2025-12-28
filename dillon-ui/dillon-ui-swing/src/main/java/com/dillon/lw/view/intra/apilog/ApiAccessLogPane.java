@@ -9,27 +9,28 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.ApiAccessLogApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
-import com.dillon.lw.api.infra.ApiAccessLogApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
-
+import com.dtflys.forest.Forest;
+import java.awt.*;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.*;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_OPERATE_TYPE;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
@@ -317,10 +318,9 @@ public class ApiAccessLogPane extends JPanel {
         }
 
         if (userTypeComboBox.getSelectedItem() != null) {
-            DictDataSimpleRespVO selectedItem = (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
-            queryMap.put("userType", selectedItem.getValue());
+            DictDataSimpleRespVO dictDataSimpleRespVO = (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
+            queryMap.put("userType", dictDataSimpleRespVO.getValue());
         }
-
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
             String[] dateTimes = new String[2];
@@ -328,88 +328,63 @@ public class ApiAccessLogPane extends JPanel {
             dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("beginTime", dateTimes);
         }
+
+
         queryMap.values().removeIf(Objects::isNull);
 
-
-        RetrofitServiceManager.getInstance().create(ApiAccessLogApi.class).getApiAccessLogPage(queryMap)
-                .map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-
-                    result.getList().forEach(respVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(respVO.getId());
-                        rowV.add(respVO.getUserId());
-                        rowV.add(respVO.getUserType());
-                        rowV.add(respVO.getApplicationName());
-                        rowV.add(respVO.getRequestMethod());
-                        rowV.add(respVO.getRequestUrl());
-                        rowV.add(DateUtil.format(respVO.getBeginTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(respVO.getDuration() + " ms");
-                        rowV.add(respVO.getResultCode());
-                        rowV.add(respVO.getOperateModule());
-                        rowV.add(respVO.getOperateName());
-                        rowV.add(respVO.getOperateType());
-                        rowV.add(respVO);
-                        tableData.add(rowV);
-                    });
-                    paginationPane.setTotal(result.getTotal());
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
-
-                    table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
-
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                    table.getColumn("操作类型").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_OPERATE_TYPE, value);
-
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                    table.getColumn("操作结果").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = null;
-                            if (Convert.toInt(value, 1) == 0) {
-                                label = BadgeLabelUtil.getBadgeLabel("成功", "primary");
-                            } else {
-                                label = BadgeLabelUtil.getBadgeLabel("失败", "danger");
-                            }
-
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            paginationPane.setTotal(result.getTotal());
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(respVO -> {
+                Vector rowV = new Vector();
+                rowV.add(respVO.getId());
+                rowV.add(respVO.getUserId());
+                rowV.add(respVO.getUserType());
+                rowV.add(respVO.getApplicationName());
+                rowV.add(respVO.getRequestMethod());
+                rowV.add(respVO.getRequestUrl());
+                rowV.add(DateUtil.format(respVO.getBeginTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(respVO.getDuration());
+                rowV.add(respVO.getResultCode());
+                rowV.add(respVO.getOperateModule());
+                rowV.add(respVO.getOperateName());
+                rowV.add(respVO.getOperateType());
+                rowV.add(respVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                    panel.add(BadgeLabelUtil.getBadgeLabel(USER_TYPE, value));
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+            table.getColumnModel().getColumn(11).setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                    panel.add(BadgeLabelUtil.getBadgeLabel(INFRA_OPERATE_TYPE, value));
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

@@ -13,11 +13,10 @@ import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.api.system.DeptApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -216,32 +216,34 @@ public class DeptManagementPanel extends JPanel implements Observer {
             deptListReqVO.setStatus(selectIndex == 1 ? 0 : 1);
 
         }
-        Map<String, Object> qeryMap = BeanUtil.beanToMap(deptListReqVO,false,true);
-        RetrofitServiceManager.getInstance().create(DeptApi.class).getDeptList(qeryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(deptRespVOList -> {
-                    long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-                    TreeNodeConfig config = new TreeNodeConfig();
-                    config.setWeightKey("sort");
-                    config.setParentIdKey("parentId");
-                    config.setNameKey("name");
-                    Tree<Long> treeList = TreeUtil.buildSingle(deptRespVOList, min, config, ((object, treeNode) -> {
-                        treeNode.setId(object.getId());
-                        treeNode.setParentId(object.getParentId());
-                        treeNode.setName(object.getName());
-                        treeNode.putExtra("sort", object.getSort());
-                        treeNode.putExtra("status", object.getStatus());
-                        if (object.getLeaderUserId() != null) {
-                            treeNode.putExtra("leaderUserId", object.getLeaderUserId());
-                        }
+        Map<String, Object> qeryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).getDeptList(qeryMap).getCheckedData();
+        }).thenAcceptAsync(deptRespVOList -> {
+            long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+            TreeNodeConfig config = new TreeNodeConfig();
+            config.setWeightKey("sort");
+            config.setParentIdKey("parentId");
+            config.setNameKey("name");
+            Tree<Long> treeList = TreeUtil.buildSingle(deptRespVOList, min, config, ((object, treeNode) -> {
+                treeNode.setId(object.getId());
+                treeNode.setParentId(object.getParentId());
+                treeNode.setName(object.getName());
+                treeNode.putExtra("sort", object.getSort());
+                treeNode.putExtra("status", object.getStatus());
+                if (object.getLeaderUserId() != null) {
+                    treeNode.putExtra("leaderUserId", object.getLeaderUserId());
+                }
 
-                        treeNode.putExtra("createTime", object.getCreateTime());
-                    }));
-                    updateTreeTableRoot(treeList);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+                treeNode.putExtra("createTime", object.getCreateTime());
+            }));
+            updateTreeTableRoot(treeList);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -303,15 +305,17 @@ public class DeptManagementPanel extends JPanel implements Observer {
 
         DeptSaveReqVO saveVO = deptEditPane.getValue();
 
-        RetrofitServiceManager.getInstance().create(DeptApi.class).createDept(saveVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aLong -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).createDept(saveVO).getCheckedData();
+        }).thenAcceptAsync(aLong -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -320,16 +324,17 @@ public class DeptManagementPanel extends JPanel implements Observer {
         DeptSaveReqVO saveReqVO = deptEditPane.getValue();
 
 
-
-        RetrofitServiceManager.getInstance().create(DeptApi.class).updateDept(saveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aBoolean -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).updateDept(saveReqVO).getCheckedData();
+        }).thenAcceptAsync(aBoolean -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -353,15 +358,18 @@ public class DeptManagementPanel extends JPanel implements Observer {
             return;
         }
 
-        RetrofitServiceManager.getInstance().create(DeptApi.class).deleteDept(deptId).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aBoolean -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        Long finalDeptId = deptId;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).deleteDept(finalDeptId).getCheckedData();
+        }).thenAcceptAsync(aBoolean -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 

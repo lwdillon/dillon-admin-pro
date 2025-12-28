@@ -1,9 +1,10 @@
 package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.ConfigApi;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.CommonResult;
+import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
@@ -14,13 +15,13 @@ import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
+import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.LoggingFacade;
 import com.jidesoft.swing.JideTabbedPane;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -35,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 主应用界面面板 (MainPane) - 兼容 Java 8
@@ -80,21 +82,22 @@ public class MainPane extends JPanel {
     private void initComponents() {
         // ... (JFormDesigner Generated Code remains unchanged for structure)
         navBarPane = new JPanel();
+        navBarPane.setOpaque(false);
         navBarTreeTablePane = new JScrollPane();
         navBarTreeTable = new JXTreeTable();
         tabbedPane = new JideTabbedPane(){
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2=(Graphics2D)g.create();
-                g2.setColor(UIManager.getColor("App.tabbedPane.contentAreaColor"));
-                g2.fillRect(0,60,getWidth(),getHeight());
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(UIManager.getColor("App.background.card"));
+                g2.fillRoundRect(0,0,getWidth(),getHeight(),20,20);
                 g2.dispose();
-                super.paintComponent(g);
-    }};
+            }};
         statusPane = new JToolBar();
 
         //======== this ========
-        setLayout(new BorderLayout());
-
+        setLayout(new BorderLayout(7,7));
+        setBorder(BorderFactory.createEmptyBorder(7,7,0,7));
         //======== navBarPane ========
         {
             navBarPane.setPreferredSize(new Dimension(320, 376));
@@ -119,13 +122,12 @@ public class MainPane extends JPanel {
 
         // 记录导航栏展开时的宽度
         navBarExpandedWidth = navBarPane.getPreferredSize().width;
-        navBarPane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("App.borderColor")));
 
         // 1. 设置 navBarPane 使用 CardLayout 来切换视图
         navBarPane.setLayout(new CardLayout());
 
         // 2. 将展开菜单 (JTreeTable) 添加到 CardLayout
-        navBarTreeTablePane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+//        navBarTreeTablePane.setBorder(new FlatScrollPaneBorder());
         navBarPane.add(navBarTreeTablePane, "ExpandedMenu");
 
         // 3. 初始化并添加折叠图标面板 (CollapsedMenu)
@@ -139,6 +141,8 @@ public class MainPane extends JPanel {
         tabbedPane.setShowCloseButton(true);
         tabbedPane.setShowCloseButtonOnTab(true);
         tabbedPane.setShowCloseButtonOnMouseOver(true);
+        tabbedPane.putClientProperty("TabbedPane.tabHeight", 60);
+
 
         // 添加默认主页标签
         tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 25, 25), new JLabel());
@@ -278,10 +282,18 @@ public class MainPane extends JPanel {
     private void initCollapsedIconPanel() {
         // 确保面板被创建和正确设置布局
         if (collapsedIconPanel == null) {
-            collapsedIconPanel = new JPanel();
+            collapsedIconPanel = new JPanel(){
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2=(Graphics2D)g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(UIManager.getColor("App.background.card"));
+                    g2.fillRoundRect(0,0,getWidth(),getHeight(),20,20);
+                    g2.dispose();
+                }
+            };
             collapsedIconPanel.setLayout(new BoxLayout(collapsedIconPanel, BoxLayout.Y_AXIS));
             collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-            collapsedIconPanel.setBackground(UIManager.getColor("Panel.background"));
         } else {
             // 清空旧组件，准备重新加载菜单图标
             collapsedIconPanel.removeAll();
@@ -497,6 +509,7 @@ public class MainPane extends JPanel {
                         SwingUtilities.updateComponentTreeUI(personalPopupMenu);
                     }
                 }
+
                 @Override
                 protected void paintComponent(Graphics g) {
                     // 1. 调用父类方法，清空背景
@@ -505,6 +518,8 @@ public class MainPane extends JPanel {
                     // 2. 将 Graphics 对象转换为 Graphics2D
                     Graphics2D g2d = (Graphics2D) g.create();
 
+                    g2d.setColor(UIManager.getColor("App.background"));
+                    g2d.fillRect(0,0,getWidth(),getHeight());
                     int w = 300;
                     int h = getHeight();
 
@@ -541,6 +556,7 @@ public class MainPane extends JPanel {
                             MultipleGradientPaint.CycleMethod.NO_CYCLE
                     );
 
+
                     // 4. 设置画笔为径向渐变
                     g2d.setPaint(rgp);
 
@@ -558,7 +574,7 @@ public class MainPane extends JPanel {
             titleMenuBar.add(getThemeBut());
             titleMenuBar.add(getNoticeBut());
             titleMenuBar.add(getUserBut());
-            titleMenuBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("App.borderColor")));
+//            titleMenuBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("App.borderColor")));
         }
         return titleMenuBar;
     }
@@ -670,10 +686,6 @@ public class MainPane extends JPanel {
                         break;
                 }
 
-                // 更新边界颜色以匹配新主题
-                navBarPane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("App.borderColor")));
-                statusPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("App.borderColor")));
-                titleMenuBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("App.borderColor")));
                 // 添加鼠标悬停高亮
                 navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
                         UIManager.getColor("App.hoverBackground"),
@@ -729,31 +741,33 @@ public class MainPane extends JPanel {
         // 假设 getId() 返回 Long 或 Integer，使用 toString() 兼容性更好
         String userId = AppStore.getAuthPermissionInfoRespVO().getUser().getId().toString();
         String key = "swing.theme.userid." + userId;
-        ConfigApi configApi = RetrofitServiceManager.getInstance().create(ConfigApi.class);
+        ConfigApi configApi = Forest.client(ConfigApi.class);
 
-        // 使用 RxJava 组合请求：先查询，如果不存在则创建，否则更新。
-        configApi.getConfig(key).map(new PayLoad<>())
-                .flatMap(configRespVO -> {
-                    ConfigSaveReqVO saveReqVO = new ConfigSaveReqVO();
-                    saveReqVO.setKey(key);
-                    saveReqVO.setValue(finalUserTheme);
-                    saveReqVO.setVisible(true);
-                    saveReqVO.setCategory("ui");
-                    saveReqVO.setName("用户主题");
+        CompletableFuture.supplyAsync(() -> {
+            CommonResult<ConfigRespVO> configResult = configApi.getConfig(key);
+            ConfigRespVO configRespVO = configResult.isSuccess() ? configResult.getData() : null;
 
-                    if (configRespVO == null) {
-                        return configApi.createConfig(saveReqVO); // 创建配置
-                    } else {
-                        saveReqVO.setId(configRespVO.getId());
-                        return configApi.updateConfig(saveReqVO); // 更新配置
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 回到 Swing 事件线程处理结果
-                .subscribe(
-                        result -> { /* 成功 */ },
-                        Throwable::printStackTrace // 错误处理
-                );
+            ConfigSaveReqVO saveReqVO = new ConfigSaveReqVO();
+            saveReqVO.setKey(key);
+            saveReqVO.setValue(finalUserTheme);
+            saveReqVO.setVisible(true);
+            saveReqVO.setCategory("ui");
+            saveReqVO.setName("用户主题");
+
+            if (configRespVO == null) {
+                return configApi.createConfig(saveReqVO).getCheckedData(); // 创建配置
+            } else {
+                saveReqVO.setId(configRespVO.getId());
+                return configApi.updateConfig(saveReqVO).getCheckedData(); // 更新配置
+            }
+        }).thenAcceptAsync(result -> {
+            // 成功
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     /**
@@ -1018,5 +1032,16 @@ public class MainPane extends JPanel {
 
     public JideTabbedPane getTabbedPane() {
         return tabbedPane;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+//        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setPaint(UIManager.getColor("App.background"));
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.dispose();
+
+
     }
 }

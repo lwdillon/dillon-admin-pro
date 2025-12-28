@@ -9,25 +9,29 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
-import com.dillon.lw.components.*;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.utils.BadgeLabelUtil;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.LoginLogApi;
+import com.dillon.lw.components.*;
+import com.dillon.lw.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
+import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
+
+import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
+import com.dillon.lw.framework.common.pojo.PageResult;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
@@ -283,14 +287,17 @@ public class LoginlogManagementPanel extends JPanel {
             return;
         }
 
-        RetrofitServiceManager.getInstance().create(LoginLogApi.class).deleteLoginLog(userId).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        Long finalId = userId;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(LoginLogApi.class).deleteLoginLog(finalId).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -298,17 +305,20 @@ public class LoginlogManagementPanel extends JPanel {
     private void clearLoginLog() {
 
         int opt = WOptionPane.showOptionDialog(this, "确定要清空所有登录日志吗？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(LoginLogApi.class).clearLoginLog().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(LoginLogApi.class).clearLoginLog().getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -335,59 +345,61 @@ public class LoginlogManagementPanel extends JPanel {
             queryMap.put("createTime", dateTimes);
         }
         queryMap.values().removeIf(Objects::isNull);
-        RetrofitServiceManager.getInstance().create(LoginLogApi.class).getLoginLogPage(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-                    result.getList().forEach(roleRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(roleRespVO.getId());
-                        rowV.add(roleRespVO.getLogType());
-                        rowV.add(roleRespVO.getUsername());
-                        rowV.add(roleRespVO.getUserIp());
-                        rowV.add(roleRespVO.getUserAgent());
-                        rowV.add(roleRespVO.getResult());
-                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(roleRespVO);
-                        tableData.add(rowV);
-                    });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(roleRespVO -> {
+                Vector rowV = new Vector();
+                rowV.add(roleRespVO.getId());
+                rowV.add(roleRespVO.getLogType());
+                rowV.add(roleRespVO.getUsername());
+                rowV.add(roleRespVO.getUserIp());
+                rowV.add(roleRespVO.getUserAgent());
+                rowV.add(roleRespVO.getResult());
+                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(roleRespVO);
+                tableData.add(rowV);
+            });
 
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("登录结果").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_RESULT, value);
+            table.getColumn("登录结果").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_RESULT, value);
 
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                    table.getColumn("操作类型").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_TYPE, value);
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+            table.getColumn("操作类型").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_TYPE, value);
 
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
 
-                    paginationPane.setTotal(result.getTotal());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+            paginationPane.setTotal(result.getTotal());
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

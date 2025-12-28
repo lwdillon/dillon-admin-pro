@@ -2,6 +2,7 @@ package com.dillon.lw.fx.view.system.user;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserUpdatePasswordReqVO;
@@ -14,12 +15,11 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.fx.view.layout.FilterableTreeItem;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -28,7 +28,9 @@ import javafx.collections.ObservableList;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class UserViewModel extends BaseViewModel {
 
@@ -53,41 +55,39 @@ public class UserViewModel extends BaseViewModel {
 
     public void loadTreeData() {
 
-        Request.getInstance().create(DeptApi.class)
-                .getSimpleDeptList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    DeptSimpleRespVO respVO = new DeptSimpleRespVO();
-                    respVO.setId(-1L);
-                    respVO.setName("主类目");
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+        }).thenAcceptAsync(data -> {
+            DeptSimpleRespVO respVO = new DeptSimpleRespVO();
+            respVO.setId(-1L);
+            respVO.setName("主类目");
 
-                    FilterableTreeItem<DeptSimpleRespVO> root = new FilterableTreeItem<DeptSimpleRespVO>(respVO);
-                    root.setExpanded(true);
-                    // Build the tree
-                    Map<Long, FilterableTreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
-                    nodeMap.put(0l, root); // Root node
+            FilterableTreeItem<DeptSimpleRespVO> root = new FilterableTreeItem<DeptSimpleRespVO>(respVO);
+            root.setExpanded(true);
+            // Build the tree
+            Map<Long, FilterableTreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
+            nodeMap.put(0l, root); // Root node
 
 
-                    for (DeptSimpleRespVO deptSimpleRespVO : data) {
-                        FilterableTreeItem<DeptSimpleRespVO> node = new FilterableTreeItem<DeptSimpleRespVO>(deptSimpleRespVO);
-                        nodeMap.put(deptSimpleRespVO.getId(), node);
-                    }
+            for (DeptSimpleRespVO deptSimpleRespVO : data) {
+                FilterableTreeItem<DeptSimpleRespVO> node = new FilterableTreeItem<DeptSimpleRespVO>(deptSimpleRespVO);
+                nodeMap.put(deptSimpleRespVO.getId(), node);
+            }
 
-                    data.forEach(menuSimpleRespVO -> {
+            data.forEach(menuSimpleRespVO -> {
 
-                        FilterableTreeItem<DeptSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                        FilterableTreeItem<DeptSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.getInternalChildren().add(childNode);
-                        }
-                    });
-                    deptTreeRoot.set(root);
+                FilterableTreeItem<DeptSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                FilterableTreeItem<DeptSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.getInternalChildren().add(childNode);
+                }
+            });
+            deptTreeRoot.set(root);
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 
@@ -113,54 +113,48 @@ public class UserViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        Request.getInstance().create(UserApi.class)
-                .getUserPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<UserRespVO>>().apply(Forest.client(UserApi.class).getUserPage(queryMap));
+        }).thenAcceptAsync(data -> {
 
-                    ObservableList<UserRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(data.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
+            ObservableList<UserRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(data.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(data.getTotal().intValue());
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 
     public void updateUserPassword(UserUpdatePasswordReqVO passwordReqVO, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(UserApi.class)
-                .updateUserPassword(passwordReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
-                    EventBusCenter.get().post(new MessageEvent("密码更新成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                }, throwable -> {
-                    EventBusCenter.get().post(new MessageEvent("密码更新异常: " + throwable.getMessage(), MessageType.DANGER));
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(UserApi.class).updateUserPassword(passwordReqVO));
+        }).thenAcceptAsync(commonResult -> {
+            EventBusCenter.get().post(new MessageEvent("密码更新成功", MessageType.SUCCESS));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            EventBusCenter.get().post(new MessageEvent("密码更新异常: " + throwable.getMessage(), MessageType.DANGER));
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 
     public void delUser(Long userId, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(UserApi.class)
-                .deleteUser(userId)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
-                    confirmDialog.close();
-                }, throwable -> {
-                    EventBusCenter.get().post(new MessageEvent("删除失败: " + throwable.getMessage(), MessageType.DANGER));
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(UserApi.class).deleteUser(userId));
+        }).thenAcceptAsync(commonResult -> {
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            EventBusCenter.get().post(new MessageEvent("删除失败: " + throwable.getMessage(), MessageType.DANGER));
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 

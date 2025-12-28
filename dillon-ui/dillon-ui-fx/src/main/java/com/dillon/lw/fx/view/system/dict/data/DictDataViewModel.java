@@ -6,16 +6,16 @@ import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSimpleRespVO;
 import com.google.common.eventbus.Subscribe;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -25,7 +25,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DictDataViewModel extends BaseViewModel {
 
@@ -48,23 +50,23 @@ public class DictDataViewModel extends BaseViewModel {
 
     public void loadDictTypeData(String dictType) {
         dictTypeSimpleRespVOItems.clear();
-        Request.getInstance().create(DictTypeApi.class).getSimpleDictTypeList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    dictTypeSimpleRespVOItems.setAll(data);
-                    if (ObjectUtil.isNotEmpty(dictType)) {
-                        for (DictTypeSimpleRespVO item : data) {
-                            if (dictType.equals(item.getType())) {
-                                selDictTypeSimpleRespVOProperty().set(item);
-                                break;
-                            }
-                        }
+
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<DictTypeSimpleRespVO>>().apply(Forest.client(DictTypeApi.class).getSimpleDictTypeList());
+        }).thenAcceptAsync(data -> {
+            dictTypeSimpleRespVOItems.setAll(data);
+            if (ObjectUtil.isNotEmpty(dictType)) {
+                for (DictTypeSimpleRespVO item : data) {
+                    if (dictType.equals(item.getType())) {
+                        selDictTypeSimpleRespVOProperty().set(item);
+                        break;
                     }
-                }, e -> {
-                    e.printStackTrace();
-                });
+                }
+            }
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
 
     }
@@ -89,18 +91,17 @@ public class DictDataViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        Request.getInstance().create(DictDataApi.class).getDictTypePage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    ObservableList<DictDataRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(data.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<DictDataRespVO>>().apply(Forest.client(DictDataApi.class).getDictTypePage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<DictDataRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(data.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 
@@ -108,17 +109,16 @@ public class DictDataViewModel extends BaseViewModel {
         if (id == null) {
             return;
         }
-        Request.getInstance().create(DictDataApi.class).deleteDictData(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(result -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                }, throwable -> {
-                    System.err.println("删除字典数据异常：" + throwable.getMessage());
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(DictDataApi.class).deleteDictData(id));
+        }).thenAcceptAsync(result -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            System.err.println("删除字典数据异常：" + throwable.getMessage());
+            return null;
+        });
     }
 
     @Subscribe

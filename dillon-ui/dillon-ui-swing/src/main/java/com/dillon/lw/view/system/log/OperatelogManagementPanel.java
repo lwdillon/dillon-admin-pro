@@ -9,22 +9,26 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
-import com.dillon.lw.components.*;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.OperateLogApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.components.*;
+import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
+
+import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
+import com.dillon.lw.framework.common.pojo.PageResult;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -290,13 +294,16 @@ public class OperatelogManagementPanel extends JPanel {
             return;
         }
 
-        RetrofitServiceManager.getInstance().create(OperateLogApi.class).clearOperateLog().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    updateData();
-                }, throwable -> throwable.printStackTrace());
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(OperateLogApi.class).clearOperateLog().getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -316,12 +323,17 @@ public class OperatelogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(OperateLogApi.class).deleteOperateLog(userId).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    updateData();
-                }, throwable -> throwable.printStackTrace());
+        Long finalUserId = userId;
+        CompletableFuture.supplyAsync(() -> {
+             return Forest.client(OperateLogApi.class).deleteOperateLog(finalUserId).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -357,31 +369,35 @@ public class OperatelogManagementPanel extends JPanel {
         }
 
         queryMap.values().removeIf(Objects::isNull);
-        RetrofitServiceManager.getInstance().create(OperateLogApi.class).pageOperateLog(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-                    result.getList().forEach(roleRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(roleRespVO.getId());
-                        rowV.add(roleRespVO.getUserName());
-                        rowV.add(roleRespVO.getType());
-                        rowV.add(roleRespVO.getSubType());
-                        rowV.add(roleRespVO.getAction());
-                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(roleRespVO.getBizId());
-                        rowV.add(roleRespVO.getUserIp());
-                        rowV.add(roleRespVO);
-                        tableData.add(rowV);
-                    });
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(roleRespVO -> {
+                Vector rowV = new Vector();
+                rowV.add(roleRespVO.getId());
+                rowV.add(roleRespVO.getUserName());
+                rowV.add(roleRespVO.getType());
+                rowV.add(roleRespVO.getSubType());
+                rowV.add(roleRespVO.getAction());
+                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(roleRespVO.getBizId());
+                rowV.add(roleRespVO.getUserIp());
+                rowV.add(roleRespVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    paginationPane.setTotal(result.getTotal());
+            paginationPane.setTotal(result.getTotal());
 
-                }, throwable -> throwable.printStackTrace());
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

@@ -1,7 +1,9 @@
 package com.dillon.lw.fx.view.system.post;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
+import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
@@ -9,11 +11,9 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PostViewModel extends BaseViewModel {
 
@@ -60,34 +61,34 @@ public class PostViewModel extends BaseViewModel {
             queryMap.put("createTime", new String[]{sd, ed});
         }
         queryMap.values().removeAll(Collections.singleton(null));
-        Request.getInstance().create(PostApi.class).getPostPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater)).subscribe(data -> {
 
-                    ObservableList<PostRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(data.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
-
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<PostRespVO>>().apply(Forest.client(PostApi.class).getPostPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<PostRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(data.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void deletePost(Long postId, ConfirmDialog confirmDialog) {
 
-        Request.getInstance().create(PostApi.class).deletePost(postId)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-                    confirmDialog.close();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(PostApi.class).deletePost(postId));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
 

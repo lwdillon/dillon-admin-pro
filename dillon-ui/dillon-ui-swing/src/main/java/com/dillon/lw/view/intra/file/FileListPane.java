@@ -9,23 +9,16 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileRespVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.FileApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileRespVO;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.infra.FileApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
+import com.dtflys.forest.Forest;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +27,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
@@ -210,16 +210,17 @@ public class FileListPane extends JPanel {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
 
-            RetrofitServiceManager.getInstance().create(FileApi.class).uploadFile("", selectedFile).map(new PayLoad<>())
-                    .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                    .subscribe(result1 -> {
-                        WMessage.showMessageSuccess(MainFrame.getInstance(), "上传成功！");
-                        loadTableData();
-                    }, throwable -> {
-                        WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                        throwable.printStackTrace();
-                    });
-
+            CompletableFuture.supplyAsync(() -> {
+                return Forest.client(FileApi.class).uploadFile("", selectedFile).getCheckedData();
+            }).thenAcceptAsync(result1 -> {
+                WMessage.showMessageSuccess(MainFrame.getInstance(), "上传成功！");
+                loadTableData();
+            }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+                SwingUtilities.invokeLater(() -> {
+                    SwingExceptionHandler.handle(throwable);
+                });
+                return null;
+            });
         }
     }
 
@@ -248,17 +249,19 @@ public class FileListPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(FileApi.class).deleteFile(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
 
-
+        Long finalId = id;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(FileApi.class).deleteFile(finalId).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
 
@@ -318,63 +321,65 @@ public class FileListPane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        RetrofitServiceManager.getInstance().create(FileApi.class).getFilePage(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-                    paginationPane.setTotal(result.getTotal());
-                    result.getList().forEach(respVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(respVO.getName());
-                        rowV.add(respVO.getPath());
-                        rowV.add(respVO.getUrl());
-                        rowV.add(respVO.getType());
-                        rowV.add(respVO);
-                        rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(respVO);
-                        tableData.add(rowV);
-                    });
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setMinWidth(180);
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(FileApi.class).getFilePage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            paginationPane.setTotal(result.getTotal());
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(respVO -> {
+                Vector rowV = new Vector();
+                rowV.add(respVO.getName());
+                rowV.add(respVO.getPath());
+                rowV.add(respVO.getUrl());
+                rowV.add(respVO.getType());
+                rowV.add(respVO);
+                rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(respVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setMinWidth(180);
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("文件内容").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new BorderLayout());
-                            table.setRowHeight(row, 35);
-                            if (value instanceof FileRespVO) {
+            table.getColumn("文件内容").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new BorderLayout());
+                    table.setRowHeight(row, 35);
+                    if (value instanceof FileRespVO) {
 
-                                if (StrUtil.contains(((FileRespVO) value).getType(), "image")) {
-                                    URL url = null;
-                                    try {
-                                        url = new URL(((FileRespVO) value).getUrl());
-                                        ImageIcon imageIcon = new ImageIcon(url);
-                                        // Create a label and set the icon
-                                        JLabel imageLabel = new JLabel(imageIcon);
-                                        panel.add(imageLabel);
-                                        table.setRowHeight(row, 180);
-                                    } catch (MalformedURLException e) {
-                                        throw new RuntimeException(e);
-                                    }
-
-                                } else {
-
-                                }
+                        if (StrUtil.contains(((FileRespVO) value).getType(), "image")) {
+                            URL url = null;
+                            try {
+                                url = new URL(((FileRespVO) value).getUrl());
+                                ImageIcon imageIcon = new ImageIcon(url);
+                                // Create a label and set the icon
+                                JLabel imageLabel = new JLabel(imageIcon);
+                                panel.add(imageLabel);
+                                table.setRowHeight(row, 180);
+                            } catch (MalformedURLException e) {
+                                throw new RuntimeException(e);
                             }
-                            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
 
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+                        } else {
+
+                        }
+                    }
+                    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
 

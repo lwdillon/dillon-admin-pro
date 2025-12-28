@@ -9,11 +9,10 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -21,7 +20,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class UserAssignRoleFormViewModel extends BaseViewModel {
 
@@ -39,34 +40,29 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
         nickname.set(userRespVO.getNickname());
 
 
-        Request.getInstance().create(PermissionApi.class).listAdminRoles(userRespVO.getId())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(roleIds -> {
-                    selRoleIdItems = FXCollections.observableSet(roleIds);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
-        Request.getInstance().create(RoleApi.class).getSimpleRoleList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(roleRespVOS -> {
-                    ObservableList<RoleRespVO> list = FXCollections.observableArrayList();
-                    list.addAll(roleRespVOS);
-                    for (RoleRespVO respVO : roleRespVOS) {
-                        if (selRoleIdItems != null) {
-                            if (selRoleIdItems.contains(respVO.getId())) {
-                                selRoleItems.add(respVO);
-                            }
-                        }
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Set<Long>>().apply(Forest.client(PermissionApi.class).listAdminRoles(userRespVO.getId()));
+        }).thenAcceptAsync(roleIds -> {
+            selRoleIdItems = FXCollections.observableSet(roleIds);
+        }, Platform::runLater).thenComposeAsync(v -> {
+            return CompletableFuture.supplyAsync(() -> {
+                return new PayLoad<List<RoleRespVO>>().apply(Forest.client(RoleApi.class).getSimpleRoleList());
+            });
+        }).thenAcceptAsync(roleRespVOS -> {
+            ObservableList<RoleRespVO> list = FXCollections.observableArrayList();
+            list.addAll(roleRespVOS);
+            for (RoleRespVO respVO : roleRespVOS) {
+                if (selRoleIdItems != null) {
+                    if (selRoleIdItems.contains(respVO.getId())) {
+                        selRoleItems.add(respVO);
                     }
-                    roleItems.set(list);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+                }
+            }
+            roleItems.set(list);
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     public String getUsername() {
@@ -110,18 +106,17 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
             permissionAssignUserRoleReqVO.setRoleIds(roleIds);
         }
 
-        Request.getInstance().create(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
-                    EventBusCenter.get().post(new MessageEvent("分配角色成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
-                    confirmDialog.close();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                    EventBusCenter.get().post(new MessageEvent("分配角色失败", MessageType.DANGER));
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO));
+        }).thenAcceptAsync(commonResult -> {
+            EventBusCenter.get().post(new MessageEvent("分配角色成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            EventBusCenter.get().post(new MessageEvent("分配角色失败", MessageType.DANGER));
+            return null;
+        });
     }
 
 

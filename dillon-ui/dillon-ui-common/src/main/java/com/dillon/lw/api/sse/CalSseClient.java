@@ -1,6 +1,6 @@
-package com.dillon.lw.forest.api.sse;
+package com.dillon.lw.api.sse;
 
-import com.dillon.lw.forest.api.BaseApi;
+import com.dillon.lw.api.BaseApi;
 import com.dtflys.forest.annotation.Get;
 import com.dtflys.forest.annotation.Query;
 import com.dtflys.forest.http.ForestSSE;

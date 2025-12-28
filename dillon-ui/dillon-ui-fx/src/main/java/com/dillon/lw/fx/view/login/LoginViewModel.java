@@ -6,16 +6,16 @@ import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LoginSuccessEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+
+import java.util.concurrent.CompletableFuture;
 
 public class LoginViewModel extends BaseViewModel {
 
@@ -31,37 +31,23 @@ public class LoginViewModel extends BaseViewModel {
         loginReqVO.setUsername(getUsername());
         loginReqVO.setPassword(getPassword());
 
-        Observable.just(1)
-                .observeOn(Schedulers.from(Platform::runLater)) // 1️⃣ 先到 UI 线程
-                .doOnNext(ignore -> {
-                    // 更新 UI：loading 开始
-                    progressbarVisible.set(true);
-                    loginButDisable.setValue(true);
-                })
-                .observeOn(Schedulers.io()) // 2️⃣ 切到 IO 线程执行 login()
-                .flatMap(ignore -> {
+        progressbarVisible.set(true);
+        loginButDisable.setValue(true);
 
-                            return Request.getInstance().create(AuthApi.class).login(loginReqVO);
-                        }
-                ).map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater)) // 3️⃣ 再回 UI 线程更新结果
-                .doFinally(() -> {
-                    // loading 结束
-                    progressbarVisible.setValue(false);
-                    loginButDisable.set(false);
-                })
-                .subscribe(
-                        data -> {
-                            AppStore.setToken(data.getAccessToken());
-                            AppStore.loadDictData();
-                            EventBusCenter.get().post(new LoginSuccessEvent());
-                            msg.set("");
-                        },
-                        throwable -> {
-                            // 登录失败
-                            msg.set(throwable.getMessage());
-                        }
-                );
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO>().apply(Forest.client(AuthApi.class).login(loginReqVO));
+        }).thenAcceptAsync(data -> {
+            AppStore.setToken(data.getAccessToken());
+            AppStore.loadDictData();
+            EventBusCenter.get().post(new LoginSuccessEvent());
+            msg.set("");
+        }, Platform::runLater).whenCompleteAsync((unused, throwable) -> {
+            progressbarVisible.setValue(false);
+            loginButDisable.set(false);
+            if (throwable != null) {
+                msg.set(throwable.getCause() != null ? throwable.getCause().getMessage() : throwable.getMessage());
+            }
+        }, Platform::runLater);
 
     }
 

@@ -6,17 +6,15 @@ package com.dillon.lw.view.system.dept;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.api.system.DeptApi;
+import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.utils.TreeUtils;
-import com.dillon.lw.api.system.DeptApi;
-import com.dillon.lw.api.system.UserApi;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTree;
 
@@ -28,8 +26,9 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -280,34 +279,33 @@ public class DeptEditPane extends JPanel {
             this.id = id;
         }
 
-        // 获取 API 实例（避免重复调用 getInstance()）
-        DeptApi deptApi = RetrofitServiceManager.getInstance().create(DeptApi.class);
-        UserApi userApi = RetrofitServiceManager.getInstance().create(UserApi.class);
+        CompletableFuture<DeptRespVO> deptFuture = CompletableFuture.supplyAsync(() -> {
+            if (id == null) {
+                return new DeptRespVO();
+            }
+            return Forest.client(DeptApi.class).getDept(id).getCheckedData();
+        });
 
-        Observable.zip(
-                        Observable.defer(() -> {
-                            if (id == null) {
-                                return Observable.just(new DeptRespVO());// 返回一个默认的空对象
-                            }
-                            return deptApi.getDept(id).map(new PayLoad<>());
-                        }),
-                        deptApi.getSimpleDeptList().map(new PayLoad<>()),
-                        userApi.getSimpleUserList().map(new PayLoad<>()),
-                        (deptRespVO, deptList, userList) -> {
-                            // 使用 LinkedHashMap 保持顺序
-                            Map<String, Object> resultMap = new LinkedHashMap<>();
-                            resultMap.put("deptRespVO", deptRespVO);
-                            resultMap.put("deptList", deptList);
-                            resultMap.put("userList", userList);
-                            return resultMap;
-                        }
-                )
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(resultMap -> {
-                    // 直接获取数据，无需强转
-                    updateData(resultMap, isAdd);
-                }, Throwable::printStackTrace);
+        CompletableFuture<List<DeptSimpleRespVO>> deptListFuture = CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
+        });
+
+        CompletableFuture<List<UserSimpleRespVO>> userListFuture = CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
+        });
+
+        CompletableFuture.allOf(deptFuture, deptListFuture, userListFuture).thenAcceptAsync(v -> {
+            Map<String, Object> resultMap = new LinkedHashMap<>();
+            resultMap.put("deptRespVO", deptFuture.join());
+            resultMap.put("deptList", deptListFuture.join());
+            resultMap.put("userList", userListFuture.join());
+            updateData(resultMap, isAdd);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

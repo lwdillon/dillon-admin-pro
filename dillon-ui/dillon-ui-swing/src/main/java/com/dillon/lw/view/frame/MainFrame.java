@@ -6,13 +6,17 @@ import com.dillon.lw.view.login.LoginPane;
 import com.dillon.lw.view.mainpane.MainPane;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.RoundRectangle2D;
 
 public class MainFrame extends JFrame {
     private MainPane mainPane;
-
     private static MainFrame instance;
+    private int cornerRadius = 20;
 
     // 私有构造函数，防止外部直接创建实例
     private MainFrame() {
@@ -26,6 +30,22 @@ public class MainFrame extends JFrame {
                 super.windowClosed(e);
             }
         });
+
+        // 监听组件大小变化，动态更新圆角形状
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateWindowShape();
+            }
+        });
+    }
+
+    private void updateWindowShape() {
+        if (getExtendedState() == JFrame.MAXIMIZED_BOTH) {
+            setShape(null);
+        } else {
+            setShape(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius));
+        }
     }
 
     // 提供单例实例的静态方法
@@ -46,6 +66,7 @@ public class MainFrame extends JFrame {
 
         this.setSize(900, 600);
         this.setResizable(false);
+        updateWindowShape();
         rootPane.setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
         rootPane.putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
         rootPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
@@ -58,6 +79,7 @@ public class MainFrame extends JFrame {
 
     // 显示主界面
     public void showMain() {
+        updateWindowShape();
         rootPane.putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, false);
         rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_TITLE, false);
         rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, UIManager.getColor("App.titleBarBackground"));

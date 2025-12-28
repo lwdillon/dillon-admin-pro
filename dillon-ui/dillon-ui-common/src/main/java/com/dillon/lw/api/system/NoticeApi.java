@@ -1,36 +1,34 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeRespVO;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.util.Map;
 
 
-public interface NoticeApi {
+public interface NoticeApi extends BaseApi {
 
 
-    @POST("system/notice/create")
-    Observable<CommonResult<Long>> createNotice(@Body NoticeSaveReqVO createReqVO);
+    @Post("system/notice/create")
+    CommonResult<Long> createNotice(@Body NoticeSaveReqVO createReqVO);
 
-    @PUT("system/notice/update")
-    Observable<CommonResult<Boolean>> updateNotice(@Body NoticeSaveReqVO updateReqVO);
+    @Put("system/notice/update")
+    CommonResult<Boolean> updateNotice(@Body NoticeSaveReqVO updateReqVO);
 
-    @DELETE("system/notice/delete?id={id}")
-    Observable<CommonResult<Boolean>> deleteNotice(@Query("id") Long id);
+    @Delete("system/notice/delete")
+    CommonResult<Boolean> deleteNotice(@Query("id") Long id);
 
-    @GET("system/notice/page")
-    Observable<CommonResult<PageResult<NoticeRespVO>>> getNoticePage(@QueryMap Map<String, Object> map);
+    @Get("system/notice/page")
+    CommonResult<PageResult<NoticeRespVO>> getNoticePage(@Query Map<String, Object> map);
 
-    @GET("system/notice/get?id={id}")
-    Observable<CommonResult<NoticeRespVO>> getNotice(@Query("id") Long id);
+    @Get("system/notice/get")
+    CommonResult<NoticeRespVO> getNotice(@Query("id") Long id);
 
-    @FormUrlEncoded
-    @POST("system/notice/push}")
-    Observable<CommonResult<Boolean>> push(@Field("id") Long id);
+    @Post("system/notice/push")
+    CommonResult<Boolean> push(@Body("id") Long id);
 
 }

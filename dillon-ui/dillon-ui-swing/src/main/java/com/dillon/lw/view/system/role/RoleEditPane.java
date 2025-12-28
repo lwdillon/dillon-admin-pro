@@ -6,16 +6,16 @@ package com.dillon.lw.view.system.role;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.api.system.RoleApi;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.api.system.RoleApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -124,12 +124,20 @@ public class RoleEditPane extends JPanel {
 
         this.id = id;
 
-        RetrofitServiceManager.getInstance().create(RoleApi.class).getRole(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(roleRespVO -> setValue(roleRespVO), throwable -> throwable.printStackTrace());
+        if (id == null) {
+            return;
+        }
 
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(RoleApi.class).getRole(id).getCheckedData();
+        }).thenAcceptAsync(roleRespVO -> {
+            setValue(roleRespVO);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void setValue(RoleRespVO roleRespVO) {

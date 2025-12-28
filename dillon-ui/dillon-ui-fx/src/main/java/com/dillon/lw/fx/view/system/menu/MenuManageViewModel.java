@@ -12,11 +12,10 @@ import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,7 +23,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TreeItem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -82,36 +83,36 @@ public class MenuManageViewModel extends BaseViewModel {
         menuListReqVO.setStatus(StrUtil.equals("全部", status) ? null : (StrUtil.equals("正常", status) ? 0 : 1));
         Map<String, Object> queryMap = BeanUtil.beanToMap(menuListReqVO, false, true);
 
-        Request.getInstance().create(MenuApi.class).getMenuList(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater)).subscribe(data -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<MenuRespVO>>().apply(Forest.client(MenuApi.class).getMenuList(queryMap));
+        }).thenAcceptAsync(data -> {
 
-                    // 创建根节点（空的或具有实际数据）
-                    TreeItem<MenuRespVO> rootItem = new TreeItem<>(new MenuRespVO());
-                    rootItem.setExpanded(true);
-                    // 将菜单列表转换为树形结构
-                    Map<Long, TreeItem<MenuRespVO>> itemMap = new HashMap<>();
-                    itemMap.put(0L, rootItem);
+            // 创建根节点（空的或具有实际数据）
+            TreeItem<MenuRespVO> rootItem = new TreeItem<>(new MenuRespVO());
+            rootItem.setExpanded(true);
+            // 将菜单列表转换为树形结构
+            Map<Long, TreeItem<MenuRespVO>> itemMap = new HashMap<>();
+            itemMap.put(0L, rootItem);
 
-                    for (MenuRespVO menu : data) {
-                        TreeItem<MenuRespVO> treeItem = new TreeItem<>(menu);
-                        itemMap.put(menu.getId(), treeItem);
-                    }
+            for (MenuRespVO menu : data) {
+                TreeItem<MenuRespVO> treeItem = new TreeItem<>(menu);
+                itemMap.put(menu.getId(), treeItem);
+            }
 
-                    data.forEach(menuRespVO -> {
-                        TreeItem<MenuRespVO> parentNode = itemMap.get(menuRespVO.getParentId());
-                        TreeItem<MenuRespVO> childNode = itemMap.get(menuRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.getChildren().add(childNode);
-                        }
-                    });
+            data.forEach(menuRespVO -> {
+                TreeItem<MenuRespVO> parentNode = itemMap.get(menuRespVO.getParentId());
+                TreeItem<MenuRespVO> childNode = itemMap.get(menuRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.getChildren().add(childNode);
+                }
+            });
 
-                    treeItemObjectProperty.setValue(rootItem);
+            treeItemObjectProperty.setValue(rootItem);
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
@@ -124,19 +125,18 @@ public class MenuManageViewModel extends BaseViewModel {
     }
 
     public void deleteMenu(Long menuId, ConfirmDialog dialog) {
-        Request.getInstance().create(MenuApi.class).deleteMenu(menuId)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
-                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
-                    dialog.close();
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(MenuApi.class).deleteMenu(menuId));
+        }).thenAcceptAsync(commonResult -> {
+            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
+            dialog.close();
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     @Subscribe

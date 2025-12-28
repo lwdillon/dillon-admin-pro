@@ -12,12 +12,11 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -25,7 +24,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 部门对话框视图模型
@@ -51,17 +52,16 @@ public class DeptFromViewModel extends BaseViewModel {
         wrapper.commit();
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
-        Request.getInstance().create(DeptApi.class).createDept(deptSaveReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(rel -> {
-                    EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
-                    confirmDialog.close();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Long>().apply(Forest.client(DeptApi.class).createDept(deptSaveReqVO));
+        }).thenAcceptAsync(rel -> {
+            EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     public void updateDept(ConfirmDialog confirmDialog) {
@@ -69,17 +69,16 @@ public class DeptFromViewModel extends BaseViewModel {
         wrapper.commit();
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
-        Request.getInstance().create(DeptApi.class).updateDept(deptSaveReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(rel -> {
-                    EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
-                    confirmDialog.close();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(DeptApi.class).updateDept(deptSaveReqVO));
+        }).thenAcceptAsync(rel -> {
+            EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     public void initData(DeptRespVO sysDept) {
@@ -88,62 +87,55 @@ public class DeptFromViewModel extends BaseViewModel {
         BeanUtil.copyProperties(sysDept, saveVO);
         wrapper.set(saveVO);
 
-        Request.getInstance().create(UserApi.class).getSimpleUserList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .doOnNext(userList -> {
-                    leaderUserList.set(FXCollections.observableList(userList));
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<UserSimpleRespVO>>().apply(Forest.client(UserApi.class).getSimpleUserList());
+        }).thenAcceptAsync(userList -> {
+            leaderUserList.set(FXCollections.observableList(userList));
 
-                    for (UserSimpleRespVO respVO : userList) {
-                        if (ObjectUtil.equals(respVO.getId(), sysDept.getLeaderUserId())) {
-                            selectLeaderUser.set(respVO);
-                        }
-                    }
-                })
-                .observeOn(Schedulers.io())
-                .flatMap(userList -> {
+            for (UserSimpleRespVO respVO : userList) {
+                if (ObjectUtil.equals(respVO.getId(), sysDept.getLeaderUserId())) {
+                    selectLeaderUser.set(respVO);
+                }
+            }
+        }, Platform::runLater).thenApplyAsync(unused -> {
+            return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+        }).thenAcceptAsync(listCommonResult -> {
 
-                    return Request.getInstance().create(DeptApi.class).getSimpleDeptList();
-                })
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(listCommonResult -> {
+            DeptSimpleRespVO respVO = new DeptSimpleRespVO();
+            respVO.setId(0L);
+            respVO.setName("主类目");
 
-                    DeptSimpleRespVO respVO = new DeptSimpleRespVO();
-                    respVO.setId(0L);
-                    respVO.setName("主类目");
+            TreeItem<DeptSimpleRespVO> root = new TreeItem<>(respVO);
+            root.setExpanded(true);
+            // Build the tree
+            Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
+            nodeMap.put(0l, root); // Root node
+            for (DeptSimpleRespVO dept : listCommonResult) {
+                TreeItem<DeptSimpleRespVO> node = new TreeItem<>(dept);
+                nodeMap.put(dept.getId(), node);
+            }
 
-                    TreeItem<DeptSimpleRespVO> root = new TreeItem<>(respVO);
-                    root.setExpanded(true);
-                    // Build the tree
-                    Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
-                    nodeMap.put(0l, root); // Root node
-                    for (DeptSimpleRespVO dept : listCommonResult) {
-                        TreeItem<DeptSimpleRespVO> node = new TreeItem<>(dept);
-                        nodeMap.put(dept.getId(), node);
-                    }
+            listCommonResult.forEach(deptSimpleRespVO -> {
+                TreeItem<DeptSimpleRespVO> parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+                TreeItem<DeptSimpleRespVO> childNode = nodeMap.get(deptSimpleRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.getChildren().add(childNode);
+                } else {
+                    root.getChildren().add(childNode);
+                }
+            });
 
-                    listCommonResult.forEach(deptSimpleRespVO -> {
-                        TreeItem<DeptSimpleRespVO> parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
-                        TreeItem<DeptSimpleRespVO> childNode = nodeMap.get(deptSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.getChildren().add(childNode);
-                        } else {
-                            root.getChildren().add(childNode);
-                        }
-                    });
+            if (nodeMap.get(wrapper.get().getParentId()) != null) {
+                selectTreeItem.setValue(nodeMap.get(wrapper.get().getParentId()));
+            } else {
+                selectTreeItem.setValue(root);
+            }
+            deptTreeRoot.set(root);
 
-                    if (nodeMap.get(wrapper.get().getParentId()) != null) {
-                        selectTreeItem.setValue(nodeMap.get(wrapper.get().getParentId()));
-                    } else {
-                        selectTreeItem.setValue(root);
-                    }
-                    deptTreeRoot.set(root);
-
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     /**

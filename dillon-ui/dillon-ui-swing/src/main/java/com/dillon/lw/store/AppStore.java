@@ -1,14 +1,13 @@
 package com.dillon.lw.store;
 
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.subject.MenuRefrestObservable;
-import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -17,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -183,20 +183,20 @@ public class AppStore {
 
     public static void loadDictData() {
 
-        RetrofitServiceManager.getInstance().create(DictDataApi.class).getSimpleDictDataList().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData();
+        }).thenAcceptAsync(result -> {
+            // 按 type 属性分组
+            Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
+                    .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
 
-                    // 按 type 属性分组
-                    Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
-                            .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
-
-                    setDictDataListMap(groupedByType);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
+            setDictDataListMap(groupedByType);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

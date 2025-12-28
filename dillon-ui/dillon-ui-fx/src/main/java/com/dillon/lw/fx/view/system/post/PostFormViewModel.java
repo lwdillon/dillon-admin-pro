@@ -7,16 +7,18 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.StringProperty;
+
+import java.util.concurrent.CompletableFuture;
 
 public class PostFormViewModel extends BaseViewModel {
 
@@ -44,17 +46,16 @@ public class PostFormViewModel extends BaseViewModel {
         if (id == null) {
             return;
         }
-        Request.getInstance().create(PostApi.class).getPost(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(result -> {
-                    PostSaveReqVO reqVO = new PostSaveReqVO();
-                    BeanUtil.copyProperties(result, reqVO);
-                    setPost(reqVO);
-                }, throwable -> {
-                    System.err.println("查询岗位异常：" + throwable.getMessage());
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PostRespVO>().apply(Forest.client(PostApi.class).getPost(id));
+        }).thenAcceptAsync(result -> {
+            PostSaveReqVO reqVO = new PostSaveReqVO();
+            BeanUtil.copyProperties(result, reqVO);
+            setPost(reqVO);
+        }, Platform::runLater).exceptionally(throwable -> {
+            System.err.println("查询岗位异常：" + throwable.getMessage());
+            return null;
+        });
     }
 
     /**
@@ -69,32 +70,30 @@ public class PostFormViewModel extends BaseViewModel {
 
     public void updatePost(ConfirmDialog dialog) {
 
-        Request.getInstance().create(PostApi.class).updatePost(getUserSaveReqVO())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(result -> {
-                    EventBusCenter.get().post(new MessageEvent("更新岗位成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-                    dialog.close();
-                }, throwable -> {
-                    System.err.println("更新岗位异常：" + throwable.getMessage());
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(PostApi.class).updatePost(getUserSaveReqVO()));
+        }).thenAcceptAsync(result -> {
+            EventBusCenter.get().post(new MessageEvent("更新岗位成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+            dialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            System.err.println("更新岗位异常：" + throwable.getMessage());
+            return null;
+        });
     }
 
     public void createPost(ConfirmDialog dialog) {
 
-        Request.getInstance().create(PostApi.class).createPost(getUserSaveReqVO())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(result -> {
-                    EventBusCenter.get().post(new MessageEvent("创建岗位成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-                    dialog.close();
-                }, throwable -> {
-                    System.err.println("创建岗位异常：" + throwable.getMessage());
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Long>().apply(Forest.client(PostApi.class).createPost(getUserSaveReqVO()));
+        }).thenAcceptAsync(result -> {
+            EventBusCenter.get().post(new MessageEvent("创建岗位成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+            dialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            System.err.println("创建岗位异常：" + throwable.getMessage());
+            return null;
+        });
     }
 
     public String getName() {

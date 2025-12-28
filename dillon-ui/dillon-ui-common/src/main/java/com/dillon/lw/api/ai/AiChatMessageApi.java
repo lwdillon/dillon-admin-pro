@@ -1,14 +1,12 @@
 package com.dillon.lw.api.ai;
 
-import io.reactivex.rxjava3.core.Flowable;
-import okhttp3.ResponseBody;
-import retrofit2.http.Body;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
+import com.dillon.lw.api.BaseApi;
+import com.dtflys.forest.annotation.Body;
+import com.dtflys.forest.annotation.Post;
+import com.dtflys.forest.http.ForestSSE;
 
-public interface AiChatMessageApi {
+public interface AiChatMessageApi extends BaseApi {
 
-    @Headers("Content-Type: application/json")
-    @POST(value = "ai/chat/message/send-stream")
-    Flowable<ResponseBody> sendChatMessageStream(@Body AiChatMessageSendReqVO sendReqVO);
+    @Post(value = "ai/chat/message/send-stream", contentType = "application/json")
+    ForestSSE sendChatMessageStream(@Body AiChatMessageSendReqVO sendReqVO);
 }

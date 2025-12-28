@@ -1,7 +1,7 @@
 package com.dillon.lw;
 
 
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.http.forest.ForestConfig;
 import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.view.frame.MainFrame;
 import org.jdesktop.core.animation.timing.Animator;
@@ -19,6 +19,11 @@ import java.util.Properties;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DillonSwingUiApplication {
+    static {
+        TimingSource ts = new SwingTimerTimingSource();
+        Animator.setDefaultTimingSource(ts);
+        ts.init();
+    }
 
     public static void main(String[] args) {
 
@@ -31,20 +36,15 @@ public class DillonSwingUiApplication {
         Thread.setDefaultUncaughtExceptionHandler(
                 (t, e) -> SwingExceptionHandler.handle(e)
         );
+
         loadApplicationProperties();
-        RetrofitServiceManager.getInstance();
+        ForestConfig.init();
         SwingUtilities.invokeLater(() -> {
             try {
-                TimingSource ts = new SwingTimerTimingSource();
-                Animator.setDefaultTimingSource(ts);
-                ts.init();
                 UIManager.setLookAndFeel(LightTheme.class.getName());
-
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
             StandardChartTheme chartTheme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
             chartTheme.setExtraLargeFont(new Font("宋体", Font.BOLD, 20)); // 设置标题字体
             chartTheme.setLargeFont(new Font("宋体", Font.BOLD, 15)); // 设置轴标签字体

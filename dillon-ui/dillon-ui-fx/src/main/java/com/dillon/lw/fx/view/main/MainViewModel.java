@@ -3,6 +3,8 @@ package com.dillon.lw.fx.view.main;
 import atlantafx.base.theme.Styles;
 import atlantafx.base.theme.Tweaks;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
@@ -16,12 +18,11 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.ThemeEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.home.DashboardView;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -33,6 +34,7 @@ import javafx.scene.control.*;
 import javafx.util.Duration;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.dillon.lw.fx.utils.NodeUtils.getIcon;
@@ -53,53 +55,43 @@ public class MainViewModel extends BaseViewModel {
 
     public void initData() {
 
-        Request.getInstance().create(AuthApi.class).getPermissionInfo()
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取登录响应中的数据
-                .observeOn(Schedulers.from(Platform::runLater)) // 在主线程中更新 UI
-                .subscribe(
-                        data -> {
-                            AppStore.setAuthPermissionInfoRespVO(data);
-                            userNameProperty.set(StrUtil.subSuf(data.getUser().getNickname(), data.getUser().getNickname().length() - 1));
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<AuthPermissionInfoRespVO>().apply(Forest.client(AuthApi.class).getPermissionInfo());
+        }).thenAcceptAsync(data -> {
+            AppStore.setAuthPermissionInfoRespVO(data);
+            userNameProperty.set(StrUtil.subSuf(data.getUser().getNickname(), data.getUser().getNickname().length() - 1));
 
-                            // 处理成功的响应数据
-                            bindTreeViewRoot(data.getMenus());
-                            bindMenuButton(data.getMenus());
-                            if (selectedTreeItem.get() != null) {
-                                setSelectedTreeItem(selectedTreeItem.get());
-                            } else {
-                                setSelectedTreeItem(treeItemObjectProperty.get().getChildren().get(0));
-                            }
+            // 处理成功的响应数据
+            bindTreeViewRoot(data.getMenus());
+            bindMenuButton(data.getMenus());
+            if (selectedTreeItem.get() != null) {
+                setSelectedTreeItem(selectedTreeItem.get());
+            } else {
+                setSelectedTreeItem(treeItemObjectProperty.get().getChildren().get(0));
+            }
 
-                        },
-                        throwable -> {
-                            // 处理错误
-                            System.err.println("Error: " + throwable.getMessage());
-                        }
-                );
+        }, Platform::runLater).exceptionally(throwable -> {
+            // 处理错误
+            System.err.println("Error: " + throwable.getMessage());
+            return null;
+        });
 
-        Request.getInstance().create(UserProfileApi.class).getUserProfile()
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取登录响应中的数据
-                .observeOn(Schedulers.from(Platform::runLater))
-                .doOnNext(response -> userProfileRespVO.set(response))
-                .observeOn(Schedulers.io())
-                .flatMap(userProfileRespVO -> {
-                    // 获取用户主题
-                    String key = userProfileRespVO.getId() + "";
-                    return Request.getInstance().create(ConfigApi.class).getConfigKey(key);
-                }).map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater)) // 在主线程中更新 UI
-                .subscribe(
-                        data -> {
-                            setDarkMode(StrUtil.contains(data, "dark"));
-                            updateTheme();
-                        },
-                        throwable -> {
-                            // 处理错误
-                            System.err.println("Error: " + throwable.getMessage());
-                        }
-                );
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<UserProfileRespVO>().apply(Forest.client(UserProfileApi.class).getUserProfile());
+        }).thenAcceptAsync(response -> {
+            userProfileRespVO.set(response);
+        }, Platform::runLater).thenApplyAsync(unused -> {
+            // 获取用户主题
+            String key = userProfileRespVO.get().getId() + "";
+            return new PayLoad<String>().apply(Forest.client(ConfigApi.class).getConfigKey(key));
+        }).thenAcceptAsync(data -> {
+            setDarkMode(StrUtil.contains(data, "dark"));
+            updateTheme();
+        }, Platform::runLater).exceptionally(throwable -> {
+            // 处理错误
+            System.err.println("Error: " + throwable.getMessage());
+            return null;
+        });
     }
 
     public void loginOut(boolean exeit) {
@@ -107,29 +99,21 @@ public class MainViewModel extends BaseViewModel {
         AppStore.setAuthPermissionInfoRespVO(null);
         AppStore.setDictDataListMap(null);
         // 退出登录
-        Request.getInstance().create(AuthApi.class).logout()
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取登录响应中的数据
-                .observeOn(Schedulers.from(Platform::runLater)) // 在主线程中更新 UI
-                .subscribe(
-                        data -> {
-                            if (exeit) {
-                                System.exit(0);
-                            } else {
-                                EventBusCenter.get().post(new LogoutEvent());
-                                EventBusCenter.get().post(new MessageEvent("退出成功！", MessageType.SUCCESS));
-
-                            }
-                        },
-                        throwable -> {
-                            // 处理错误
-                            EventBusCenter.get().post(new MessageEvent("退出失败！", MessageType.DANGER));
-
-                            System.err.println("Error: " + throwable.getMessage());
-                        }
-                );
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(AuthApi.class).logout());
+        }).thenAcceptAsync(data -> {
+            if (exeit) {
+                System.exit(0);
+            } else {
+                EventBusCenter.get().post(new LogoutEvent());
+                EventBusCenter.get().post(new MessageEvent("退出成功！", MessageType.SUCCESS));
+            }
+        }, Platform::runLater).exceptionally(throwable -> {
+            // 处理错误
+            EventBusCenter.get().post(new MessageEvent("退出失败！", MessageType.DANGER));
+            System.err.println("Error: " + throwable.getMessage());
+            return null;
+        });
     }
 
     private TreeItem<AuthPermissionInfoRespVO.MenuVO> convertToTreeItem(AuthPermissionInfoRespVO.MenuVO menu) {
@@ -389,28 +373,21 @@ public class MainViewModel extends BaseViewModel {
         saveReqVO.setVisible(true);
         Map<String, Object> map = new HashMap<>();
         map.put("key", key);
-        Request.getInstance().create(ConfigApi.class).getConfigPage(map)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取登录响应中的数据
-                .flatMap(respVO -> {
 
-                    if (respVO != null && respVO.getTotal() > 0) {
-                        saveReqVO.setId(respVO.getList().get(0).getId());
-                        return Request.getInstance().create(ConfigApi.class).updateConfig(saveReqVO);
-                    } else {
-                        return Request.getInstance().create(ConfigApi.class).createConfig(saveReqVO);
-                    }
-                })
-                .observeOn(Schedulers.from(Platform::runLater)) // 在主线程中更新 UI
-
-                .subscribe(
-                        data -> {
-                        },
-                        throwable -> {
-                            // 处理错误
-                            System.err.println("Error: " + throwable.getMessage());
-                        }
-                );
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<ConfigRespVO>>().apply(Forest.client(ConfigApi.class).getConfigPage(map));
+        }).thenAcceptAsync(respVO -> {
+            if (respVO != null && respVO.getTotal() > 0) {
+                saveReqVO.setId(respVO.getList().get(0).getId());
+                new PayLoad<Boolean>().apply(Forest.client(ConfigApi.class).updateConfig(saveReqVO));
+            } else {
+                new PayLoad<Long>().apply(Forest.client(ConfigApi.class).createConfig(saveReqVO));
+            }
+        }).exceptionally(throwable -> {
+            // 处理错误
+            System.err.println("Error: " + throwable.getMessage());
+            return null;
+        });
     }
 
     public boolean isDarkMode() {

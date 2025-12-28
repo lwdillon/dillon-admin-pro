@@ -4,10 +4,10 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.api.infra.ApiAccessLogApi;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dtflys.forest.Forest;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class ApiAccessLogViewModel extends BaseViewModel {
 
@@ -63,18 +64,17 @@ public class ApiAccessLogViewModel extends BaseViewModel {
         }
 
         queryMap.values().removeAll(Collections.singleton(null));
-        Request.getInstance().create(ApiAccessLogApi.class).getApiAccessLogPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    ObservableList<ApiAccessLogRespVO> respVOS = FXCollections.observableArrayList();
-                    respVOS.addAll(data.getList());
-                    tableItems.set(respVOS);
-                    totalProperty().set(data.getTotal().intValue());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<ApiAccessLogRespVO>>().apply(Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<ApiAccessLogRespVO> respVOS = FXCollections.observableArrayList();
+            respVOS.addAll(data.getList());
+            tableItems.set(respVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }

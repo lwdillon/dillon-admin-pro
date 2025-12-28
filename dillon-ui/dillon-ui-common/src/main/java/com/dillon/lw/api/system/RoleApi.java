@@ -1,36 +1,35 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
 
-public interface RoleApi {
+public interface RoleApi extends BaseApi {
 
-    @POST("system/role/create")
-    Observable<CommonResult<Long>> createRole(@Body RoleSaveReqVO createReqVO);
+    @Post("system/role/create")
+    CommonResult<Long> createRole(@Body RoleSaveReqVO createReqVO);
 
-    @PUT("system/role/update")
-    Observable<CommonResult<Boolean>> updateRole(@Body RoleSaveReqVO updateReqVO);
+    @Put("system/role/update")
+    CommonResult<Boolean> updateRole(@Body RoleSaveReqVO updateReqVO);
 
-    @DELETE("system/role/delete")
-    Observable<CommonResult<Boolean>> deleteRole(@Query("id") Long id);
+    @Delete("system/role/delete")
+    CommonResult<Boolean> deleteRole(@Query("id") Long id);
 
-    @GET("system/role/get")
-    Observable<CommonResult<RoleRespVO>> getRole(@Query("id") Long id);
+    @Get("system/role/get")
+    CommonResult<RoleRespVO> getRole(@Query("id") Long id);
 
-    @GET("system/role/page")
-    Observable<CommonResult<PageResult<RoleRespVO>>> getRolePage(@QueryMap Map<String, Object> queryMay);
+    @Get("system/role/page")
+    CommonResult<PageResult<RoleRespVO>> getRolePage(@Query Map<String, Object> queryMay);
 
-    @GET("system/role/simple-list")
-    Observable<CommonResult<List<RoleRespVO>>> getSimpleRoleList();
+    @Get("system/role/simple-list")
+    CommonResult<List<RoleRespVO>> getSimpleRoleList();
 
 
 }

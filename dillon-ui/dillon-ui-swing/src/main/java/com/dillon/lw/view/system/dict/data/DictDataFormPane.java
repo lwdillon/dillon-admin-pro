@@ -7,17 +7,17 @@ package com.dillon.lw.view.system.dict.data;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.api.system.DictDataApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -176,38 +176,38 @@ public class DictDataFormPane extends JPanel {
             return;
         }
 
-        RetrofitServiceManager.getInstance().create(DictDataApi.class).getDictData(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(dictDataRespVO -> {
-                    Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
-                    colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
-                    colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
-                    colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
-                    colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
-                    colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
-                    colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
-                    ColorTypeOptions colorTypeOptionSel = null;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictDataApi.class).getDictData(id).getCheckedData();
+        }).thenAcceptAsync(dictDataRespVO -> {
+            Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
+            colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
+            colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
+            colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
+            colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
+            colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
+            colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
+            ColorTypeOptions colorTypeOptionSel = null;
 
-                    for (ColorTypeOptions colorTypeOptions : colorTypeOptionsVector) {
+            for (ColorTypeOptions colorTypeOptions : colorTypeOptionsVector) {
 
-                        if (StrUtil.equals(dictDataRespVO.getColorType(), colorTypeOptions.getValue())) {
-                            colorTypeOptionSel = colorTypeOptions;
-                        }
-                    }
+                if (StrUtil.equals(dictDataRespVO.getColorType(), colorTypeOptions.getValue())) {
+                    colorTypeOptionSel = colorTypeOptions;
+                }
+            }
 
-                    setValue(dictDataRespVO);
-                    colorTypeComboBox.setModel(new DefaultComboBoxModel(colorTypeOptionsVector));
+            setValue(dictDataRespVO);
+            colorTypeComboBox.setModel(new DefaultComboBoxModel(colorTypeOptionsVector));
 
-                    if (colorTypeOptionSel != null) {
-                        colorTypeComboBox.setSelectedItem(colorTypeOptionSel);
-                    }
+            if (colorTypeOptionSel != null) {
+                colorTypeComboBox.setSelectedItem(colorTypeOptionSel);
+            }
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
-
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // 数据标签回显样式

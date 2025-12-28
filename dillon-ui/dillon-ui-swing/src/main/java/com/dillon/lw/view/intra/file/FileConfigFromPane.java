@@ -6,24 +6,22 @@ package com.dillon.lw.view.intra.file;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.google.gson.JsonObject;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.FileConfigApi;
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.infra.FileConfigApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.HorizontalLayout;
-
-import javax.swing.*;
+import com.dtflys.forest.Forest;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.HorizontalLayout;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_FILE_STORAGE;
 
@@ -459,36 +457,28 @@ public class FileConfigFromPane extends JPanel {
 
         this.id = id;
         if (id != null) {
-            RetrofitServiceManager.getInstance().create(FileConfigApi.class).getFileConfig(id).map(new PayLoad<>())
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                    .subscribe(jsonObject -> {
-                        FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
+            CompletableFuture.supplyAsync(() -> {
+                return Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData();
+            }).thenAcceptAsync(jsonObject -> {
+                FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
 
-                        saveReqVO.setName(jsonObject.get("name").getAsString());
-                        saveReqVO.setStorage(jsonObject.get("storage").getAsInt());
-                        saveReqVO.setRemark(jsonObject.get("remark").getAsString());
-                        saveReqVO.setId(jsonObject.get("id").getAsLong());
-                        JsonObject config = jsonObject.getAsJsonObject("config");
-                        Map<String, Object> map = new HashMap<>();
-                        Iterator<String> keys = config.keySet().iterator();
-                        while (keys.hasNext()) {
-                            String key = keys.next();
-                            Object value = config.get(key).getAsString();
-                            map.put(key, value);
-                        }
-                        saveReqVO.setConfig(map);
+                saveReqVO.setName(Convert.toStr(jsonObject.get("name")));
+                saveReqVO.setStorage(Convert.toInt(jsonObject.get("storage")));
+                saveReqVO.setRemark(Convert.toStr(jsonObject.get("remark")));
+                saveReqVO.setId(Convert.toLong(jsonObject.get("id")));
+                Map<String, Object> config = (Map<String, Object>) jsonObject.get("config");
+                saveReqVO.setConfig(config);
 
-                        setValue(saveReqVO);
-                    }, throwable -> {
-                        throwable.printStackTrace();
-                    });
-        }else {
+                setValue(saveReqVO);
+            }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+                SwingUtilities.invokeLater(() -> {
+                    SwingExceptionHandler.handle(throwable);
+                });
+                return null;
+            });
+        } else {
             setValue(new FileConfigSaveReqVO());
         }
-
-
-
     }
 
     private void setValue(FileConfigSaveReqVO rel) {

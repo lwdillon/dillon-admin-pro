@@ -10,11 +10,10 @@ import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -22,6 +21,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 
 public class UserInfoViewModel extends BaseViewModel {
 
@@ -40,46 +40,43 @@ public class UserInfoViewModel extends BaseViewModel {
     public void initData() {
 
 
-        Request.getInstance().create(UserProfileApi.class).getUserProfile()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    setUserProfile(data);
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<UserProfileRespVO>().apply(Forest.client(UserProfileApi.class).getUserProfile());
+        }).thenAcceptAsync(data -> {
+            setUserProfile(data);
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
     }
 
     public void updateUserProfile(UserProfileUpdateReqVO userProfileUpdateReqVO) {
 
 
-        Request.getInstance().create(UserProfileApi.class).updateUserProfile(userProfileUpdateReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
-                    initData();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(UserProfileApi.class).updateUserProfile(userProfileUpdateReqVO));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
+            initData();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
     }
 
     public void updateUserProfilePassword(UserProfileUpdatePasswordReqVO userProfileUpdatePasswordReqVO) {
 
 
-        Request.getInstance().create(UserProfileApi.class).updateUserProfilePassword(userProfileUpdatePasswordReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(UserProfileApi.class).updateUserProfilePassword(userProfileUpdatePasswordReqVO));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
     }
 

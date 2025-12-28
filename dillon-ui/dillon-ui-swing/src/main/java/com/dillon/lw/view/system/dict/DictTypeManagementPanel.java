@@ -8,20 +8,19 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.view.system.dict.data.DictDataManagementPanel;
-import com.dillon.lw.api.system.DictTypeApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -30,7 +29,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -276,35 +277,36 @@ public class DictTypeManagementPanel extends JPanel {
     }
 
 
-    /**
-     * 添加
-     */
     private void add(DictTypeSaveReqVO createReqVO) {
 
-        RetrofitServiceManager.getInstance().create(DictTypeApi.class).createDictType(createReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aLong -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictTypeApi.class).createDictType(createReqVO).getCheckedData();
+        }).thenAcceptAsync(aLong -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
 
     private void edit(DictTypeSaveReqVO createReqVO) {
 
-        RetrofitServiceManager.getInstance().create(DictTypeApi.class).updateDictType(createReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aLong -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictTypeApi.class).updateDictType(createReqVO).getCheckedData();
+        }).thenAcceptAsync(aLong -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -324,15 +326,18 @@ public class DictTypeManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(DictTypeApi.class).deleteDictType(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(aLong -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        Long finalId = id;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictTypeApi.class).deleteDictType(finalId).getCheckedData();
+        }).thenAcceptAsync(aLong -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -359,14 +364,16 @@ public class DictTypeManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        RetrofitServiceManager.getInstance().create(DictTypeApi.class).pageDictTypes(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    updateTableData(result);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            updateTableData(result);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

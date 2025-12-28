@@ -7,17 +7,17 @@ package com.dillon.lw.view.system.user;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import com.jidesoft.swing.CheckBoxList;
-import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.components.notice.WMessage;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import java.util.concurrent.CompletableFuture;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.api.system.RoleApi;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.components.WScrollPane;
+import com.dillon.lw.components.notice.WMessage;
+import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.dillon.lw.view.frame.MainFrame;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -27,6 +27,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 
 /**
@@ -161,23 +163,21 @@ public class AssignRolesPane extends JPanel {
         nickTextField.setText(nickName);
 
 
-        RoleApi roleApi= RetrofitServiceManager.getInstance().create(RoleApi.class);
-        PermissionApi permissionApi= RetrofitServiceManager.getInstance().create(PermissionApi.class);
-        Observable.zip(
-                        roleApi.getSimpleRoleList().map(new PayLoad<>()),
-                        permissionApi.listAdminRoles(id).map(new PayLoad<>()),
-                        (roleRespVOList, listAdminRoleResult) -> {
-                            // 使用 LinkedHashMap 保持顺序
-                            Map<String, Object> resultMap = new LinkedHashMap<>();
-                            resultMap.put("roleRespVOList", roleRespVOList);
-                            resultMap.put("listAdminRoleResult", listAdminRoleResult);
-                            return resultMap;
-                        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    List<RoleRespVO> roleResult = (List<RoleRespVO>) result.get("roleRespVOList");
-                    Set<Long> listAdminRoleResult = (Set<Long>) result.get("listAdminRoleResult");
+        RoleApi roleApi = Forest.client(RoleApi.class);
+        PermissionApi permissionApi = Forest.client(PermissionApi.class);
+
+        CompletableFuture<List<RoleRespVO>> rolesFuture = CompletableFuture.supplyAsync(() ->
+                roleApi.getSimpleRoleList().getCheckedData()
+        );
+
+        CompletableFuture<Set<Long>> adminRolesFuture = CompletableFuture.supplyAsync(() ->
+                permissionApi.listAdminRoles(id).getCheckedData()
+        );
+
+        CompletableFuture.allOf(rolesFuture, adminRolesFuture)
+                .thenAcceptAsync(v -> {
+                    List<RoleRespVO> roleResult = rolesFuture.join();
+                    Set<Long> listAdminRoleResult = adminRolesFuture.join();
 
                     Vector<Object> selRoles = new Vector<>();
                     DefaultListModel listModel = new DefaultListModel();
@@ -195,12 +195,13 @@ public class AssignRolesPane extends JPanel {
                     if (selRoles != null) {
                         roleCheckBoxList.setSelectedObjects(selRoles);
                     }
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
+                }, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> {
+                        SwingExceptionHandler.handle(throwable);
+                    });
+                    return null;
                 });
-
-
 
 
     }

@@ -3,7 +3,9 @@ package com.dillon.lw.components;
 
 import org.jdesktop.core.animation.timing.Animator;
 import org.jdesktop.core.animation.timing.PropertySetter;
+import org.jdesktop.core.animation.timing.TimingSource;
 import org.jdesktop.core.animation.timing.interpolators.AccelerationInterpolator;
+import org.jdesktop.swing.animation.timing.sources.SwingTimerTimingSource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -179,6 +181,11 @@ public class WButton extends JButton {
 
       private Animator getAnimationStart() {
         if (animationStart == null) {
+            if (Animator.getDefaultTimingSource() == null) {
+                TimingSource ts = new SwingTimerTimingSource();
+                Animator.setDefaultTimingSource(ts);
+                ts.init();
+            }
             animationStart = new Animator.Builder().setDuration(300, MILLISECONDS).setInterpolator(new AccelerationInterpolator(.5, .5)).build();
             animationStart.addTarget(PropertySetter.getTarget(WButton.this, "alpha", 0f, 1f));
         }

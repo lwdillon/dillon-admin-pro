@@ -1,55 +1,55 @@
 package com.dillon.lw.api.infra;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-public interface JobApi {
+public interface JobApi extends BaseApi {
 
 
     // "创建定时任务")
-    @POST("infra/job/create")
-    Observable<CommonResult<Long>> createJob(@Body JobSaveReqVO createReqVO);
+    @Post("infra/job/create")
+    CommonResult<Long> createJob(@Body JobSaveReqVO createReqVO);
 
     // "更新定时任务")
-    @PUT("infra/job/update")
-    Observable<CommonResult<Boolean>> updateJob(@Body JobSaveReqVO updateReqVO);
+    @Put("infra/job/update")
+    CommonResult<Boolean> updateJob(@Body JobSaveReqVO updateReqVO);
 
     // "更新定时任务的状态")
-    @PUT("infra/job/update-status")
-    Observable<CommonResult<Boolean>> updateJobStatus(@Query("id") Long id, @Query("status") Integer status);
+    @Put("infra/job/update-status")
+    CommonResult<Boolean> updateJobStatus(@Query("id") Long id, @Query("status") Integer status);
 
     // "删除定时任务")
-    @DELETE("infra/job/delete")
-    Observable<CommonResult<Boolean>> deleteJob(@Query("id") Long id);
+    @Delete("infra/job/delete")
+    CommonResult<Boolean> deleteJob(@Query("id") Long id);
 
     // "触发定时任务")
-    @PUT("infra/job/trigger")
-    Observable<CommonResult<Boolean>> triggerJob(@Query("id") Long id);
+    @Put("infra/job/trigger")
+    CommonResult<Boolean> triggerJob(@Query("id") Long id);
 
     // "同步定时任务")
-    @POST("infra/job/sync")
-    Observable<CommonResult<Boolean>> syncJob();
+    @Post("infra/job/sync")
+    CommonResult<Boolean> syncJob();
 
     // "获得定时任务")
-    @GET("infra/job/get")
-    Observable<CommonResult<JobRespVO>> getJob(@Query("id") Long id);
+    @Get("infra/job/get")
+    CommonResult<JobRespVO> getJob(@Query("id") Long id);
 
     // "获得定时任务分页")
-    @GET("infra/job/page")
-    Observable<CommonResult<PageResult<JobRespVO>>> getJobPage(@QueryMap Map<String, Object> pageVO);
+    @Get("infra/job/page")
+    CommonResult<PageResult<JobRespVO>> getJobPage(@Query Map<String, Object> pageVO);
 
 
     // "获得定时任务的下 n 次执行时间")
-    @GET("infra/job/get_next_times")
-    Observable<CommonResult<List<LocalDateTime>>> getJobNextTimes(
+    @Get("infra/job/get_next_times")
+    CommonResult<List<LocalDateTime>> getJobNextTimes(
             @Query("id") Long id,
             @Query("count") Integer count);
 

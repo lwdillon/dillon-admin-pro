@@ -5,6 +5,7 @@ import com.dillon.lw.forest.interceptors.HASmartSource;
 import com.dillon.lw.http.forest.interceptors.TokenInterceptor;
 import com.dtflys.forest.Forest;
 import com.dtflys.forest.config.ForestConfiguration;
+import com.dtflys.forest.interceptor.ForestInterceptor;
 import com.dtflys.forest.interceptor.Interceptor;
 
 import java.util.ArrayList;

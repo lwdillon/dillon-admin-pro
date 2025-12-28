@@ -5,19 +5,18 @@
 package com.dillon.lw.view.intra.config;
 
 import cn.hutool.core.convert.Convert;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.ConfigApi;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.components.notice.WMessage;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.infra.ConfigApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-
+import com.dtflys.forest.Forest;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
+import net.miginfocom.swing.MigLayout;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 
@@ -128,20 +127,21 @@ public class ConfigFormPane extends JPanel {
 
 
     public void updateData(Long id) {
-
         this.id = id;
-
-
-        RetrofitServiceManager.getInstance().create(ConfigApi.class).getConfig(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-
-                    setValue(result);
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
+        if (id != null) {
+            CompletableFuture.supplyAsync(() -> {
+                return Forest.client(ConfigApi.class).getConfig(id).getCheckedData();
+            }).thenAcceptAsync(respVO -> {
+                setValue(respVO);
+            }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+                SwingUtilities.invokeLater(() -> {
+                    SwingExceptionHandler.handle(throwable);
                 });
-
+                return null;
+            });
+        } else {
+            setValue(new ConfigRespVO());
+        }
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

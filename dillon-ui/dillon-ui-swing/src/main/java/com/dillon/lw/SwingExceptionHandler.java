@@ -1,6 +1,8 @@
 package com.dillon.lw;
 
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.framework.common.exception.ServiceException;
+import com.dillon.lw.view.frame.MainFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,10 @@ public final class SwingExceptionHandler {
         // ② 查找业务异常
         ServiceException se = findServiceException(e);
         if (se != null) {
+
+            if (se.getCode() == 401) {
+                MainFrame.getInstance().showLogin();
+            }
             showError(se.getMessage());
             return;
         }
@@ -83,12 +89,8 @@ public final class SwingExceptionHandler {
 
     private static void showError(String msg) {
         SwingUtilities.invokeLater(() ->
-                JOptionPane.showMessageDialog(
-                        null,
-                        msg,
-                        "错误",
-                        JOptionPane.ERROR_MESSAGE
-                )
+                WMessage.showMessageWarning(MainFrame.getInstance(), msg)
         );
+
     }
 }

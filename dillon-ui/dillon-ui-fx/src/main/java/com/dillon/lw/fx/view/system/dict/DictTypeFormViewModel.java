@@ -1,23 +1,25 @@
 package com.dillon.lw.fx.view.system.dict;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
+
+import java.util.concurrent.CompletableFuture;
 
 public class DictTypeFormViewModel extends BaseViewModel {
 
@@ -32,17 +34,16 @@ public class DictTypeFormViewModel extends BaseViewModel {
             setDictType(new DictTypeSaveReqVO());
             return;
         }
-        Request.getInstance().create(DictTypeApi.class).getDictType(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    DictTypeSaveReqVO dictTypeSaveReqVO = new DictTypeSaveReqVO();
-                    BeanUtil.copyProperties(data, dictTypeSaveReqVO);
-                    setDictType(dictTypeSaveReqVO);
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<DictTypeRespVO>().apply(Forest.client(DictTypeApi.class).getDictType(id));
+        }).thenAcceptAsync(data -> {
+            DictTypeSaveReqVO dictTypeSaveReqVO = new DictTypeSaveReqVO();
+            BeanUtil.copyProperties(data, dictTypeSaveReqVO);
+            setDictType(dictTypeSaveReqVO);
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     /**
@@ -63,33 +64,31 @@ public class DictTypeFormViewModel extends BaseViewModel {
 
     public void addDictType(ConfirmDialog confirmDialog) {
 
-        Request.getInstance().create(DictTypeApi.class).createDictType(getDictType())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
-                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Long>().apply(Forest.client(DictTypeApi.class).createDictType(getDictType()));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
+            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void updateDictType(ConfirmDialog confirmDialog) {
-        Request.getInstance().create(DictTypeApi.class).updateDictType(getDictType())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
-                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(DictTypeApi.class).updateDictType(getDictType()));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
+            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public StringProperty nameProperty() {

@@ -5,14 +5,14 @@ import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRe
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import org.kordamp.ikonli.feather.Feather;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class AppStore {
@@ -88,20 +88,19 @@ public class AppStore {
 
     public static void loadDictData() {
 
-        Request.getInstance().create(DictDataApi.class).getSimpleDictDataList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
-                    // 按 type 属性分组
-                    Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.stream()
-                            .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<DictDataSimpleRespVO>>().apply(Forest.client(DictDataApi.class).getSimpleDictDataList());
+        }).thenAcceptAsync(commonResult -> {
+            // 按 type 属性分组
+            Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.stream()
+                    .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
 
-                    setDictDataListMap(groupedByType);
-                }, throwable -> {
-                    // 处理错误
-                    throwable.printStackTrace();
-                });
+            setDictDataListMap(groupedByType);
+        }, Platform::runLater).exceptionally(throwable -> {
+            // 处理错误
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 

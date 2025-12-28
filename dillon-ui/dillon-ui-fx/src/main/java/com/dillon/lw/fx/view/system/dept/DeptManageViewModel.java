@@ -14,13 +14,10 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -30,6 +27,7 @@ import javafx.scene.control.TreeItem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,77 +83,74 @@ public class DeptManageViewModel extends BaseViewModel {
         Map<String, Object> queryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
 
 
-        Observable<CommonResult<List<UserSimpleRespVO>>> userList = Request.getInstance().create(UserApi.class).getSimpleUserList();
-        Observable<CommonResult<List<DeptRespVO>>> deptList = Request.getInstance().create(DeptApi.class).getDeptList(queryMap);
+        CompletableFuture<List<UserSimpleRespVO>> userListFuture = CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<UserSimpleRespVO>>().apply(Forest.client(UserApi.class).getSimpleUserList());
+        });
+
+        CompletableFuture<List<DeptRespVO>> deptListFuture = CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<DeptRespVO>>().apply(Forest.client(DeptApi.class).getDeptList(queryMap));
+        });
+
+        userListFuture.thenCombineAsync(deptListFuture, (userListData, data) -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("user", userListData);
+            map.put("dept", data);
+            return map;
+        }).thenAcceptAsync(result -> {
+
+            List<DeptRespVO> data = (List<DeptRespVO>) result.get("dept");
+            List<UserSimpleRespVO> userListData = (List<UserSimpleRespVO>) result.get("user");
+
+            if (userListData.size() > 0) {
+                userMap = userListData.stream()
+                        .collect(Collectors.toMap(UserSimpleRespVO::getId, Function.identity()));
+            }
+            // 创建根节点（空的或具有实际数据）
+            TreeItem<DeptRespVO> rootItem = new TreeItem<>(new DeptRespVO());
+            rootItem.setExpanded(true);
+            // 将菜单列表转换为树形结构
+            Map<Long, TreeItem<DeptRespVO>> itemMap = new HashMap<>();
+
+            for (DeptRespVO dept : data) {
+                TreeItem<DeptRespVO> treeItem = new TreeItem<>(dept);
+                itemMap.put(dept.getId(), treeItem);
+
+            }
+
+            data.forEach(deptRespVO -> {
+                TreeItem<DeptRespVO> parentNode = itemMap.get(deptRespVO.getParentId());
+                TreeItem<DeptRespVO> childNode = itemMap.get(deptRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.getChildren().add(childNode);
+                } else {
+                    rootItem.getChildren().add(childNode);
+                }
 
 
-        // 使用 zip 合并两个请求结果
-        Disposable disposable = Observable.zip(userList, deptList,
-                        (user, dept) -> {
-                            // 返回你需要组合的结果
-
-                            Map<String, Object> map = new HashMap<>();
-                            map.put("user", user.getData());
-                            map.put("dept", dept.getData());
-                            return map;
-                        })
-                .subscribeOn(Schedulers.io()) // 在 IO 线程中请求
-                .observeOn(Schedulers.from(Platform::runLater)) // JavaFX UI线程中观察（需引入 JavaFxScheduler）
-                .subscribe(result -> {
-
-                    List<DeptRespVO> data = (List<DeptRespVO>) result.get("dept");
-                    List<UserSimpleRespVO> userListData = (List<UserSimpleRespVO>) result.get("user");
-
-                    if (userListData.size() > 0) {
-                        userMap = userListData.stream()
-                                .collect(Collectors.toMap(UserSimpleRespVO::getId, Function.identity()));
-                    }
-                    // 创建根节点（空的或具有实际数据）
-                    TreeItem<DeptRespVO> rootItem = new TreeItem<>(new DeptRespVO());
-                    rootItem.setExpanded(true);
-                    // 将菜单列表转换为树形结构
-                    Map<Long, TreeItem<DeptRespVO>> itemMap = new HashMap<>();
-
-                    for (DeptRespVO dept : data) {
-                        TreeItem<DeptRespVO> treeItem = new TreeItem<>(dept);
-                        itemMap.put(dept.getId(), treeItem);
-
-                    }
-
-                    data.forEach(deptRespVO -> {
-                        TreeItem<DeptRespVO> parentNode = itemMap.get(deptRespVO.getParentId());
-                        TreeItem<DeptRespVO> childNode = itemMap.get(deptRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.getChildren().add(childNode);
-                        } else {
-                            rootItem.getChildren().add(childNode);
-                        }
-
-
-                    });
-                    treeItemObjectProperty.set(rootItem);
-                }, throwable -> {
-                    // 错误处理
-                    throwable.printStackTrace();
-                });
+            });
+            treeItemObjectProperty.set(rootItem);
+        }, Platform::runLater).exceptionally(throwable -> {
+            // 错误处理
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
 
     public void deleteDept(Long deptId, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(DeptApi.class).deleteDept(deptId)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(commonResult -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(DeptApi.class).deleteDept(deptId));
+        }).thenAcceptAsync(commonResult -> {
 
-                    EventBusCenter.get().post(new MessageEvent("删除成功！", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
-                    confirmDialog.close();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+            EventBusCenter.get().post(new MessageEvent("删除成功！", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     public void rest() {

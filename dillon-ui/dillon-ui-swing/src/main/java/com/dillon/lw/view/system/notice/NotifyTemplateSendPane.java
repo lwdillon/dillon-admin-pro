@@ -5,17 +5,16 @@
 package com.dillon.lw.view.system.notice;
 
 import cn.hutool.core.convert.Convert;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.NotifyTemplateApi;
+import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplateRespVO;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplateSendReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.system.NotifyTemplateApi;
-import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -23,6 +22,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -156,25 +156,30 @@ public class NotifyTemplateSendPane extends JPanel {
     public void updateData(NotifyTemplateRespVO respVO) {
         this.id = respVO.getId();
         this.code = respVO.getCode();
-        RetrofitServiceManager.getInstance().create(NotifyTemplateApi.class).getNotifyTemplate(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    setValue(result);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
 
-        RetrofitServiceManager.getInstance().create(UserApi.class).getSimpleUserList().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    for (UserSimpleRespVO userSimpleRespVO : result) {
-                        userComboBox.addItem(userSimpleRespVO);
-                    }
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            setValue(result);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
+
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
+        }).thenAcceptAsync(result -> {
+            for (UserSimpleRespVO userSimpleRespVO : result) {
+                userComboBox.addItem(userSimpleRespVO);
+            }
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

@@ -6,16 +6,13 @@ package com.dillon.lw.view.system.menu;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.utils.TreeUtils;
-import com.dillon.lw.api.system.MenuApi;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTree;
 
@@ -28,9 +25,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -346,74 +343,70 @@ public class MenuEditPane extends JPanel {
             this.id = id;
         }
 
-        // 获取 API 实例（避免重复调用 getInstance()）
-        MenuApi menuApi = RetrofitServiceManager.getInstance().create(MenuApi.class);
+        // 获取 API 实例
+        MenuApi menuApi = Forest.client(MenuApi.class);
 
-        Observable.zip(
-                        Observable.defer(() -> {
-                            if (id == null) {
-                                return Observable.just(new MenuRespVO());// 返回一个默认的空对象
-                            }
-                            return menuApi.getMenu(id).map(new PayLoad<>());
-                        }),
-                        menuApi.getSimpleMenuList().map(new PayLoad<>()),
-                        (menuRespVO, menuList) -> {
-                            // 使用 LinkedHashMap 保持顺序
-                            Map<String, Object> resultMap = new LinkedHashMap<>();
-                            resultMap.put("menuRespVO", menuRespVO);
-                            resultMap.put("menuList", menuList);
-                            return resultMap;
+        CompletableFuture<MenuRespVO> menuFuture = CompletableFuture.supplyAsync(() -> {
+            if (id == null) {
+                return new MenuRespVO();
+            }
+            return menuApi.getMenu(id).getCheckedData();
+        });
+
+        CompletableFuture<List<MenuSimpleRespVO>> menuListFuture = CompletableFuture.supplyAsync(() -> {
+            return menuApi.getSimpleMenuList().getCheckedData();
+        });
+
+        CompletableFuture.allOf(menuFuture, menuListFuture).thenAcceptAsync(v -> {
+            try {
+                MenuRespVO menuRespVO = menuFuture.get();
+                List<MenuSimpleRespVO> menuList = menuListFuture.get();
+
+                setMenuRespVO(menuRespVO);
+
+                DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
+                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                for (MenuSimpleRespVO menu : menuList) {
+                    nodeMap.put(menu.getId(), new DefaultMutableTreeNode(menu));
+                }
+
+                for (MenuSimpleRespVO menu : menuList) {
+                    DefaultMutableTreeNode node = nodeMap.get(menu.getId());
+                    if (menu.getParentId() == null || menu.getParentId() == 0) {
+                        root.add(node);
+                    } else {
+                        DefaultMutableTreeNode parentNode = nodeMap.get(menu.getParentId());
+                        if (parentNode != null) {
+                            parentNode.add(node);
+                        } else {
+                            root.add(node);
                         }
-                )
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(resultMap -> {
-                    // 直接获取数据，无需强转
-                    MenuRespVO menuRespVO = (MenuRespVO) resultMap.get("menuRespVO");
-                    List<MenuSimpleRespVO> menuList = (List<MenuSimpleRespVO>) resultMap.get("menuList");
-                    DefaultMutableTreeNode selectNode = null;
+                    }
+                }
 
-                    setMenuRespVO(menuRespVO);
+                menuTree.setModel(new DefaultTreeModel(root));
 
-                    DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
-                    // Build the tree
-                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                    nodeMap.put(0L, root); // Root node
-
-
+                if (menuRespVO.getParentId() != null && menuRespVO.getParentId() != 0) {
+                    parentId = menuRespVO.getParentId();
                     for (MenuSimpleRespVO menu : menuList) {
-                        if (menu.getType() == 3) {
-                            continue;
+                        if (menu.getId().equals(parentId)) {
+                            parentIdTextField.setText(menu.getName());
+                            break;
                         }
-                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(menu);
-                        nodeMap.put(menu.getId(), node);
                     }
-
-                    menuList.forEach(menuSimpleRespVO -> {
-                        if (menuSimpleRespVO.getType() != 3) {
-                            DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                            DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
-                            if (parentNode != null) {
-
-
-                                parentNode.add(childNode);
-                            }
-                        }
-
-                    });
-
-                    if (menuRespVO != null) {
-                        selectNode = nodeMap.get(isAdd ? menuRespVO.getId() : menuRespVO.getParentId());
-                    }
-                    menuTree.setModel(new DefaultTreeModel(root));
-                    if (selectNode != null) {
-                        TreePath path = new TreePath(selectNode.getPath());
-                        menuTree.setSelectionPath(path);
-                        menuTree.scrollPathToVisible(path);
-                        TreeUtils.expandTreeNode(menuTree, selectNode);
-                    }
-
-                }, Throwable::printStackTrace);
+                } else {
+                    parentId = 0L;
+                    parentIdTextField.setText("主类目");
+                }
+            } catch (Exception e) {
+                SwingExceptionHandler.handle(e);
+            }
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
 

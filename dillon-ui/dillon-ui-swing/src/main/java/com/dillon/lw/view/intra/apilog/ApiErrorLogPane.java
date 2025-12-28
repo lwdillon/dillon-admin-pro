@@ -8,28 +8,32 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErrorLogRespVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.ApiErrorLogApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErrorLogRespVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
-import com.dillon.lw.api.infra.ApiErrorLogApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
+import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
+import java.awt.*;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.*;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_API_ERROR_LOG_PROCESS_STATUS;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
@@ -302,37 +306,30 @@ public class ApiErrorLogPane extends JPanel {
 
 
     private void processed(int processStatus) {
-        Long id = null;
-
         int selRow = table.getSelectedRow();
+        ApiErrorLogRespVO respVO = null;
         if (selRow != -1) {
-            id = Convert.toLong(table.getValueAt(selRow, 0));
+            respVO = (ApiErrorLogRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "确认标记为" + (processStatus == 1 ? "已处理" : "已忽略") + "？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
-
-        if (opt != 0) {
-            return;
+        if (respVO != null) {
+            processErrorLog(respVO.getId(), processStatus);
         }
+    }
 
-        RetrofitServiceManager.getInstance().create(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        authPermissionInfo -> {
-                            updateData();
-                        }, // 成功回调
-                        throwable -> throwable.printStackTrace() // 错误回调
-                );
+    private void processErrorLog(Long id, Integer processStatus) {
 
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
 
@@ -349,85 +346,76 @@ public class ApiErrorLogPane extends JPanel {
             queryMap.put("applicationName", applicationNameFiele.getText());
         }
 
-        if (userTypeComboBox.getSelectedItem() != null) {
-            DictDataSimpleRespVO selectedItem = (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
-            queryMap.put("userType", selectedItem.getValue());
-        }
         if (processStatusComboBox.getSelectedItem() != null) {
-            DictDataSimpleRespVO selectedItem = (DictDataSimpleRespVO) processStatusComboBox.getSelectedItem();
-            queryMap.put("processStatus", selectedItem.getValue());
+            DictDataSimpleRespVO dictDataSimpleRespVO = (DictDataSimpleRespVO) processStatusComboBox.getSelectedItem();
+            queryMap.put("processStatus", dictDataSimpleRespVO.getValue());
+        }
+
+        if (userTypeComboBox.getSelectedItem() != null) {
+            DictDataSimpleRespVO dictDataSimpleRespVO = (DictDataSimpleRespVO) userTypeComboBox.getSelectedItem();
+            queryMap.put("userType", dictDataSimpleRespVO.getValue());
         }
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
             String[] dateTimes = new String[2];
             dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
             dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            queryMap.put("exceptionTime", dateTimes);
         }
 
+
         queryMap.values().removeIf(Objects::isNull);
-        RetrofitServiceManager.getInstance().create(ApiErrorLogApi.class).getApiErrorLogPage(queryMap)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                })
-                .subscribe(
-                        result -> {
-                            Vector<Vector> tableData = new Vector<>();
-                            result.getList().forEach(respVO -> {
-                                Vector rowV = new Vector();
-                                rowV.add(respVO.getId());
-                                rowV.add(respVO.getUserId());
-                                rowV.add(respVO.getUserType());
-                                rowV.add(respVO.getApplicationName());
-                                rowV.add(respVO.getRequestMethod());
-                                rowV.add(respVO.getRequestUrl());
-                                rowV.add(DateUtil.format(respVO.getExceptionTime(), "yyyy-MM-dd HH:mm:ss"));
-                                rowV.add(respVO.getExceptionName());
-                                rowV.add(respVO.getProcessStatus());
-                                rowV.add(respVO);
-                                tableData.add(rowV);
-                            });
-                            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                            table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
-                                @Override
-                                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                                    JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
-
-                                    panel.add(label);
-                                    panel.setBackground(component.getBackground());
-                                    panel.setOpaque(isSelected);
-                                    return panel;
-                                }
-                            });
-                            table.getColumn("处理状态").setCellRenderer(new DefaultTableCellRenderer() {
-                                @Override
-                                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_API_ERROR_LOG_PROCESS_STATUS, value);
-
-                                    panel.add(label);
-                                    panel.setBackground(component.getBackground());
-                                    panel.setOpaque(isSelected);
-                                    return panel;
-                                }
-                            });
-                            paginationPane.setTotal(result.getTotal());
-                        }, throwable -> {
-                            throwable.printStackTrace();
-                        });
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            paginationPane.setTotal(result.getTotal());
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(respVO -> {
+                Vector rowV = new Vector();
+                rowV.add(respVO.getId());
+                rowV.add(respVO.getUserId());
+                rowV.add(respVO.getUserType());
+                rowV.add(respVO.getApplicationName());
+                rowV.add(respVO.getRequestMethod());
+                rowV.add(respVO.getRequestUrl());
+                rowV.add(DateUtil.format(respVO.getExceptionTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(respVO.getExceptionName());
+                rowV.add(respVO.getProcessStatus());
+                rowV.add(respVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                    panel.add(BadgeLabelUtil.getBadgeLabel(USER_TYPE, value));
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+            table.getColumnModel().getColumn(8).setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                    panel.add(BadgeLabelUtil.getBadgeLabel(INFRA_API_ERROR_LOG_PROCESS_STATUS, value));
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

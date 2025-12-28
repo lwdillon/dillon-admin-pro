@@ -5,15 +5,16 @@
 package com.dillon.lw.view.intra.job;
 
 import cn.hutool.core.convert.Convert;
+import com.dtflys.forest.Forest;
+import java.util.concurrent.CompletableFuture;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.api.infra.JobApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-
+import com.dtflys.forest.Forest;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * @author wenli
@@ -123,12 +124,16 @@ public class JobFormPane extends JPanel {
     public void updateData(Long id) {
         this.id = id;
 
-        RetrofitServiceManager.getInstance().create(JobApi.class).getJob(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(jobRespVO -> setValue(jobRespVO), throwable -> throwable.printStackTrace());
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).getJob(id).getCheckedData();
+        }).thenAcceptAsync(jobRespVO -> {
+            setValue(jobRespVO);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

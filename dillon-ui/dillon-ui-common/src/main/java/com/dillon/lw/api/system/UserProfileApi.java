@@ -1,30 +1,31 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
+import com.dtflys.forest.annotation.Body;
+import com.dtflys.forest.annotation.DataFile;
+import com.dtflys.forest.annotation.Get;
+import com.dtflys.forest.annotation.Post;
+import com.dtflys.forest.annotation.Put;
 
-import io.reactivex.rxjava3.core.Observable;
-import org.springframework.web.multipart.MultipartFile;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.PUT;
+import java.io.File;
 
 
-public interface UserProfileApi {
+public interface UserProfileApi extends BaseApi {
 
-    @GET("system/user/profile/get")
-    Observable<CommonResult<UserProfileRespVO>> getUserProfile();
+    @Get("system/user/profile/get")
+    CommonResult<UserProfileRespVO> getUserProfile();
 
-    @PUT("system/user/profile/update")
-    Observable<CommonResult<Boolean>> updateUserProfile(@Body UserProfileUpdateReqVO reqVO);
+    @Put("system/user/profile/update")
+    CommonResult<Boolean> updateUserProfile(@Body UserProfileUpdateReqVO reqVO);
 
-    @PUT("system/user/profile/update-password")
-    Observable<CommonResult<Boolean>> updateUserProfilePassword(@Body UserProfileUpdatePasswordReqVO reqVO);
+    @Put("system/user/profile/update-password")
+    CommonResult<Boolean> updateUserProfilePassword(@Body UserProfileUpdatePasswordReqVO reqVO);
 
-    @POST("system/user/profile/update-avatar")
-    Observable<CommonResult<String>> updateUserAvatar(@Body MultipartFile file) throws Exception;
+    @Post("system/user/profile/update-avatar")
+    CommonResult<String> updateUserAvatar(@DataFile("file") File file) throws Exception;
 
 }

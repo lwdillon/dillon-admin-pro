@@ -5,15 +5,16 @@ import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DictTypeViewModel extends BaseViewModel {
 
@@ -62,35 +64,33 @@ public class DictTypeViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        Request.getInstance().create(DictTypeApi.class).pageDictTypes(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater)).subscribe(data -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<DictTypeRespVO>>().apply(Forest.client(DictTypeApi.class).pageDictTypes(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<DictTypeRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(data.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(data.getTotal().intValue());
 
-                    ObservableList<DictTypeRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(data.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
-
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void deleteDictType(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(DictTypeApi.class).deleteDictType(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(DictTypeApi.class).deleteDictType(id));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
 

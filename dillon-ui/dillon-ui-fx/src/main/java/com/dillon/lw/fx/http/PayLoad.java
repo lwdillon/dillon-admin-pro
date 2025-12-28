@@ -6,7 +6,7 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LogoutEvent;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.utils.MessageType;
-import io.reactivex.rxjava3.functions.Function;
+import java.util.function.Function;
 
 /**
  * 剥离 最终数据
@@ -17,7 +17,7 @@ public class PayLoad<T> implements Function<CommonResult<T>, T> {
 
 
     @Override
-    public T apply(CommonResult<T> tCommonResult) throws Throwable {
+    public T apply(CommonResult<T> tCommonResult) {
         if (!tCommonResult.isSuccess()) {
 
             if (tCommonResult.getCode() == 401) {

@@ -3,8 +3,10 @@ package com.dillon.lw.components.notice;
 import com.dillon.lw.components.CenterLayout;
 import org.jdesktop.core.animation.timing.Animator;
 import org.jdesktop.core.animation.timing.PropertySetter;
+import org.jdesktop.core.animation.timing.TimingSource;
 import org.jdesktop.core.animation.timing.TimingTargetAdapter;
 import org.jdesktop.core.animation.timing.interpolators.AccelerationInterpolator;
+import org.jdesktop.swing.animation.timing.sources.SwingTimerTimingSource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,13 +39,22 @@ public class NoticeContainerPane extends JPanel {
 
     }
 
+    private Animator.Builder getAnimatorBuilder() {
+        if (Animator.getDefaultTimingSource() == null) {
+            TimingSource ts = new SwingTimerTimingSource();
+            Animator.setDefaultTimingSource(ts);
+            ts.init();
+        }
+        return new Animator.Builder();
+    }
+
     public void addMessage(WMessagePane messagePane) {
         add(messagePane);
         messagePane.getCloseButton().addActionListener(e -> {
             del(messagePane);
         });
         if (messagePane.getDuration() != 0) {
-            Animator animator = new Animator.Builder().setDuration(messagePane.getDuration(), TimeUnit.MILLISECONDS).build();
+            Animator animator = getAnimatorBuilder().setDuration(messagePane.getDuration(), TimeUnit.MILLISECONDS).build();
             animator.addTarget(new TimingTargetAdapter() {
                 @Override
                 public void end(Animator source) {
@@ -75,13 +86,13 @@ public class NoticeContainerPane extends JPanel {
                 WMessagePane m1 = (WMessagePane) getComponent(i - 1);
                 Point sp = new Point(m.getX(), m.getY());
                 Point ep = new Point(m1.getX(), m1.getY());
-                Animator animator = new Animator.Builder().setDuration(duration, TimeUnit.MILLISECONDS).build();
+                Animator animator = getAnimatorBuilder().setDuration(duration, TimeUnit.MILLISECONDS).build();
                 animator.addTarget(PropertySetter.getTarget(m, "location", new AccelerationInterpolator(0.5, 0.5), sp, ep));
                 animator.start();
             }
         }
 
-        Animator animator = new Animator.Builder().setDuration(duration, TimeUnit.MILLISECONDS).build();
+        Animator animator = getAnimatorBuilder().setDuration(duration, TimeUnit.MILLISECONDS).build();
         animator.addTarget(PropertySetter.getTarget(messagePane, "alpha", new AccelerationInterpolator(0.5, 0.5), 1f, 0f));
         animator.addTarget(PropertySetter.getTarget(messagePane, "location", new AccelerationInterpolator(0.5, 0.5), startP, endP));
         animator.addTarget(new TimingTargetAdapter() {
@@ -125,7 +136,7 @@ public class NoticeContainerPane extends JPanel {
         }
 
 
-        Animator animator = new Animator.Builder().setDuration(duration, TimeUnit.MILLISECONDS).build();
+        Animator animator = getAnimatorBuilder().setDuration(duration, TimeUnit.MILLISECONDS).build();
         animator.addTarget(PropertySetter.getTarget(messagePane, "alpha", new AccelerationInterpolator(0.5, 0.5), 0f, 1.0f));
         animator.addTarget(PropertySetter.getTarget(messagePane, "location", new AccelerationInterpolator(0.5, 0.5), startP, endP));
         animator.start();

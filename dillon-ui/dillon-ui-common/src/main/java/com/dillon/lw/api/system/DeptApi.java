@@ -1,35 +1,34 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-public interface DeptApi {
+public interface DeptApi extends BaseApi {
 
 
-    @POST("system/dept/create")
-    Observable<CommonResult<Long>> createDept(@Body DeptSaveReqVO createReqVO);
+    @Post("system/dept/create")
+    CommonResult<Long> createDept(@Body DeptSaveReqVO createReqVO);
 
-    @PUT("system/dept/update")
-    Observable<CommonResult<Boolean>> updateDept(@Body DeptSaveReqVO updateReqVO);
+    @Put("system/dept/update")
+    CommonResult<Boolean> updateDept(@Body DeptSaveReqVO updateReqVO);
 
-    @DELETE("system/dept/delete")
-    Observable<CommonResult<Boolean>> deleteDept(@Query("id") Long id);
+    @Delete("system/dept/delete")
+    CommonResult<Boolean> deleteDept(@Query("id") Long id);
 
-    @GET("system/dept/list")
-    Observable<CommonResult<List<DeptRespVO>>> getDeptList(@QueryMap Map<String,Object> reqVO);
+    @Get("system/dept/list")
+    CommonResult<List<DeptRespVO>> getDeptList(@Query Map<String, Object> reqVO);
 
-    @GET("system/dept/simple-list")
-    Observable<CommonResult<List<DeptSimpleRespVO>>> getSimpleDeptList();
+    @Get("system/dept/simple-list")
+    CommonResult<List<DeptSimpleRespVO>> getSimpleDeptList();
 
-    @GET("system/dept/get")
-    Observable<CommonResult<DeptRespVO>> getDept(@Query("id") Long id);
+    @Get("system/dept/get")
+    CommonResult<DeptRespVO> getDept(@Query("id") Long id);
 
 }

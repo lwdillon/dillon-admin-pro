@@ -1,8 +1,10 @@
 package com.dillon.lw.fx.view.system.log.operatelog;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
+import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.system.OperateLogApi;
 import com.dillon.lw.api.system.UserApi;
@@ -11,11 +13,9 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -25,7 +25,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class OperateLogViewModel extends BaseViewModel {
 
@@ -55,16 +57,14 @@ public class OperateLogViewModel extends BaseViewModel {
     public void initData() {
 
 
-
-        Request.getInstance().create(UserApi.class).getSimpleUserList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(listCommonResult -> {
-                    userSimpleRespVOObservableItems.setAll(listCommonResult);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<UserSimpleRespVO>>().apply(Forest.client(UserApi.class).getSimpleUserList());
+        }).thenAcceptAsync(listCommonResult -> {
+            userSimpleRespVOObservableItems.setAll(listCommonResult);
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
@@ -91,34 +91,34 @@ public class OperateLogViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        Request.getInstance().create(OperateLogApi.class).pageOperateLog(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(listCommonResult -> {
-                    ObservableList<OperateLogRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(listCommonResult.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(listCommonResult.getTotal().intValue());
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<OperateLogRespVO>>().apply(Forest.client(OperateLogApi.class).pageOperateLog(queryMap));
+        }).thenAcceptAsync(listCommonResult -> {
+            ObservableList<OperateLogRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(listCommonResult.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(listCommonResult.getTotal().intValue());
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void deleteOperateLog(Long operateLogId, ConfirmDialog confirmDialog) {
 
-        Request.getInstance().create(OperateLogApi.class).deleteOperateLog(operateLogId)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    EventBusCenter.get().post(new UpdateDataEvent("更新操作日志列表"));
-                    confirmDialog.close();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(OperateLogApi.class).deleteOperateLog(operateLogId));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new UpdateDataEvent("更新操作日志列表"));
+            confirmDialog.close();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     public ObjectProperty<ObservableList<OperateLogRespVO>> tableItemsProperty() {

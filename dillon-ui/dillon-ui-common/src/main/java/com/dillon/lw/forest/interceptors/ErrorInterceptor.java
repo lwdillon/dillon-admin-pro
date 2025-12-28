@@ -3,16 +3,20 @@ package com.dillon.lw.forest.interceptors;
 import com.dillon.lw.forest.config.HAStatusManager;
 import com.dillon.lw.framework.common.exception.ServiceException;
 import com.dillon.lw.framework.common.pojo.CommonResult;
-import com.dtflys.forest.http.*;
-import com.dtflys.forest.interceptor.ForestInterceptor;
 import com.dtflys.forest.exceptions.ForestRuntimeException;
+import com.dtflys.forest.http.ForestRequest;
+import com.dtflys.forest.http.ForestResponse;
+import com.dtflys.forest.interceptor.Interceptor;
 import com.dtflys.forest.interceptor.ResponseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.*;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.UnknownHostException;
 
-public class ErrorInterceptor implements ForestInterceptor {
+public class ErrorInterceptor implements Interceptor {
 
     private static final Logger log =
             LoggerFactory.getLogger(ErrorInterceptor.class);
@@ -27,6 +31,13 @@ public class ErrorInterceptor implements ForestInterceptor {
             int status = response.getStatusCode();
             String url = request.getUrl();
 
+            if(status==401){
+                throw new ServiceException(
+                        401,
+                        "账号未登录\n" + url,
+                        ex
+                );
+            }
             if (status == 404) {
                 throw new ServiceException(
                         404,

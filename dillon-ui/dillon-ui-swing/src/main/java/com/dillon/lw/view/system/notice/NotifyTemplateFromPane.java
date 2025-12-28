@@ -6,20 +6,20 @@ package com.dillon.lw.view.system.notice;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.NotifyTemplateApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplateRespVO;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplateSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.system.NotifyTemplateApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -162,14 +162,20 @@ public class NotifyTemplateFromPane extends JPanel {
 
         }
 
-        RetrofitServiceManager.getInstance().create(NotifyTemplateApi.class).getNotifyTemplate(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(resp -> {
-                    setValue(resp);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        if (id == null) {
+            return;
+        }
+
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData();
+        }).thenAcceptAsync(resp -> {
+            setValue(resp);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 

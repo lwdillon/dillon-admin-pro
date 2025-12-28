@@ -10,18 +10,19 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.control.TreeItem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 菜单对话框视图模型
@@ -52,39 +53,36 @@ public class MenuFromViewModel extends BaseViewModel {
     public void updateMenu(ConfirmDialog dialog) {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
-        Request.getInstance().create(MenuApi.class).updateMenu(menuSaveVO)
-                .subscribeOn(Schedulers.io())//在IO线程执行网络请求
-                .map(new PayLoad<>())//转换结果
-                .observeOn(Schedulers.from(Platform::runLater))//在JavaFX线程执行
-                .subscribe(result -> {// 订阅成功
-                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));// 发布更新菜单列表事件
-                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));// 发布更新侧边菜单事件
-                    EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));// 发布成功消息事件
-                    dialog.close();// 关闭对话框
-                }, throwable -> {// 订阅失败
-                    throwable.printStackTrace();// 打印异常堆栈
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(MenuApi.class).updateMenu(menuSaveVO));
+        }).thenAcceptAsync(result -> {// 订阅成功
+            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));// 发布更新菜单列表事件
+            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));// 发布更新侧边菜单事件
+            EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));// 发布成功消息事件
+            dialog.close();// 关闭对话框
+        }, Platform::runLater).exceptionally(throwable -> {// 订阅失败
+            throwable.printStackTrace();// 打印异常堆栈
+            return null;
+        });
 
     }
 
     public void createMenu(ConfirmDialog dialog) {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
-        Request.getInstance().create(MenuApi.class).createMenu(menuSaveVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(listCommonResult -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Long>().apply(Forest.client(MenuApi.class).createMenu(menuSaveVO));
+        }).thenAcceptAsync(listCommonResult -> {
 
+            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
+            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
+            EventBusCenter.get().post(new MessageEvent("添加成功", MessageType.SUCCESS));
+            dialog.close();
 
-                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
-                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
-                    EventBusCenter.get().post(new MessageEvent("添加成功", MessageType.SUCCESS));
-                    dialog.close();
-
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
     }
 
@@ -95,55 +93,54 @@ public class MenuFromViewModel extends BaseViewModel {
         BeanUtil.copyProperties(sysMenu, saveVO);
         setMenuRespVO(saveVO);
 
-        Request.getInstance().create(MenuApi.class).getSimpleMenuList()
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(listCommonResult -> {
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<MenuSimpleRespVO>>().apply(Forest.client(MenuApi.class).getSimpleMenuList());
+        }).thenAcceptAsync(listCommonResult -> {
 
-                    MenuSimpleRespVO respVO = new MenuSimpleRespVO();
-                    respVO.setId(0L);
-                    respVO.setName("主类目");
+            MenuSimpleRespVO respVO = new MenuSimpleRespVO();
+            respVO.setId(0L);
+            respVO.setName("主类目");
 
-                    TreeItem<MenuSimpleRespVO> root = new TreeItem<>(respVO);
-                    root.setExpanded(true);
-                    // Build the tree
-                    Map<Long, TreeItem<MenuSimpleRespVO>> nodeMap = new HashMap<>();
-                    nodeMap.put(0L, root); // Root node
+            TreeItem<MenuSimpleRespVO> root = new TreeItem<>(respVO);
+            root.setExpanded(true);
+            // Build the tree
+            Map<Long, TreeItem<MenuSimpleRespVO>> nodeMap = new HashMap<>();
+            nodeMap.put(0L, root); // Root node
 
-                    for (MenuSimpleRespVO menu : listCommonResult) {
-                        if (menu.getType() == 3) {
-                            continue;
-                        }
+            for (MenuSimpleRespVO menu : listCommonResult) {
+                if (menu.getType() == 3) {
+                    continue;
+                }
 
-                        TreeItem<MenuSimpleRespVO> node = new TreeItem<MenuSimpleRespVO>(menu);
-                        nodeMap.put(menu.getId(), node);
+                TreeItem<MenuSimpleRespVO> node = new TreeItem<MenuSimpleRespVO>(menu);
+                nodeMap.put(menu.getId(), node);
 
+            }
+
+            listCommonResult.forEach(menuSimpleRespVO -> {
+                if (menuSimpleRespVO.getType() != 3) {
+                    TreeItem<MenuSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                    TreeItem<MenuSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
+                    if (parentNode != null) {
+                        parentNode.getChildren().add(childNode);
                     }
+                }
 
-                    listCommonResult.forEach(menuSimpleRespVO -> {
-                        if (menuSimpleRespVO.getType() != 3) {
-                            TreeItem<MenuSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                            TreeItem<MenuSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
-                            if (parentNode != null) {
-                                parentNode.getChildren().add(childNode);
-                            }
-                        }
+            });
 
-                    });
-
-                    if (nodeMap.get(sysMenu.getParentId()) != null) {
-                        selectTreeItem.set(nodeMap.get(sysMenu.getParentId()));
-                    } else {
-                        selectTreeItem.set(root);
-                    }
-                    menuTreeRoot.set(root);
+            if (nodeMap.get(sysMenu.getParentId()) != null) {
+                selectTreeItem.set(nodeMap.get(sysMenu.getParentId()));
+            } else {
+                selectTreeItem.set(root);
+            }
+            menuTreeRoot.set(root);
 
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                    setMenuRespVO(new MenuSaveVO());
-                });
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            setMenuRespVO(new MenuSaveVO());
+            return null;
+        });
 
 
     }

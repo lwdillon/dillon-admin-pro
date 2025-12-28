@@ -4,14 +4,14 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErrorLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.api.infra.ApiErrorLogApi;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dtflys.forest.Forest;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class ApiErrorLogViewModel extends BaseViewModel {
 
@@ -65,35 +66,33 @@ public class ApiErrorLogViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        Request.getInstance().create(ApiErrorLogApi.class).getApiErrorLogPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    ObservableList<ApiErrorLogRespVO> respVOS = FXCollections.observableArrayList();
-                    respVOS.addAll(data.getList());
-                    tableItems.set(respVOS);
-                    totalProperty().set(data.getTotal().intValue());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<ApiErrorLogRespVO>>().apply(Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<ApiErrorLogRespVO> respVOS = FXCollections.observableArrayList();
+            respVOS.addAll(data.getList());
+            tableItems.set(respVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void updateApiErrorLogProcess(Long id, Integer processStatus, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                    // 重新加载数据
-                    loadTableData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+            confirmDialog.close();
+            // 重新加载数据
+            loadTableData();
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
 

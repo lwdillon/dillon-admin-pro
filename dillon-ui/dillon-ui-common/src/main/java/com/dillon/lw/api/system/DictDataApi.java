@@ -1,37 +1,36 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-public interface DictDataApi {
+public interface DictDataApi extends BaseApi {
 
 
-    @POST("system/dict-data/create")
-    Observable<CommonResult<Long>> createDictData(@Body DictDataSaveReqVO createReqVO);
+    @Post("system/dict-data/create")
+    CommonResult<Long> createDictData(@Body DictDataSaveReqVO createReqVO);
 
-    @PUT("system/dict-data/update")
-    Observable<CommonResult<Boolean>> updateDictData(@Body DictDataSaveReqVO updateReqVO);
+    @Put("system/dict-data/update")
+    CommonResult<Boolean> updateDictData(@Body DictDataSaveReqVO updateReqVO);
 
-    @DELETE("system/dict-data/delete")
-    Observable<CommonResult<Boolean>> deleteDictData(@Query("id") Long id);
+    @Delete("system/dict-data/delete")
+    CommonResult<Boolean> deleteDictData(@Query("id") Long id);
 
-    @GET("system/dict-data/simple-list")
-    Observable<CommonResult<List<DictDataSimpleRespVO>>> getSimpleDictDataList();
+    @Get("system/dict-data/simple-list")
+    CommonResult<List<DictDataSimpleRespVO>> getSimpleDictDataList();
 
-    @GET("system/dict-data/page")
-    Observable<CommonResult<PageResult<DictDataRespVO>>> getDictTypePage(@QueryMap Map<String, Object> map);
+    @Get("system/dict-data/page")
+    CommonResult<PageResult<DictDataRespVO>> getDictTypePage(@Query Map<String, Object> map);
 
-    @GET("system/dict-data/get")
-    Observable<CommonResult<DictDataRespVO>> getDictData(@Query("id") Long id);
+    @Get("system/dict-data/get")
+    CommonResult<DictDataRespVO> getDictData(@Query("id") Long id);
 
 
 }

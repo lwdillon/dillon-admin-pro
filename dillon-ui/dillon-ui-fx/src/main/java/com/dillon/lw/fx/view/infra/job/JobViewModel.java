@@ -5,16 +5,16 @@ import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.infra.JobApi;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dtflys.forest.Forest;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -23,7 +23,9 @@ import javafx.collections.ObservableList;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class JobViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -57,73 +59,68 @@ public class JobViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        Request.getInstance().create(JobApi.class).getJobPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    tableItems.setAll(data.getList());
-                    total.set(data.getTotal().intValue());
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<JobRespVO>>().apply(Forest.client(JobApi.class).getJobPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            tableItems.setAll(data.getList());
+            total.set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void getJobNextTimes(Long id, Integer count) {
         nextDateTimes.clear();
-        Request.getInstance().create(JobApi.class).getJobNextTimes(id, count)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    nextDateTimes.setAll(data);
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<List<LocalDateTime>>().apply(Forest.client(JobApi.class).getJobNextTimes(id, count));
+        }).thenAcceptAsync(data -> {
+            nextDateTimes.setAll(data);
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public void deleteJob(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(JobApi.class).deleteJob(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).deleteJob(id));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public void triggerJob(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(JobApi.class).triggerJob(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("触发成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).triggerJob(id));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+            EventBusCenter.get().post(new MessageEvent("触发成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public void updateJobStatus(Long id, Integer status, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(JobApi.class).updateJobStatus(id, status)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).updateJobStatus(id, status));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     @Subscribe

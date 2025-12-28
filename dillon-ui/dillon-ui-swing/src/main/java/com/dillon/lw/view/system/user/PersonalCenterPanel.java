@@ -1,17 +1,17 @@
 package com.dillon.lw.view.system.user;
 
 import cn.hutool.core.date.DateUtil;
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.notice.WMessage;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.UserProfileApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +19,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.CompletableFuture;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
 
@@ -243,27 +244,27 @@ public class PersonalCenterPanel extends JPanel implements Observer {
      */
     public void updateData() {
 
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserProfileApi.class).getUserProfile().getCheckedData();
+        }).thenAcceptAsync(userProfileRespVO -> {
+            userNameLabel.setText(userProfileRespVO.getUsername());
+            phoneNumberLabel.setText(userProfileRespVO.getMobile());
+            emailLabel.setText(userProfileRespVO.getEmail());
+            deptLabel.setText(userProfileRespVO.getDept().getName());
+            postLabel.setText(userProfileRespVO.getPosts() + "");
+            roleLabel.setText(userProfileRespVO.getRoles() + "");
+            createTimeLabel.setText(DateUtil.format(userProfileRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
 
-        RetrofitServiceManager.getInstance().create(UserProfileApi.class).getUserProfile().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(sysUser -> {
-
-                    userNameLabel.setText(sysUser.getUsername());
-                    phoneNumberLabel.setText(sysUser.getMobile());
-                    emailLabel.setText(sysUser.getEmail());
-                    deptLabel.setText(sysUser.getDept().getName());
-                    postLabel.setText(sysUser.getPosts() + "");
-                    roleLabel.setText(sysUser.getRoles() + "");
-                    createTimeLabel.setText(DateUtil.format(sysUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-
-                    nickNameTextField.setText(sysUser.getNickname());
-                    phoneTextField.setText(sysUser.getMobile());
-                    emailTextField.setText(sysUser.getEmail());
-                    sexComboBox.setSelectedItem(sysUser.getSex());
-                }, throwable -> throwable.printStackTrace());
-
-
+            nickNameTextField.setText(userProfileRespVO.getNickname());
+            phoneTextField.setText(userProfileRespVO.getMobile());
+            emailTextField.setText(userProfileRespVO.getEmail());
+            sexComboBox.setSelectedItem(userProfileRespVO.getSex());
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -279,15 +280,18 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         sysUser.setMobile(phoneTextField.getText());
         sysUser.setEmail(emailTextField.getText());
         sysUser.setSex(sexComboBox.getSelectedIndex());
-        RetrofitServiceManager.getInstance().create(UserProfileApi.class).updateUserProfile(sysUser).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserProfileApi.class).updateUserProfile(sysUser).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -323,15 +327,17 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         reqVO.setNewPassword(newPwd);
         reqVO.setOldPassword(oldPwd);
 
-        RetrofitServiceManager.getInstance().create(UserProfileApi.class).updateUserProfilePassword(reqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(UserProfileApi.class).updateUserProfilePassword(reqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

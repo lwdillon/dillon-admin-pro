@@ -6,19 +6,18 @@ package com.dillon.lw.view.system.role;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.jidesoft.swing.CheckBoxTree;
-import com.jidesoft.tree.TreeUtils;
+import com.dillon.lw.api.system.DeptApi;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.module.system.enums.permission.DataScopeEnum;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
+import com.jidesoft.swing.CheckBoxTree;
+import com.jidesoft.tree.TreeUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -27,8 +26,9 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -256,46 +256,47 @@ public class DataPermissionPane extends JPanel {
 
         }
 
-        RetrofitServiceManager.getInstance().create(DeptApi.class).getSimpleDeptList().map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(deptResult -> {
-                    DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
-                    // Build the tree
-                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                    nodeMap.put(0L, deptRoot); // Root node
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
+        }).thenAcceptAsync(deptResult -> {
+            DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
+            // Build the tree
+            Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+            nodeMap.put(0L, deptRoot); // Root node
 
-                    List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
-                    for (DeptSimpleRespVO simpleRespVO : deptResult) {
-                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
-                        nodeMap.put(simpleRespVO.getId(), node);
-                        if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
-                            selNodes.add(node);
-                        }
+            List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
+            for (DeptSimpleRespVO simpleRespVO : deptResult) {
+                DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                nodeMap.put(simpleRespVO.getId(), node);
+                if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
+                    selNodes.add(node);
+                }
+            }
+
+            deptResult.forEach(deptSimpleRespVO -> {
+                DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+                DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.add(childNode);
+                }
+            });
+            if (selNodes != null) {
+                for (DefaultMutableTreeNode node : selNodes) {
+                    if (node.isLeaf()) {
+                        deptTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
                     }
 
-                    deptResult.forEach(deptSimpleRespVO -> {
-                        DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
-                        DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.add(childNode);
-                        }
-                    });
-                    if (selNodes != null) {
-                        for (DefaultMutableTreeNode node : selNodes) {
-                            if (node.isLeaf()) {
-                                deptTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
-                            }
+                }
+            }
+            TreeUtils.expandAll(deptTree);
+            TreeUtils.expandAll(deptTree);
 
-                        }
-                    }
-                    TreeUtils.expandAll(deptTree);
-                    TreeUtils.expandAll(deptTree);
-
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

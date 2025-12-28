@@ -1,37 +1,36 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.*;
+import com.dtflys.forest.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-public interface PostApi {
+public interface PostApi extends BaseApi {
 
 
-    @POST("system/post/create")
-    Observable<CommonResult<Long>> createPost(@Body PostSaveReqVO createReqVO);
+    @Post("system/post/create")
+    CommonResult<Long> createPost(@Body PostSaveReqVO createReqVO);
 
-    @PUT("system/post/update")
-    Observable<CommonResult<Boolean>> updatePost(@Body PostSaveReqVO updateReqVO);
+    @Put("system/post/update")
+    CommonResult<Boolean> updatePost(@Body PostSaveReqVO updateReqVO);
 
-    @DELETE("system/post/delete?id={id}")
-    Observable<CommonResult<Boolean>> deletePost(@Path("id") Long id);
+    @Delete("system/post/delete")
+    CommonResult<Boolean> deletePost(@Query("id") Long id);
 
-    @GET("system/post/get?id={id}")
-    Observable<CommonResult<PostRespVO>> getPost(@Path("id") Long id);
+    @Get("system/post/get")
+    CommonResult<PostRespVO> getPost(@Query("id") Long id);
 
-    @GET("system/post/simple-list")
-    Observable<CommonResult<List<PostSimpleRespVO>>> getSimplePostList();
+    @Get("system/post/simple-list")
+    CommonResult<List<PostSimpleRespVO>> getSimplePostList();
 
-    @GET("system/post/page")
-    Observable<CommonResult<PageResult<PostRespVO>>> getPostPage(@QueryMap Map<String, Object> queryMap);
+    @Get("system/post/page")
+    CommonResult<PageResult<PostRespVO>> getPostPage(@Query Map<String, Object> queryMap);
 
 
 }

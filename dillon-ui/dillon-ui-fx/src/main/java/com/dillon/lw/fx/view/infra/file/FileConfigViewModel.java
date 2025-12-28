@@ -2,21 +2,20 @@ package com.dillon.lw.fx.view.infra.file;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import com.google.gson.JsonObject;
 import com.dillon.lw.api.infra.FileConfigApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -28,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class FileConfigViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -67,58 +67,55 @@ public class FileConfigViewModel extends BaseViewModel {
         tableItems.clear();
 
 
-        Request.getInstance().create(FileConfigApi.class).getFileConfigPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    List<JsonObject> list = data.getList();
-                    for (JsonObject jsonObject : list) {
-                        FileConfigRespVO fileConfigRespVO = new FileConfigRespVO();
-                        fileConfigRespVO.setId(jsonObject.get("id").getAsLong());
-                        fileConfigRespVO.setName(jsonObject.get("name").getAsString());
-                        fileConfigRespVO.setStorage(jsonObject.get("storage").getAsInt());
-                        fileConfigRespVO.setRemark(jsonObject.get("remark").getAsString());
-                        fileConfigRespVO.setMaster(jsonObject.get("master").getAsBoolean());
-                        fileConfigRespVO.setCreateTime(Convert.toLocalDateTime(jsonObject.get("createTime")));
-                        tableItems.add(fileConfigRespVO);
-                    }
-                    totalProperty().set(data.getTotal().intValue());
-                }, e -> {
-                    e.printStackTrace();
-                    total.set(0);
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<Map<String, Object>>>().apply(Forest.client(FileConfigApi.class).getFileConfigPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            List<Map<String, Object>> list = data.getList();
+            for (Map<String, Object> map : list) {
+                FileConfigRespVO fileConfigRespVO = new FileConfigRespVO();
+                fileConfigRespVO.setId(Convert.toLong(map.get("id")));
+                fileConfigRespVO.setName(Convert.toStr(map.get("name")));
+                fileConfigRespVO.setStorage(Convert.toInt(map.get("storage")));
+                fileConfigRespVO.setRemark(Convert.toStr(map.get("remark")));
+                fileConfigRespVO.setMaster(Convert.toBool(map.get("master")));
+                fileConfigRespVO.setCreateTime(Convert.toLocalDateTime(map.get("createTime")));
+                tableItems.add(fileConfigRespVO);
+            }
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            total.set(0);
+            return null;
+        });
 
     }
 
     public void updateFileConfigMaster(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(FileConfigApi.class).updateFileConfigMaster(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                    EventBusCenter.get().post(new MessageEvent("更新失败", MessageType.DANGER));
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(FileConfigApi.class).updateFileConfigMaster(id));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            EventBusCenter.get().post(new MessageEvent("更新失败", MessageType.DANGER));
+            return null;
+        });
     }
 
     public void deleteFileConfig(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(FileConfigApi.class).deleteFileConfig(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                    EventBusCenter.get().post(new MessageEvent("删除失败", MessageType.DANGER));
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(FileConfigApi.class).deleteFileConfig(id));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            EventBusCenter.get().post(new MessageEvent("删除失败", MessageType.DANGER));
+            return null;
+        });
     }
 
     @Subscribe

@@ -9,11 +9,10 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -23,8 +22,10 @@ import javafx.scene.control.TreeItem;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public class RoleAssignMenuFormViewModel extends BaseViewModel {
     private StringProperty name = new SimpleStringProperty();
@@ -39,53 +40,50 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         code.set(roleRespVO.getCode());
         roleId.set(roleRespVO.getId());
 
-        Request.getInstance().create(PermissionApi.class).getRoleMenuList(roleRespVO.getId())
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .doOnNext(data -> {
-                    menuIds.clear();
-                    menuIds.addAll(data);
-                })
-                .observeOn(Schedulers.io())
-                .flatMap(setCommonResult -> {
-                    return Request.getInstance().create(MenuApi.class).getSimpleMenuList();
-                }).map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(menuList -> {
-                    MenuSimpleRespVO respVO = new MenuSimpleRespVO();
-                    respVO.setId(0L);
-                    respVO.setName("主类目");
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Set<Long>>().apply(Forest.client(PermissionApi.class).getRoleMenuList(roleRespVO.getId()));
+        }).thenAcceptAsync(data -> {
+            menuIds.clear();
+            menuIds.addAll(data);
+        }, Platform::runLater).thenComposeAsync(data -> {
+            return CompletableFuture.supplyAsync(() -> {
+                return new PayLoad<List<MenuSimpleRespVO>>().apply(Forest.client(MenuApi.class).getSimpleMenuList());
+            });
+        }).thenAcceptAsync(menuList -> {
+            MenuSimpleRespVO respVO = new MenuSimpleRespVO();
+            respVO.setId(0L);
+            respVO.setName("主类目");
 
-                    CheckBoxTreeItem<MenuSimpleRespVO> root = new CheckBoxTreeItem<>(respVO);
-                    root.setExpanded(true);
-                    // Build the treeExpanded
-                    Map<Long, CheckBoxTreeItem<MenuSimpleRespVO>> nodeMap = new HashMap<>();
-                    nodeMap.put(0l, root); // Root node
+            CheckBoxTreeItem<MenuSimpleRespVO> root = new CheckBoxTreeItem<>(respVO);
+            root.setExpanded(true);
+            // Build the treeExpanded
+            Map<Long, CheckBoxTreeItem<MenuSimpleRespVO>> nodeMap = new HashMap<>();
+            nodeMap.put(0l, root); // Root node
 
 
-                    for (MenuSimpleRespVO menu : menuList) {
+            for (MenuSimpleRespVO menu : menuList) {
 
-                        CheckBoxTreeItem<MenuSimpleRespVO> item = new CheckBoxTreeItem<>(menu);
-                        nodeMap.put(menu.getId(), item);
+                CheckBoxTreeItem<MenuSimpleRespVO> item = new CheckBoxTreeItem<>(menu);
+                nodeMap.put(menu.getId(), item);
 
-                    }
+            }
 
-                    menuList.forEach(menuSimpleRespVO -> {
-                        CheckBoxTreeItem<MenuSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                        CheckBoxTreeItem<MenuSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
-                        if (parentNode != null) {
-                            parentNode.getChildren().add(childNode);
-                        }
-                        childNode.setSelected(menuIds.contains(menuSimpleRespVO.getId()));
+            menuList.forEach(menuSimpleRespVO -> {
+                CheckBoxTreeItem<MenuSimpleRespVO> parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                CheckBoxTreeItem<MenuSimpleRespVO> childNode = nodeMap.get(menuSimpleRespVO.getId());
+                if (parentNode != null) {
+                    parentNode.getChildren().add(childNode);
+                }
+                childNode.setSelected(menuIds.contains(menuSimpleRespVO.getId()));
 
-                    });
+            });
 
-                    menuTreeRoot.set(root);
+            menuTreeRoot.set(root);
 
-                }, e -> {
-                    e.printStackTrace();
-                });
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
     }
 
@@ -96,17 +94,17 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         Set<Long> selMenuIds = new HashSet<>();
         findSelectedItems(menuTreeRoot.get(), selMenuIds);
         permissionAssignRoleMenuReqVO.setMenuIds(selMenuIds);
-        Request.getInstance().create(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-                    EventBusCenter.get().post(new MessageEvent("分配成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+            EventBusCenter.get().post(new MessageEvent("分配成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public String getName() {

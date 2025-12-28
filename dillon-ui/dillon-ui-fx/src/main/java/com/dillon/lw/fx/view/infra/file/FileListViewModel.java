@@ -1,17 +1,17 @@
 package com.dillon.lw.fx.view.infra.file;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileRespVO;
 import com.dillon.lw.api.infra.FileApi;
+import com.dtflys.forest.Forest;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class FileListViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -57,48 +58,45 @@ public class FileListViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        Request.getInstance().create(FileApi.class).getFilePage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    tableItems.setAll(data.getList());
-                    total.set(data.getTotal().intValue());
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<FileRespVO>>().apply(Forest.client(FileApi.class).getFilePage(queryMap));
+        }).thenAcceptAsync(data -> {
+            tableItems.setAll(data.getList());
+            total.set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void uploadFile(String path, File file) {
 
-        Request.getInstance().create(FileApi.class).uploadFile(path, file)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
-                    EventBusCenter.get().post(new MessageEvent("上传成功", MessageType.SUCCESS));
-                    loadTableData();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<String>().apply(Forest.client(FileApi.class).uploadFile(path, file));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
+            EventBusCenter.get().post(new MessageEvent("上传成功", MessageType.SUCCESS));
+            loadTableData();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public void deleteFile(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(FileApi.class).deleteFile(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                    confirmDialog.close();
-                    loadTableData();
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(FileApi.class).deleteFile(id));
+        }).thenAcceptAsync(data -> {
+            EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+            confirmDialog.close();
+            loadTableData();
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     public int getTotal() {

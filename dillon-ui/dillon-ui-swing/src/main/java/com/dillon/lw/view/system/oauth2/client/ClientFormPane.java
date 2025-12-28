@@ -14,15 +14,15 @@ import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleR
 import com.dillon.lw.module.system.controller.admin.oauth2.vo.client.OAuth2ClientRespVO;
 import com.dillon.lw.module.system.controller.admin.oauth2.vo.client.OAuth2ClientSaveReqVO;
 import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.api.system.OAuth2ClientApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
@@ -311,22 +311,27 @@ public class ClientFormPane extends JPanel {
 
         this.id = id;
 
-        RetrofitServiceManager.getInstance().create(OAuth2ClientApi.class).getOAuth2Client(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    setValue(result);
-                    List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_OAUTH2_GRANT_TYPE);
-                    // 提取所有 label
-                    List<String> labels = dictDataSimpleRespVOList.stream().map(DictDataSimpleRespVO::getLabel).collect(Collectors.toList());
-                    authorizedGrantTypesCheckBoxList.setModel(new DefaultComboBoxModel(labels.toArray()));
-                    authorizedGrantTypesCheckBoxList.setSelectedObjects(result.getAuthorizedGrantTypes().toArray());
+        CompletableFuture.supplyAsync(() -> {
+            if (id == null) {
+                return new OAuth2ClientRespVO();
+            }
+            return Forest.client(OAuth2ClientApi.class).getOAuth2Client(id).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            setValue(result);
+            List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_OAUTH2_GRANT_TYPE);
+            // 提取所有 label
+            List<String> labels = dictDataSimpleRespVOList.stream().map(DictDataSimpleRespVO::getLabel).collect(Collectors.toList());
+            authorizedGrantTypesCheckBoxList.setModel(new DefaultComboBoxModel(labels.toArray()));
+            if (result.getAuthorizedGrantTypes() != null) {
+                authorizedGrantTypesCheckBoxList.setSelectedObjects(result.getAuthorizedGrantTypes().toArray());
+            }
 
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
-
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

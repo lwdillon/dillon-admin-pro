@@ -6,20 +6,20 @@ package com.dillon.lw.view.system.notice;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.NoticeApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeRespVO;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.system.NoticeApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -146,13 +146,16 @@ public class NoticeFormPane extends JPanel {
 
         }
 
-        RetrofitServiceManager.getInstance().create(NoticeApi.class).getNotice(id)
-                .map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(respVO1 -> {
-                    setValue(respVO1);
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(NoticeApi.class).getNotice(id).getCheckedData();
+        }).thenAcceptAsync(respVO1 -> {
+            setValue(respVO1);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 

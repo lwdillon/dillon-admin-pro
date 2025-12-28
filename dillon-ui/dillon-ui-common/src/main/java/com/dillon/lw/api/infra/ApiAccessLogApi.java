@@ -1,20 +1,20 @@
 package com.dillon.lw.api.infra;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.GET;
-import retrofit2.http.QueryMap;
+import com.dtflys.forest.annotation.Get;
+import com.dtflys.forest.annotation.Query;
 
 import java.util.Map;
 
-public interface ApiAccessLogApi {
+public interface ApiAccessLogApi extends BaseApi {
 
 
     // "获得API 访问日志分页")
-    @GET("infra/api-access-log/page")
-    Observable<CommonResult<PageResult<ApiAccessLogRespVO>>> getApiAccessLogPage(@QueryMap Map<String, Object> pageReqVO);
+    @Get("infra/api-access-log/page")
+    CommonResult<PageResult<ApiAccessLogRespVO>> getApiAccessLogPage(@Query Map<String, Object> pageReqVO);
 
 
 }

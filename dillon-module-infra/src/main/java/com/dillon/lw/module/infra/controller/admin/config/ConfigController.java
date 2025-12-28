@@ -93,6 +93,14 @@ public class ConfigController {
         return success(config.getValue());
     }
 
+    @GetMapping(value = "/get-by-key")
+    @Operation(summary = "根据参数键名查询参数值", description = "不可见的配置，不允许返回给前端")
+    @Parameter(name = "key", description = "参数键", required = true, example = "yunai.biz.username")
+    public CommonResult<ConfigRespVO> getConfigByKey(@RequestParam("key") String key) {
+        ConfigDO config = configService.getConfigByKey(key);
+        return success(ConfigConvert.INSTANCE.convert(config));
+    }
+
     @GetMapping("/page")
     @Operation(summary = "获取参数配置分页")
     @PreAuthorize("@ss.hasPermission('infra:config:query')")

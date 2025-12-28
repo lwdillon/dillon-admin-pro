@@ -1,15 +1,11 @@
 package com.dillon.lw.api.system;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
+import com.dtflys.forest.annotation.*;
 
 import java.util.Set;
 
@@ -19,19 +15,19 @@ import java.util.Set;
  * @permissionor dillon
  */
 
-public interface PermissionApi {
-    @GET("system/permission/list-role-menus")
-    Observable<CommonResult<Set<Long>>> getRoleMenuList(@Query("roleId") Long roleId);
+public interface PermissionApi extends BaseApi {
+    @Get("system/permission/list-role-menus")
+    CommonResult<Set<Long>> getRoleMenuList(@Query("roleId") Long roleId);
 
-    @POST("system/permission/assign-role-menu")
-    Observable<CommonResult<Boolean>> assignRoleMenu(@Body PermissionAssignRoleMenuReqVO reqVO);
+    @Post("system/permission/assign-role-menu")
+    CommonResult<Boolean> assignRoleMenu(@Body PermissionAssignRoleMenuReqVO reqVO);
 
-    @POST("system/permission/assign-role-data-scope")
-    Observable<CommonResult<Boolean>> assignRoleDataScope(@Body PermissionAssignRoleDataScopeReqVO reqVO);
+    @Post("system/permission/assign-role-data-scope")
+    CommonResult<Boolean> assignRoleDataScope(@Body PermissionAssignRoleDataScopeReqVO reqVO);
 
-    @GET("system/permission/list-user-roles")
-    Observable<CommonResult<Set<Long>>> listAdminRoles(@Query("userId") Long userId);
+    @Get("system/permission/list-user-roles")
+    CommonResult<Set<Long>> listAdminRoles(@Query("userId") Long userId);
 
-    @POST("system/permission/assign-user-role")
-    Observable<CommonResult<Boolean>> assignUserRole(@Body PermissionAssignUserRoleReqVO reqVO);
+    @Post("system/permission/assign-user-role")
+    CommonResult<Boolean> assignUserRole(@Body PermissionAssignUserRoleReqVO reqVO);
 }

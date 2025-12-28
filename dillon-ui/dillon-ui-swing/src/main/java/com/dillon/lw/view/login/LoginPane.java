@@ -7,30 +7,29 @@ package com.dillon.lw.view.login;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
+import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.api.system.AuthApi;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
  */
 public class LoginPane extends JPanel {
     private List<FunctionType> functions = new ArrayList<>();
-    private Disposable disposable;
+    private Timer timer;
 
     public LoginPane() {
         initComponents();
@@ -45,14 +44,15 @@ public class LoginPane extends JPanel {
         titleLabel = new JLabel();
         subTitleLabel = new JLabel();
         progressBar = new JProgressBar();
-        userNameField = new JTextField();
-        passwordField = new JPasswordField();
+        userNameField = new JTextField("admin");
+        passwordField = new JPasswordField("admin123");
         rememberCheckBox = new JCheckBox();
         msgLabel = new JLabel();
         loginButton = new JButton();
         corporationText = new JLabel();
 
         //======== this ========
+        setOpaque(false);
         setPreferredSize(new Dimension(900, 580));
         setLayout(new MigLayout(
             "fill,hidemode 3",
@@ -72,6 +72,7 @@ public class LoginPane extends JPanel {
 
         //======== contentPane ========
         {
+            contentPane.setOpaque(false);
             contentPane.setBorder(new EmptyBorder(5, 30, 5, 45));
             contentPane.setLayout(new MigLayout(
                 "fill,hidemode 3",
@@ -190,43 +191,38 @@ public class LoginPane extends JPanel {
 
     private void intListeners() {
         loginButton.addActionListener(e -> login());
-        disposable = Observable.interval(3, 3, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(item -> {
-                    CardLayout cardLayout = (CardLayout) infoPane.getLayout();
-                    cardLayout.next(infoPane);
-                });
+        timer = new Timer(3000, e -> {
+            CardLayout cardLayout = (CardLayout) infoPane.getLayout();
+            cardLayout.next(infoPane);
+        });
+        timer.start();
     }
 
     private void login() {
 
         AuthLoginReqVO authLoginReqVO = new AuthLoginReqVO();
         authLoginReqVO.setUsername(userNameField.getText());
-        authLoginReqVO.setPassword(passwordField.getText());
-        RetrofitServiceManager.getInstance().create(AuthApi.class).login(authLoginReqVO)
-                .subscribeOn(Schedulers.io()) // 网络请求在 IO 线程执行
-                .map(new PayLoad<>()) // 提取登录响应中的数据
-                .flatMap(authLoginRespVO -> {
-                    // 更新 Token
-                    AppStore.setAuthLoginRespVO(authLoginRespVO);
-                    // 发起权限信息请求
-                    return RetrofitServiceManager.getInstance().create(AuthApi.class).getPermissionInfo();
-                })
-                .map(new PayLoad<>()) // 提取权限响应中的数据
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater)) // 切换到 Swing 的事件分发线程
-                .doOnSubscribe(disposable -> {
-                    // UI 更新：开始请求
-                    updateUiBeforeRequest();
-                })
-                .doFinally(() -> {
-                    // UI 更新：请求结束
-                    resetUiAfterRequest();
-                })
-                .subscribe(
-                        authPermissionInfo -> handleSuccess(authPermissionInfo), // 成功回调
-                        throwable -> handleError(throwable) // 错误回调
-                );
+        authLoginReqVO.setPassword(new String(passwordField.getPassword()));
+
+        updateUiBeforeRequest();
+        CompletableFuture.supplyAsync(() -> {
+            AuthApi authApi = Forest.client(AuthApi.class);
+            AuthLoginRespVO authLoginRespVO = authApi.login(authLoginReqVO).getCheckedData();
+            // 更新 Token
+            AppStore.setAuthLoginRespVO(authLoginRespVO);
+            // 发起权限信息请求
+            return authApi.getPermissionInfo().getCheckedData();
+        }).thenAcceptAsync(authPermissionInfo -> {
+            handleSuccess(authPermissionInfo);
+        }, SwingUtilities::invokeLater).whenComplete((unused, throwable) -> {
+            SwingUtilities.invokeLater(() -> {
+                resetUiAfterRequest();
+                if (throwable != null) {
+                    handleError(throwable);
+                    SwingExceptionHandler.handle(throwable);
+                }
+            });
+        });
 
     }
 
@@ -248,7 +244,7 @@ public class LoginPane extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         GradientPaint gradientPaint = new GradientPaint(0, 0, new Color(0x63A1FA), 0, getHeight(), new Color(0x97A7ED));
         g2.setPaint(gradientPaint);
-        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
         g2.dispose();
     }
 
@@ -263,16 +259,15 @@ public class LoginPane extends JPanel {
         msgLabel.setVisible(false);
         msgLabel.setText("");
         AppStore.setAuthPermissionInfoRespVO(authPermissionInfo);
-        disposable.dispose();
+        timer.stop();
         MainFrame.getInstance().showMain();
         AppStore.loadDictData();
     }
 
     private void handleError(Throwable throwable) {
         msgLabel.setVisible(true);
-        msgLabel.setText(throwable.getMessage());
-        throwable.printStackTrace();
-        loginButton.setEnabled(false);
+//        msgLabel.setText(throwable.getMessage());
+        loginButton.setEnabled(true);
         loginButton.setText("登录");
     }
 

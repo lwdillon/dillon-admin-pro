@@ -1,29 +1,27 @@
 package com.dillon.lw.api.infra;
 
+import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErrorLogRespVO;
-
-import io.reactivex.rxjava3.core.Observable;
-import retrofit2.http.GET;
-import retrofit2.http.PUT;
-import retrofit2.http.Query;
-import retrofit2.http.QueryMap;
+import com.dtflys.forest.annotation.Get;
+import com.dtflys.forest.annotation.Put;
+import com.dtflys.forest.annotation.Query;
 
 import java.util.Map;
 
-public interface ApiErrorLogApi {
+public interface ApiErrorLogApi extends BaseApi {
 
 
     // "更新 API 错误日志的状态")
 
-    @PUT("infra/api-error-log/update-status")
-    Observable<CommonResult<Boolean>> updateApiErrorLogProcess(@Query("id") Long id,
+    @Put("infra/api-error-log/update-status")
+    CommonResult<Boolean> updateApiErrorLogProcess(@Query("id") Long id,
                                                                @Query("processStatus") Integer processStatus);
 
     // "获得 API 错误日志分页")
-    @GET("infra/api-error-log/page")
-    Observable<CommonResult<PageResult<ApiErrorLogRespVO>>> getApiErrorLogPage(@QueryMap Map<String, Object> pageReqVO);
+    @Get("infra/api-error-log/page")
+    CommonResult<PageResult<ApiErrorLogRespVO>> getApiErrorLogPage(@Query Map<String, Object> pageReqVO);
 
 
 }

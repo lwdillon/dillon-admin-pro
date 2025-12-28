@@ -9,25 +9,30 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
+import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.PostApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
+import com.dillon.lw.framework.common.pojo.PageResult;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
 
@@ -216,31 +221,35 @@ public class PostManagementPanel extends JPanel {
     }
 
 
-    /**
-     * 添加
-     */
     private void add(PostSaveReqVO saveReqVO) {
 
-        RetrofitServiceManager.getInstance().create(PostApi.class).createPost(saveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PostApi.class).createPost(saveReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
     private void edit(PostSaveReqVO saveReqVO) {
 
-        RetrofitServiceManager.getInstance().create(PostApi.class).updatePost(saveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PostApi.class).updatePost(saveReqVO).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -260,13 +269,18 @@ public class PostManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(PostApi.class).deletePost(postId).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    updateData();
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        Long finalPostId = postId;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PostApi.class).deletePost(finalPostId).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            updateData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -296,48 +310,52 @@ public class PostManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        RetrofitServiceManager.getInstance().create(PostApi.class).getPostPage(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<>();
-                    result.getList().forEach(roleRespVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(roleRespVO.getId());
-                        rowV.add(roleRespVO.getName());
-                        rowV.add(roleRespVO.getCode());
-                        rowV.add(roleRespVO.getSort());
-                        rowV.add(roleRespVO.getRemark());
-                        rowV.add(roleRespVO.getStatus());
-                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                        rowV.add(roleRespVO);
-                        tableData.add(rowV);
-                    });
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PostApi.class).getPostPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            Vector<Vector> tableData = new Vector<>();
+            result.getList().forEach(roleRespVO -> {
+                Vector rowV = new Vector();
+                rowV.add(roleRespVO.getId());
+                rowV.add(roleRespVO.getName());
+                rowV.add(roleRespVO.getCode());
+                rowV.add(roleRespVO.getSort());
+                rowV.add(roleRespVO.getRemark());
+                rowV.add(roleRespVO.getStatus());
+                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                rowV.add(roleRespVO);
+                tableData.add(rowV);
+            });
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                                return label.getForeground();
-                            }));
-                            label.setIcon(icon);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
-                    paginationPane.setTotal(result.getTotal());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                        return label.getForeground();
+                    }));
+                    label.setIcon(icon);
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+            paginationPane.setTotal(result.getTotal());
 
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

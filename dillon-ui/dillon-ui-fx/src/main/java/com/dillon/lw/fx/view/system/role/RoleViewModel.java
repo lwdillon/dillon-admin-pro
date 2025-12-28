@@ -1,6 +1,7 @@
 package com.dillon.lw.fx.view.system.role;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.system.RoleApi;
@@ -8,10 +9,9 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class RoleViewModel extends BaseViewModel {
 
@@ -60,33 +61,32 @@ public class RoleViewModel extends BaseViewModel {
         }
 
         queryMap.values().removeAll(Collections.singleton(null));
-        Request.getInstance().create(RoleApi.class).getRolePage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    ObservableList<RoleRespVO> roleRespVOS = FXCollections.observableArrayList();
-                    roleRespVOS.addAll(data.getList());
-                    tableItems.set(roleRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<RoleRespVO>>().apply(Forest.client(RoleApi.class).getRolePage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<RoleRespVO> roleRespVOS = FXCollections.observableArrayList();
+            roleRespVOS.addAll(data.getList());
+            tableItems.set(roleRespVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void delRole(Long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(RoleApi.class).deleteRole(id)
-                .subscribeOn(Schedulers.io())
-                .map(new PayLoad<>())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(data -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(RoleApi.class).deleteRole(id));
+        }).thenAcceptAsync(data -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+        }, Platform::runLater).exceptionally(throwable -> {
+            throwable.printStackTrace();
+            return null;
+        });
     }
 
     @Subscribe

@@ -8,19 +8,20 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.jidesoft.swing.CheckBoxList;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DeptApi;
+import com.dillon.lw.api.system.PostApi;
+import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.components.WPanel;
+import com.dillon.lw.components.WScrollPane;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
-import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.api.system.DeptApi;
-import com.dillon.lw.api.system.PostApi;
-import com.dillon.lw.api.system.UserApi;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import com.jidesoft.swing.CheckBoxList;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -33,8 +34,9 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -267,37 +269,44 @@ public class UserEditPane extends JPanel {
             passwordField.setVisible(true);
         }
 
-        // 获取 API 实例（避免重复调用 getInstance()）
-        UserApi userApi = RetrofitServiceManager.getInstance().create(UserApi.class);
-        DeptApi deptApi = RetrofitServiceManager.getInstance().create(DeptApi.class);
-        PostApi postApi = RetrofitServiceManager.getInstance().create(PostApi.class);
+        // 获取 API 实例
+        UserApi userApi = Forest.client(UserApi.class);
+        DeptApi deptApi = Forest.client(DeptApi.class);
+        PostApi postApi = Forest.client(PostApi.class);
 
-        Observable.zip(
-                        Observable.defer(() -> {
-                            if (id == null) {
-                                return Observable.just(new UserRespVO());// 返回一个默认的空对象
-                            }
-                            return userApi.getUser(id).map(new PayLoad<>());
-                        }),
-                        deptApi.getSimpleDeptList().map(new PayLoad<>()),
-                        postApi.getSimplePostList().map(new PayLoad<>()),
-                        (userInfo, deptList, postList) -> {
-                            // 使用 LinkedHashMap 保持顺序
-                            Map<String, Object> resultMap = new LinkedHashMap<>();
-                            resultMap.put("userInfo", userInfo);
-                            resultMap.put("deptList", deptList);
-                            resultMap.put("postList", postList);
-                            return resultMap;
-                        }
-                )
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(resultMap -> {
-                    // 直接获取数据，无需强转
-                    updateData(resultMap);
-                }, Throwable::printStackTrace);
+        CompletableFuture<UserRespVO> userFuture = CompletableFuture.supplyAsync(() -> {
+            if (id == null) {
+                return new UserRespVO();
+            }
+            return userApi.getUser(id).getCheckedData();
+        });
 
+        CompletableFuture<List<DeptSimpleRespVO>> deptsFuture = CompletableFuture.supplyAsync(() ->
+                deptApi.getSimpleDeptList().getCheckedData()
+        );
 
+        CompletableFuture<List<PostSimpleRespVO>> postsFuture = CompletableFuture.supplyAsync(() ->
+                postApi.getSimplePostList().getCheckedData()
+        );
+
+        CompletableFuture.allOf(userFuture, deptsFuture, postsFuture)
+                .thenAcceptAsync(unused -> {
+                    try {
+                        Map<String, Object> resultMap = new LinkedHashMap<>();
+                        resultMap.put("userInfo", userFuture.get());
+                        resultMap.put("deptList", deptsFuture.get());
+                        resultMap.put("postList", postsFuture.get());
+                        updateData(resultMap);
+                    } catch (Exception e) {
+                        SwingExceptionHandler.handle(e);
+                    }
+                }, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> {
+                        SwingExceptionHandler.handle(throwable);
+                    });
+                    return null;
+                });
     }
 
     private void updateData(Map<String, Object> resultMap) {

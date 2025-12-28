@@ -5,15 +5,15 @@
 package com.dillon.lw.view.system.dict;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
 import com.dillon.lw.api.system.DictTypeApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -106,14 +106,16 @@ public class DictTypeFormPane extends JPanel {
             return;
         }
 
-        RetrofitServiceManager.getInstance().create(DictTypeApi.class).getDictType(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    setValue(result);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(DictTypeApi.class).getDictType(id).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            setValue(result);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

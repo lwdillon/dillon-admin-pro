@@ -6,15 +6,15 @@ package com.dillon.lw.view.system.post;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
-import com.dillon.lw.api.system.PostApi;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -116,14 +116,16 @@ public class PostFormPane extends JPanel {
 
         this.id = id;
 
-        RetrofitServiceManager.getInstance().create(PostApi.class).getPost(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io()).observeOn(Schedulers.from(SwingUtilities::invokeLater)).subscribe(result -> {
-                    setValue(result);
-                }, throwable -> {
-                    throwable.printStackTrace();
-                });
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(PostApi.class).getPost(id).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            setValue(result);
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

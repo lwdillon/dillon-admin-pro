@@ -11,28 +11,33 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.http.PayLoad;
-import com.dillon.lw.http.RetrofitServiceManager;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
+import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
-import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.utils.DictTypeEnum;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
-
+import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import java.awt.*;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.LocalDateTime;
-import java.util.*;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_JOB_STATUS;
 import static javax.swing.JOptionPane.*;
@@ -247,36 +252,31 @@ public class JobPane extends JPanel {
      * 添加
      */
     private void add(JobSaveReqVO saveReqVO) {
-
-        RetrofitServiceManager.getInstance().create(JobApi.class).createJob(saveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(commonResult -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).createJob(saveReqVO).getCheckedData();
+        }).thenAcceptAsync(commonResult -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
     private void edit(JobSaveReqVO saveReqVO) {
-
-
-        RetrofitServiceManager.getInstance().create(JobApi.class).updateJob(saveReqVO).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(commonResult -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
-
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).updateJob(saveReqVO).getCheckedData();
+        }).thenAcceptAsync(commonResult -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
     }
 
 
@@ -295,16 +295,18 @@ public class JobPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(JobApi.class).triggerJob(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(commonResult -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+        Long finalId = id;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).triggerJob(finalId).getCheckedData();
+        }).thenAcceptAsync(commonResult -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -327,16 +329,17 @@ public class JobPane extends JPanel {
         Long finalId = id;
         int status = jobRespVO.getStatus() == 2 ? 1 : 2;
 
-        RetrofitServiceManager.getInstance().create(JobApi.class).updateJobStatus(finalId, status).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(commonResult -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).updateJobStatus(finalId, status).getCheckedData();
+        }).thenAcceptAsync(commonResult -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
     }
 
@@ -355,16 +358,18 @@ public class JobPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        RetrofitServiceManager.getInstance().create(JobApi.class).deleteJob(id).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(commonResult -> {
-                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-                    loadTableData();
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+        Long finalId = id;
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).deleteJob(finalId).getCheckedData();
+        }).thenAcceptAsync(commonResult -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+            loadTableData();
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -395,47 +400,48 @@ public class JobPane extends JPanel {
         queryMap.put("status", status);
         queryMap.values().removeIf(Objects::isNull);
 
-        RetrofitServiceManager.getInstance().create(JobApi.class).getJobPage(queryMap).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    Vector<Vector> tableData = new Vector<Vector>();
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            Vector<Vector> tableData = new Vector<Vector>();
 
-                    result.getList().forEach(respVO -> {
-                        Vector rowV = new Vector();
-                        rowV.add(respVO.getId());
-                        rowV.add(respVO.getName());
-                        rowV.add(respVO.getStatus());
-                        rowV.add(respVO.getHandlerName());
-                        rowV.add(respVO.getHandlerParam());
-                        rowV.add(respVO.getCronExpression());
-                        rowV.add(respVO);
-                        tableData.add(rowV);
-                    });
+            result.getList().forEach(respVO -> {
+                Vector rowV = new Vector();
+                rowV.add(respVO.getId());
+                rowV.add(respVO.getName());
+                rowV.add(respVO.getStatus());
+                rowV.add(respVO.getHandlerName());
+                rowV.add(respVO.getHandlerParam());
+                rowV.add(respVO.getCronExpression());
+                rowV.add(respVO);
+                tableData.add(rowV);
+            });
 
-                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-                    table.getColumn("操作").setMinWidth(240);
-                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+            table.getColumn("操作").setMinWidth(240);
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-                    table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
-                        @Override
-                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
-                        }
-                    });
+            table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
 
-                    paginationPane.setTotal(result.getTotal());
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
+            paginationPane.setTotal(result.getTotal());
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }
@@ -448,46 +454,46 @@ public class JobPane extends JPanel {
         }
 
         JobRespVO finalRespVO = respVO;
-        RetrofitServiceManager.getInstance().create(JobApi.class).getJobNextTimes(finalRespVO.getId(),5).map(new PayLoad<>())
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(SwingUtilities::invokeLater))
-                .subscribe(result -> {
-                    DefaultListModel listModel = new DefaultListModel();
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(JobApi.class).getJobNextTimes(finalRespVO.getId(), 5).getCheckedData();
+        }).thenAcceptAsync(result -> {
+            DefaultListModel listModel = new DefaultListModel();
 
-                    int index = 1;
-                    for (LocalDateTime dateTime : result) {
-                        listModel.addElement("第" + index + "次: " + DateUtil.format(dateTime, "yyyy-MM-dd HH:mm:ss"));
-                        index++;
-                    }
-                    JList<String> list = new JList<>();
-                    list.setModel(listModel);
-                    JPanel panel = new JPanel();
-                    panel.setLayout(new MigLayout(
-                            "fill,insets 0,hidemode 3",
-                            // columns
-                            "[fill][grow,fill]",
-                            // rows
-                            "[][][][][][][][][][]"));
-                    panel.setPreferredSize(new Dimension(450, 600));
-                    addMessageInfo("任务编号", finalRespVO.getId(), panel, 0);
-                    addMessageInfo("任务名称", finalRespVO.getName(), panel, 1);
-                    addMessageInfo("任务状态", INFRA_JOB_STATUS, finalRespVO.getStatus(), panel, 2);
-                    addMessageInfo("处理器的名字", finalRespVO.getHandlerName(), panel, 3);
-                    addMessageInfo("处理器的参数", finalRespVO.getHandlerParam(), panel, 4);
-                    addMessageInfo("Cron 表达式", finalRespVO.getCronExpression(), panel, 5);
-                    addMessageInfo("重试次数", finalRespVO.getRetryCount(), panel, 6);
-                    addMessageInfo("重试间隔", finalRespVO.getRetryInterval(), panel, 7);
-                    addMessageInfo("监控超时时间", finalRespVO.getMonitorTimeout(), panel, 8);
-                    panel.add(new JLabel("后续执行时间"), "cell 0 9");
-                    panel.add(list, "cell 1 9,growy 0");
-                    WOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+            int index = 1;
+            for (LocalDateTime dateTime : result) {
+                listModel.addElement("第" + index + "次: " + DateUtil.format(dateTime, "yyyy-MM-dd HH:mm:ss"));
+                index++;
+            }
+            JList<String> list = new JList<>();
+            list.setModel(listModel);
+            JPanel panel = new JPanel();
+            panel.setLayout(new MigLayout(
+                    "fill,insets 0,hidemode 3",
+                    // columns
+                    "[fill][grow,fill]",
+                    // rows
+                    "[][][][][][][][][][]"));
+            panel.setPreferredSize(new Dimension(450, 600));
+            addMessageInfo("任务编号", finalRespVO.getId(), panel, 0);
+            addMessageInfo("任务名称", finalRespVO.getName(), panel, 1);
+            addMessageInfo("任务状态", INFRA_JOB_STATUS, finalRespVO.getStatus(), panel, 2);
+            addMessageInfo("处理器的名字", finalRespVO.getHandlerName(), panel, 3);
+            addMessageInfo("处理器的参数", finalRespVO.getHandlerParam(), panel, 4);
+            addMessageInfo("Cron 表达式", finalRespVO.getCronExpression(), panel, 5);
+            addMessageInfo("重试次数", finalRespVO.getRetryCount(), panel, 6);
+            addMessageInfo("重试间隔", finalRespVO.getRetryInterval(), panel, 7);
+            addMessageInfo("监控超时时间", finalRespVO.getMonitorTimeout(), panel, 8);
+            panel.add(new JLabel("后续执行时间"), "cell 0 9");
+            panel.add(list, "cell 1 9,growy 0");
+            WOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
 
-                }, throwable -> {
-                    WMessage.showMessageError(MainFrame.getInstance(), throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
 
 
     }

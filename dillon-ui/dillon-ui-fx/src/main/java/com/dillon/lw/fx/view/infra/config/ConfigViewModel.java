@@ -1,8 +1,10 @@
 package com.dillon.lw.fx.view.infra.config;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.infra.ConfigApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
@@ -10,11 +12,9 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
-import com.dillon.lw.fx.http.Request;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -26,9 +26,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class ConfigViewModel extends BaseViewModel {
-
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
     private IntegerProperty pageNum = new SimpleIntegerProperty(0);
     private IntegerProperty pageSize = new SimpleIntegerProperty(10);
@@ -45,7 +45,6 @@ public class ConfigViewModel extends BaseViewModel {
 
         loadTableData();
     }
-
 
 
     public void loadTableData() {
@@ -67,34 +66,32 @@ public class ConfigViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-
-        Request.getInstance().create(ConfigApi.class).getConfigPage(queryMap)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .map(new PayLoad<>())
-                .subscribe(data -> {
-                    ObservableList<ConfigRespVO> userRespVOS = FXCollections.observableArrayList();
-                    userRespVOS.addAll(data.getList());
-                    tableItems.set(userRespVOS);
-                    totalProperty().set(data.getTotal().intValue());
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<PageResult<ConfigRespVO>>().apply(Forest.client(ConfigApi.class).getConfigPage(queryMap));
+        }).thenAcceptAsync(data -> {
+            ObservableList<ConfigRespVO> userRespVOS = FXCollections.observableArrayList();
+            userRespVOS.addAll(data.getList());
+            tableItems.set(userRespVOS);
+            totalProperty().set(data.getTotal().intValue());
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
 
 
     }
 
     public void deleteConfig(long id, ConfirmDialog confirmDialog) {
-        Request.getInstance().create(ConfigApi.class).deleteConfig(id)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.from(Platform::runLater))
-                .subscribe(r -> {
-                    confirmDialog.close();
-                    EventBusCenter.get().post(new UpdateDataEvent("更新参数配置列表"));
-                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-                }, e -> {
-                    e.printStackTrace();
-                });
+        CompletableFuture.supplyAsync(() -> {
+            return new PayLoad<Boolean>().apply(Forest.client(ConfigApi.class).deleteConfig(id));
+        }).thenAcceptAsync(r -> {
+            confirmDialog.close();
+            EventBusCenter.get().post(new UpdateDataEvent("更新参数配置列表"));
+            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+        }, Platform::runLater).exceptionally(e -> {
+            e.printStackTrace();
+            return null;
+        });
     }
 
     @Subscribe

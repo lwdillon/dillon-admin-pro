@@ -1,4 +1,4 @@
-package com.dillon.lw.forest.api;
+package com.dillon.lw.api;
 
 import com.dtflys.forest.annotation.BaseRequest;
 
