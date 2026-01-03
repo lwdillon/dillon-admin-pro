@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.dal.dataobject.logger;
 
-import com.dillon.lw.framework.common.enums.UserTypeEnum;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.dillon.lw.framework.common.enums.UserTypeEnum;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import lombok.Data;
 
 /**

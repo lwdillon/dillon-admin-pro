@@ -1,8 +1,8 @@
 package com.dillon.lw.fx.view.system.role;
 
 import atlantafx.base.controls.ToggleSwitch;
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseView;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;

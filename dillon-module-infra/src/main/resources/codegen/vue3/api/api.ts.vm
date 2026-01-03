@@ -1,5 +1,5 @@
 import request from '@/config/axios'
-import type { Dayjs } from 'dayjs';
+import type {Dayjs} from 'dayjs';
 #set ($baseURL = "/${table.moduleName}/${simpleClassName_strikeCase}")
 
 ## 特殊：主子表专属逻辑

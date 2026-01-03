@@ -2,6 +2,7 @@ package com.dillon.lw.module.system.service.tenant;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.dynamic.datasource.annotation.DSTransactional;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
@@ -10,7 +11,6 @@ import com.dillon.lw.module.system.controller.admin.tenant.vo.packages.TenantPac
 import com.dillon.lw.module.system.dal.dataobject.tenant.TenantDO;
 import com.dillon.lw.module.system.dal.dataobject.tenant.TenantPackageDO;
 import com.dillon.lw.module.system.dal.mysql.tenant.TenantPackageMapper;
-import com.baomidou.dynamic.datasource.annotation.DSTransactional;
 import com.google.common.annotations.VisibleForTesting;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

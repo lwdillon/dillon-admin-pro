@@ -1,42 +1,28 @@
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 <script lang="ts" setup>
-import type { VxeTableGridOptions } from '#/adapter/vxe-table';
-import type { ${apiName} } from '#/api/${table.moduleName}/${table.businessName}';
+  import type {VxeTableGridOptions} from '#/adapter/vxe-table';
+  import {useVbenVxeGrid} from '#/adapter/vxe-table';
 
-import { ref } from 'vue';
+  import {delete${simpleClassName}, export${simpleClassName},} from '#/api/';
 
-import {#if ($table.templateType != 2 && $deleteBatchEnable) confirm,#end Page, useVbenModal } from '@vben/common-ui';
-import { downloadFileFromBlobPart#if ($table.templateType != 2 && $deleteBatchEnable), isEmpty#end } from '@vben/utils';
+  import {ref} from 'vue';
 
-import { message#if ($table.templateType == 11), Tabs#end } from 'ant-design-vue';
+  import {confirm, useVbenModal} from '@vben/common-ui';
+  import {downloadFileFromBlobPart} from '@vben/utils';
 
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
-#if (${table.templateType} == 2)## 树表接口
-import {
-  delete${simpleClassName},
-  export${simpleClassName},
-  get${simpleClassName}List,
-} from '#/api/${table.moduleName}/${table.businessName}';
+  import {message} from 'ant-design-vue';
+
+  import {useGridColumns, useGridFormSchema} from './data';
+  import Form from './modules/form.vue';
+      #if (${table.templateType} == 2)## 树表接口
 #else## 标准表接口
-import {
-  delete${simpleClassName},#if ($deleteBatchEnable)
-
-  delete${simpleClassName}List,#end
-  export${simpleClassName},
-  get${simpleClassName}Page,
-} from '#/api/${table.moduleName}/${table.businessName}';
 #end
-import { $t } from '#/locales';
-
-import { useGridColumns, useGridFormSchema } from './data';
-import Form from './modules/form.vue';
 ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 11 || $table.templateType == 12 )
     #foreach ($subSimpleClassName in $subSimpleClassNames)
     #set ($index = $foreach.count - 1)
     #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
-import ${subSimpleClassName}List from './modules/${subSimpleClassName_strikeCase}-list.vue';
-    #end
+#end
 #end
 
 #if ($table.templateType == 12 || $table.templateType == 11) ## 内嵌和erp情况

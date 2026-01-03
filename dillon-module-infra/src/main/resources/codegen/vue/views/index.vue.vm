@@ -197,22 +197,32 @@
 </template>
 
 <script>
-import * as ${simpleClassName}Api from '@/api/${table.moduleName}/${table.businessName}';
-import ${simpleClassName}Form from './${simpleClassName}Form.vue';
-#if ($hasImageUploadColumn)
-import ImageUpload from '@/components/ImageUpload';
-#end
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
+  import ${simpleClassName}
+
+  Form
+  from
+  './';
+  import ImageUpload from '@/components/ImageUpload';
+  import FileUpload from '@/components/FileUpload';
+  import Editor from '@/components/Editor';
+  import ${subSimpleClassName}
+
+  List
+  from
+  './components/';
+      #if ($hasImageUploadColumn)
+      #end
 #if ($hasFileUploadColumn)
-import FileUpload from '@/components/FileUpload';
 #end
 #if ($hasEditorColumn)
-import Editor from '@/components/Editor';
 #end
 ## 特殊：主子表专属逻辑
 #if ( $table.templateType != 10 )
 #if ( $subTables && $subTables.size() > 0 )
     #foreach ($subSimpleClassName in $subSimpleClassNames)
-    import ${subSimpleClassName}List from './components/${subSimpleClassName}List.vue';
     #end
 #end
 #end

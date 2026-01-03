@@ -1,5 +1,7 @@
 package com.dillon.lw.module.infra.convert.codegen;
 
+import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.dillon.lw.framework.common.util.collection.CollectionUtils;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.CodegenDetailRespVO;
@@ -8,8 +10,6 @@ import com.dillon.lw.module.infra.controller.admin.codegen.vo.column.CodegenColu
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.table.CodegenTableRespVO;
 import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenColumnDO;
 import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenTableDO;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import org.apache.ibatis.type.JdbcType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -7,29 +7,26 @@ package com.dillon.lw.view.system.oauth2;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.oauth2.vo.token.OAuth2AccessTokenRespVO;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.OAuth2TokenApi;
 import com.dillon.lw.components.*;
-import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
+import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.store.AppStore;
+import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
-import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
-import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.store.AppStore;
-import com.dillon.lw.utils.BadgeLabelUtil;
-
 import javax.swing.*;
-import java.util.concurrent.CompletableFuture;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -170,8 +167,7 @@ public class TokenPane extends JPanel {
         JButton del = new JButton("强退");
         del.setIcon(new FlatSVGIcon("icons/logout.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-        optBar.add(Box.createGlue());
+        del.setForeground(UIManager.getColor("App.danger.color"));        optBar.add(Box.createGlue());
         optBar.add(del);
         optBar.add(Box.createGlue());
         return optBar;

@@ -107,25 +107,31 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/${table.moduleName}/${table.businessName}';
-  #if ($hasImageUploadColumn)
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
   import ImageUpload from '@/components/ImageUpload';
-  #end
-  #if ($hasFileUploadColumn)
   import FileUpload from '@/components/FileUpload';
+  import Editor from '@/components/Editor';
+  import TreeSelect from "@riophae/vue-treeselect";
+  import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+  import ${subSimpleClassName}
+
+  Form
+  from
+  './components/'
+      #if ($hasImageUploadColumn)
+      #end
+  #if ($hasFileUploadColumn)
   #end
   #if ($hasEditorColumn)
-  import Editor from '@/components/Editor';
   #end
   ## 特殊：树表专属逻辑
   #if ( $table.templateType == 2 )
-  import TreeSelect from "@riophae/vue-treeselect";
-  import "@riophae/vue-treeselect/dist/vue-treeselect.css";
   #end
   ## 特殊：主子表专属逻辑
   #if ( $table.templateType == 10 || $table.templateType == 12 )
       #foreach ($subSimpleClassName in $subSimpleClassNames)
-      import ${subSimpleClassName}Form from './components/${subSimpleClassName}Form.vue'
       #end
   #end
   export default {

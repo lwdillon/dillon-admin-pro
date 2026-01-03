@@ -1,8 +1,5 @@
 package com.dillon.lw.fx.view.system.role;
 
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
@@ -12,6 +9,9 @@ import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -20,11 +20,7 @@ import javafx.collections.ObservableSet;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class RoleAssignMenuFormViewModel extends BaseViewModel {

@@ -6,7 +6,7 @@ import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dtflys.forest.exceptions.ForestRuntimeException;
 import com.dtflys.forest.http.ForestRequest;
 import com.dtflys.forest.http.ForestResponse;
-import com.dtflys.forest.interceptor.Interceptor;
+import com.dtflys.forest.interceptor.ForestInterceptor;
 import com.dtflys.forest.interceptor.ResponseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
 
-public class ErrorInterceptor implements Interceptor {
+public class ErrorInterceptor implements ForestInterceptor {
 
     private static final Logger log =
             LoggerFactory.getLogger(ErrorInterceptor.class);

@@ -1,11 +1,11 @@
 package com.dillon.lw.module.infra.dal.dataobject.file;
 
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
-import com.dillon.lw.module.infra.framework.file.core.client.db.DBFileClient;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
+import com.dillon.lw.module.infra.framework.file.core.client.db.DBFileClient;
 import lombok.*;
 
 /**

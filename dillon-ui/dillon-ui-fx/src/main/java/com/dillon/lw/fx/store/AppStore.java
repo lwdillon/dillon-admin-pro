@@ -1,10 +1,10 @@
 package com.dillon.lw.fx.store;
 
 import com.dillon.lw.api.system.DictDataApi;
+import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.utils.DictTypeEnum;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import org.kordamp.ikonli.feather.Feather;

@@ -1,6 +1,10 @@
 package com.dillon.lw.module.infra.dal.dataobject.file;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.dillon.lw.framework.common.util.json.JsonUtils;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
@@ -11,10 +15,6 @@ import com.dillon.lw.module.infra.framework.file.core.client.local.LocalFileClie
 import com.dillon.lw.module.infra.framework.file.core.client.s3.S3FileClientConfig;
 import com.dillon.lw.module.infra.framework.file.core.client.sftp.SftpFileClientConfig;
 import com.dillon.lw.module.infra.framework.file.core.enums.FileStorageEnum;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.*;
 

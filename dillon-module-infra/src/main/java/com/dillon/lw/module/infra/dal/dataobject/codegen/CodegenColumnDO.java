@@ -1,13 +1,13 @@
 package com.dillon.lw.module.infra.dal.dataobject.codegen;
 
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
-import com.dillon.lw.module.infra.enums.codegen.CodegenColumnHtmlTypeEnum;
-import com.dillon.lw.module.infra.enums.codegen.CodegenColumnListConditionEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
+import com.dillon.lw.module.infra.enums.codegen.CodegenColumnHtmlTypeEnum;
+import com.dillon.lw.module.infra.enums.codegen.CodegenColumnListConditionEnum;
 import lombok.Data;
 
 /**

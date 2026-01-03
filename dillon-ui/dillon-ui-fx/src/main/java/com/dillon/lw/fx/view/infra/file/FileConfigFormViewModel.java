@@ -2,9 +2,6 @@ package com.dillon.lw.fx.view.infra.file;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dtflys.forest.Forest;
 import com.dillon.lw.api.infra.FileConfigApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -14,6 +11,9 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 

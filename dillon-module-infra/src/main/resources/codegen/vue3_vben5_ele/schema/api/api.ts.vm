@@ -1,10 +1,10 @@
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 #if ( $table.templateType != 2 )
-import type { PageParam, PageResult } from '@vben/request';
-#end
-import type { Dayjs } from 'dayjs';
+import type {PageParam, PageResult} from '@vben/request';
+import type {Dayjs} from 'dayjs';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
+#end
 #set ($baseURL = "/${table.moduleName}/${simpleClassName_strikeCase}")
 
 export namespace ${apiName} {

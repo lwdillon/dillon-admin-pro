@@ -1,10 +1,10 @@
 package com.dillon.lw.framework.mybatis.core.util;
 
+import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.dillon.lw.framework.common.util.object.ObjectUtils;
 import com.dillon.lw.framework.common.util.spring.SpringUtils;
 import com.dillon.lw.framework.mybatis.core.enums.DbTypeEnum;
-import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
-import com.baomidou.mybatisplus.annotation.DbType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import javax.sql.DataSource;

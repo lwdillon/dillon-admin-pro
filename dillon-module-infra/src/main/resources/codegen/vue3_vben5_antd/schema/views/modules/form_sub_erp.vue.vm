@@ -4,17 +4,13 @@
 #set ($subSimpleClassName = $subSimpleClassNames.get($subIndex))
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 <script lang="ts" setup>
-  import type { ${apiName} } from '#/api/${table.moduleName}/${table.businessName}';
+  import {create${subSimpleClassName}, get${subSimpleClassName}, update${subSimpleClassName}} from '#/api/';
 
-  import { useVbenModal } from '@vben/common-ui';
-  import { message } from 'ant-design-vue';
+  import {useVbenModal} from '@vben/common-ui';
+  import {message} from 'ant-design-vue';
 
-  import { computed, ref } from 'vue';
-  import { $t } from '#/locales';
-  import { useVbenForm } from '#/adapter/form';
-  import { get${subSimpleClassName}, create${subSimpleClassName}, update${subSimpleClassName} } from '#/api/${table.moduleName}/${table.businessName}';
-
-  import { use${subSimpleClassName}FormSchema } from '../data';
+  import {computed, ref} from 'vue';
+  import {useVbenForm} from '#/adapter/form';
 
   const emit = defineEmits(['success']);
   const formData = ref<${apiName}.${subSimpleClassName}>();

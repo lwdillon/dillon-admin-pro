@@ -1,8 +1,8 @@
 package com.dillon.lw.module.system.dal.mysql.permission;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.dillon.lw.framework.mybatis.core.mapper.BaseMapperX;
 import com.dillon.lw.module.system.dal.dataobject.permission.UserRoleDO;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Collection;

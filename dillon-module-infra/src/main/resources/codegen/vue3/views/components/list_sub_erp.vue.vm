@@ -106,15 +106,15 @@
 #end
 </template>
 <script setup lang="ts">
-import { getIntDictOptions, getStrDictOptions, getBoolDictOptions, DICT_TYPE } from '@/utils/dict'
-import { dateFormatter } from '@/utils/formatTime'
-#if ($deleteBatchEnable)
-import { isEmpty } from '@/utils/is'
-#end
-import { ${simpleClassName}Api, ${subSimpleClassName} } from '@/api/${table.moduleName}/${table.businessName}'
-#if ($table.templateType == 11)
-import ${subSimpleClassName}Form from './${subSimpleClassName}Form.vue'
-#end
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
+      #if ($deleteBatchEnable)
+      #end
+      #if ($table.templateType == 11)
+      #end
 
 #if ($table.templateType == 11)
 const { t } = useI18n() // 国际化

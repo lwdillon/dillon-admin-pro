@@ -1,10 +1,10 @@
 package com.dillon.lw.framework.mybatis.core.query;
 
-import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;

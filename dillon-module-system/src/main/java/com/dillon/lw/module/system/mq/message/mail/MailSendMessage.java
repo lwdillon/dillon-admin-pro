@@ -4,9 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 邮箱发送消息

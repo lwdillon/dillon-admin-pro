@@ -1,11 +1,11 @@
 package com.dillon.lw.module.infra.dal.dataobject.job;
 
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
-import com.dillon.lw.module.infra.enums.job.JobStatusEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
+import com.dillon.lw.module.infra.enums.job.JobStatusEnum;
 import lombok.*;
 
 /**

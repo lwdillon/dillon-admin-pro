@@ -3,7 +3,7 @@ package com.dillon.lw.module.system.controller.admin.notify.vo.template;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
 import com.dillon.lw.framework.common.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

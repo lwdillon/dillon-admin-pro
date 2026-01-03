@@ -1,10 +1,10 @@
 package com.dillon.lw.framework.mybatis.config;
 
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.framework.common.util.collection.SetUtils;
-import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.dillon.lw.framework.common.util.collection.SetUtils;
+import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;

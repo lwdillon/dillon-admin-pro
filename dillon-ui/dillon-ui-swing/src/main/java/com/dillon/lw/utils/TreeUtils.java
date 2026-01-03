@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.Enumeration;
 
@@ -12,6 +13,24 @@ import java.util.Enumeration;
  * @date 2024/05/09
  */
 public class TreeUtils {
+
+    public static void expandAll(JTree tree) {
+        TreeNode root = (TreeNode) tree.getModel().getRoot();
+        expandAll(tree, new TreePath(root));
+    }
+
+    private static void expandAll(JTree tree, TreePath parent) {
+        TreeNode node = (TreeNode) parent.getLastPathComponent();
+
+        if (node.getChildCount() >= 0) {
+            for (int i = 0; i < node.getChildCount(); i++) {
+                TreeNode child = node.getChildAt(i);
+                expandAll(tree, parent.pathByAddingChild(child));
+            }
+        }
+
+        tree.expandPath(parent);
+    }
 
     /**
      * 根据字符串返回对应节点

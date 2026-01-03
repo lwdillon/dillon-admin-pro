@@ -1,7 +1,7 @@
-import type { PageParam, PageResult } from '@vben/request';
-import type { Dayjs } from 'dayjs';
+import type {PageParam, PageResult} from '@vben/request';
+import type {Dayjs} from 'dayjs';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 #set ($baseURL = "/${table.moduleName}/${simpleClassName_strikeCase}")
 
 export namespace ${simpleClassName}Api {

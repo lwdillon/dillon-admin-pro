@@ -1,9 +1,9 @@
 package com.dillon.lw.module.system.dal.mysql.dept;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.dillon.lw.framework.mybatis.core.mapper.BaseMapperX;
 import com.dillon.lw.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.dillon.lw.module.system.dal.dataobject.dept.UserPostDO;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.Collection;

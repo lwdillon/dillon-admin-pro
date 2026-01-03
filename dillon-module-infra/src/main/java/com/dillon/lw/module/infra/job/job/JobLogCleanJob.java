@@ -5,6 +5,7 @@ import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.dillon.lw.module.infra.service.job.JobLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.Resource;
 
 /**

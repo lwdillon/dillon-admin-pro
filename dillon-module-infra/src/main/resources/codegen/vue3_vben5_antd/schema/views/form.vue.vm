@@ -1,26 +1,23 @@
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 <script lang="ts" setup>
-import type { ${apiName} } from '#/api/${table.moduleName}/${table.businessName}';
+  import {create${simpleClassName}, get${simpleClassName}, update${simpleClassName}} from '#/api/';
 
-import { computed, ref } from 'vue';
+  import {computed, ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+  import {useVbenModal} from '@vben/common-ui';
 
-import { message#if ($table.templateType == 11), Tabs#end } from 'ant-design-vue';
+  import {message} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { create${simpleClassName}, get${simpleClassName}, update${simpleClassName} } from '#/api/${table.moduleName}/${table.businessName}';
-import { $t } from '#/locales';
-## 特殊：主子表专属逻辑
+  import {useVbenForm} from '#/adapter/form';
+  import ${subSimpleClassName}Form from './'
+  import {useFormSchema} from '../data';
+      ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 10 || $table.templateType == 12 )
   #foreach ($subSimpleClassName in $subSimpleClassNames)
   #set ($index = $foreach.count - 1)
   #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
-  import ${subSimpleClassName}Form from './${subSimpleClassName_strikeCase}-form.vue'
   #end
 #end
-
-import { useFormSchema } from '../data';
 
 const emit = defineEmits(['success']);
 const formData = ref<${apiName}.${simpleClassName}>();

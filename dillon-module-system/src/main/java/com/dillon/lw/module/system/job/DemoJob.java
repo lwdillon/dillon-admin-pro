@@ -2,7 +2,6 @@ package com.dillon.lw.module.system.job;
 
 import com.dillon.lw.framework.quartz.core.handler.JobHandler;
 import com.dillon.lw.framework.tenant.core.context.TenantContextHolder;
-import com.dillon.lw.framework.tenant.core.job.TenantJob;
 import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
 import com.dillon.lw.module.system.dal.mysql.user.AdminUserMapper;
 import org.springframework.stereotype.Component;

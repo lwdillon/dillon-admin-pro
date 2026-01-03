@@ -1,13 +1,13 @@
 package com.dillon.lw.framework.idempotent.config;
 
 import com.dillon.lw.framework.idempotent.core.aop.IdempotentAspect;
+import com.dillon.lw.framework.idempotent.core.keyresolver.IdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.impl.DefaultIdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.impl.ExpressionIdempotentKeyResolver;
-import com.dillon.lw.framework.idempotent.core.keyresolver.IdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.impl.UserIdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.redis.IdempotentRedisDAO;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import com.dillon.lw.framework.redis.config.DillonRedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 

@@ -1,8 +1,8 @@
 package com.dillon.lw.fx.view.system.user;
 
 import atlantafx.base.controls.Popover;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseView;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

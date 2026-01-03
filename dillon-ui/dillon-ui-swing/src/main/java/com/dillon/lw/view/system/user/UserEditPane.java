@@ -12,14 +12,11 @@ import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.api.system.UserApi;
-import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
-import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.jidesoft.swing.CheckBoxList;
 import net.miginfocom.swing.MigLayout;
@@ -34,8 +31,8 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**

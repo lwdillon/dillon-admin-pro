@@ -7,16 +7,15 @@ package com.dillon.lw.view.intra.config;
 import cn.hutool.core.convert.Convert;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.ConfigApi;
-import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
-import java.util.concurrent.CompletableFuture;
-import javax.swing.*;
 import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 

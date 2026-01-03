@@ -2,9 +2,9 @@ package com.dillon.lw.fx.view.system.role;
 
 import atlantafx.base.controls.ToggleSwitch;
 import cn.hutool.core.convert.Convert;
+import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.fx.mvvm.base.BaseView;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;

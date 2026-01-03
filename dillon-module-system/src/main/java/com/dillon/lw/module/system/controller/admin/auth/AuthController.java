@@ -3,7 +3,6 @@ package com.dillon.lw.module.system.controller.admin.auth;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.security.config.SecurityProperties;
 import com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils;

@@ -8,21 +8,20 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.jidesoft.swing.CheckBoxList;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.OAuth2ClientApi;
+import com.dillon.lw.components.WScrollPane;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.oauth2.vo.client.OAuth2ClientRespVO;
 import com.dillon.lw.module.system.controller.admin.oauth2.vo.client.OAuth2ClientSaveReqVO;
-import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.api.system.OAuth2ClientApi;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
+import com.jidesoft.swing.CheckBoxList;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.CompletableFuture;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
@@ -32,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**

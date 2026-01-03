@@ -8,7 +8,6 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PermissionApi;
@@ -25,7 +24,6 @@ import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserUpdatePasswordReqVO;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
-import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -40,11 +38,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
@@ -226,24 +221,23 @@ public class UserManagementPanel extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
         edit.addActionListener(e -> showEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> delMenu());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton restBut = new JButton("重置密码");
         restBut.addActionListener(e -> resetPwd());
-        restBut.setForeground(UIManager.getColor("App.accentColor"));
+        restBut.setForeground(UIManager.getColor("App.accent.color"));
         restBut.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
 
         JButton roleBut = new JButton("分配角色");
         roleBut.addActionListener(e -> showPermissionAssignUserRoleDialog());
-        roleBut.setForeground(UIManager.getColor("App.accentColor"));
+        roleBut.setForeground(UIManager.getColor("App.accent.color"));
         roleBut.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
 
 

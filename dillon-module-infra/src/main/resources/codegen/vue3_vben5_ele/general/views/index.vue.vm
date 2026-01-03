@@ -1,37 +1,30 @@
 <script lang="ts" setup>
-import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
+  import {delete${simpleClassName}, export${simpleClassName}} from '#/api/';
 
-import { ref, h, reactive, onMounted, nextTick } from 'vue';
+  import {onMounted, reactive, ref} from 'vue';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { DICT_TYPE } from '@vben/constants';
-import { getDictOptions } from '@vben/hooks';
-import { useTableToolbar, VbenVxeTableToolbar } from '@vben/plugins/vxe-table';
-import { cloneDeep, downloadFileFromBlobPart, formatDateTime } from '@vben/utils';
-import { ElButton, ElMessage, ElLoading, ElTabs, ElTabPane, ElPagination, ElForm, ElFormItem, ElDatePicker, ElSelect, ElOption, ElInput } from 'element-plus';
-import ${simpleClassName}Form from './modules/form.vue';
-import { Download, Plus, RefreshCw, Search, Trash2 } from '@vben/icons';
-import { ContentWrap } from '#/components/content-wrap';
-import { VxeColumn, VxeTable } from '#/adapter/vxe-table';
+  import {useVbenModal} from '@vben/common-ui';
+  import {useTableToolbar} from '@vben/plugins/vxe-table';
+  import {cloneDeep, downloadFileFromBlobPart} from '@vben/utils';
+  import {ElLoading, ElMessage} from 'element-plus';
+  import ${simpleClassName}Form from './modules/form.vue';
 
-## 特殊：主子表专属逻辑
+      ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 11 || $table.templateType == 12 )
     #foreach ($subSimpleClassName in $subSimpleClassNames)
     #set ($index = $foreach.count - 1)
     #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
-    import ${subSimpleClassName}List from './modules/${subSimpleClassName_strikeCase}-list.vue'
     #end
 #end
 
-import { $t } from '#/locales';
 #if (${table.templateType} == 2)## 树表接口
-import { handleTree,isEmpty } from '@vben/utils'
-import { get${simpleClassName}List, delete${simpleClassName}, export${simpleClassName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
 #else## 标准表接口
-import { isEmpty } from '@vben/utils';
-import { get${simpleClassName}Page, delete${simpleClassName},#if ($deleteBatchEnable) delete${simpleClassName}List,#end export${simpleClassName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
 #end
-import { downloadFileFromBlobPart } from '@vben/utils';
 
 #if ($table.templateType == 12 || $table.templateType == 11) ## 内嵌和erp情况
 /** 子表的列表 */

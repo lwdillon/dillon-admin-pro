@@ -4,11 +4,9 @@
 
 package com.dillon;
 
-import javax.swing.*;
-
+import com.dillon.lw.api.sse.CalSseClient;
+import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
-import com.dillon.lw.forest.api.sse.CalSseClient;
-import com.dillon.lw.forest.api.system.AuthApi;
 import com.dillon.lw.module.system.api.sse.SseMessage;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
@@ -16,8 +14,9 @@ import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRe
 import com.dillon.lw.store.AppStore;
 import com.dtflys.forest.Forest;
 import com.dtflys.forest.http.ForestSSE;
-import net.miginfocom.swing.*;
+import net.miginfocom.swing.MigLayout;
 
+import javax.swing.*;
 import java.awt.event.HierarchyEvent;
 
 

@@ -1,9 +1,9 @@
 package com.dillon.lw.fx;
 
-import com.goxr3plus.fxborderlessscene.borderless.BorderlessPane;
-import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.view.window.WindowView;
+import com.goxr3plus.fxborderlessscene.borderless.BorderlessPane;
+import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

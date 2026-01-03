@@ -1,15 +1,15 @@
 package com.dillon.lw.fx.view.home;
 
 import atlantafx.base.theme.Styles;
-import com.dillon.lw.fx.eventbus.EventBusCenter;
-import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.fx.Resources;
+import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.ThemeEvent;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.NodeUtils;
 import com.dillon.lw.fx.vo.ActiveProjects;
 import com.dillon.lw.fx.vo.Roects;
+import com.google.common.eventbus.Subscribe;
 import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import eu.hansolo.tilesfx.chart.ChartData;

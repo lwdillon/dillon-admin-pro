@@ -1,8 +1,8 @@
 package com.dillon.lw.fx.view.infra.file;
 
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.fx.store.AppStore;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

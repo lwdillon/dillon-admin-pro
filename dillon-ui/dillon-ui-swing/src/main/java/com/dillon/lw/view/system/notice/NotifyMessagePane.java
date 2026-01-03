@@ -7,20 +7,18 @@ package com.dillon.lw.view.system.notice;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.NotifyMessageApi;
 import com.dillon.lw.components.*;
-import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.SwingExceptionHandler;
-import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -29,7 +27,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -200,7 +197,7 @@ public class NotifyMessagePane extends JPanel {
         optBar.setOpaque(false);
 
         JButton viewBut = new JButton("详情");
-        viewBut.setForeground(UIManager.getColor("App.accentColor"));
+        viewBut.setForeground(UIManager.getColor("App.accent.color"));
 
         viewBut.setIcon(new FlatSVGIcon("icons/chakan.svg", 15, 15));
         viewBut.addActionListener(e -> showDetailsDialog());
@@ -209,8 +206,7 @@ public class NotifyMessagePane extends JPanel {
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         optBar.add(Box.createGlue());
         optBar.add(viewBut);
         optBar.add(del);

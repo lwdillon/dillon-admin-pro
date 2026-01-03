@@ -1,8 +1,9 @@
 package com.dillon.lw.module.infra.controller.admin.codegen.vo.column;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 代码生成字段定义创建/修改 Request VO")
 @Data

@@ -221,15 +221,17 @@
 </template>
 
 <script>
-  import * as ${simpleClassName}Api from '@/api/${table.moduleName}/${table.businessName}';
+  import * as ${simpleClassName}Api
+    from
+        '@/api/';
+  import ImageUpload from '@/components/ImageUpload';
+  import FileUpload from '@/components/FileUpload';
+  import Editor from '@/components/Editor';
       #if ($hasImageUploadColumn)
-      import ImageUpload from '@/components/ImageUpload';
       #end
       #if ($hasFileUploadColumn)
-      import FileUpload from '@/components/FileUpload';
       #end
       #if ($hasEditorColumn)
-      import Editor from '@/components/Editor';
       #end
   export default {
     name: "${subSimpleClassName}Form",

@@ -1,13 +1,14 @@
 <script lang="ts" setup>
-import { ref, unref } from 'vue'
-import { createFormSchema, updateFormSchema } from './${classNameVar}.data'
-import { useI18n } from '@/hooks/web/useI18n'
-import { useMessage } from '@/hooks/web/useMessage'
-import { BasicForm, useForm } from '@/components/Form'
-import { BasicModal, useModalInner } from '@/components/Modal'
-import { create${simpleClassName}, get${simpleClassName}, update${simpleClassName} } from '@/api/${table.moduleName}/${table.businessName}'
+  import {ref, unref} from 'vue'
+  import {createFormSchema, updateFormSchema} from './'
+  import {useI18n} from '@/hooks/web/useI18n'
+  import {useMessage} from '@/hooks/web/useMessage'
+  import {useForm} from '@/components/Form'
+  import {useModalInner} from '@/components/Modal'
 
-defineOptions({ name: '${table.className}Modal' })
+  import {create${simpleClassName}, get${simpleClassName}, update${simpleClassName}} from '@/api/'
+
+  defineOptions({ name: '${table.className}Modal' })
 
 const emit = defineEmits(['success', 'register'])
 

@@ -5,26 +5,20 @@
 #set ($subClassNameVar = $subClassNameVars.get($subIndex))
 #set ($SubJoinColumnName = $subJoinColumn.javaField.substring(0,1).toUpperCase() + ${subJoinColumn.javaField.substring(1)})##首字母大写
 <script lang="ts" setup>
-import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
 
-import { computed, ref, reactive, h, onMounted,watch,nextTick } from 'vue';
+  import {nextTick, reactive, ref, watch} from 'vue';
 
-import { DICT_TYPE } from '@vben/constants';
-import { getDictOptions } from '@vben/hooks';
+  import type {FormRules} from 'element-plus';
+  import type {VxeTableInstance} from '#/adapter/vxe-table';
 
-import { ElMessage, ElTabs, ElTabPane, ElForm, ElFormItem, ElInput, ElButton, ElSelect, ElOption, ElRadioGroup, ElRadio, ElCheckboxGroup, ElCheckbox, ElDatePicker } from 'element-plus';
-import { $t } from '#/locales';
-
-#if ($subTable.subJoinMany) ## 一对多
-import type { VxeTableInstance } from '#/adapter/vxe-table';
-import { Plus } from "@vben/icons";
-import { VxeColumn, VxeTable } from '#/adapter/vxe-table';
-import { get${subSimpleClassName}ListBy${SubJoinColumnName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-#else
-import type { FormRules } from 'element-plus';
-import { Tinymce as RichTextarea } from '#/components/tinymce';
-import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-#end
+      #if ($subTable.subJoinMany) ## 一对多
+      #else
+      #end
 
 const props = defineProps<{
    ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）

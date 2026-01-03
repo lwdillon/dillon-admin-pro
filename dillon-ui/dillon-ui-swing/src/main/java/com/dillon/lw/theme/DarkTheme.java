@@ -5,7 +5,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 public class DarkTheme
 	extends FlatDarkLaf
 {
-	public static final String NAME = "DarkTheme";
+	public static final String NAME = "DarkTheme3";
 
 	public static boolean setup() {
 		return setup( new DarkTheme() );

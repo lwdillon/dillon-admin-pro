@@ -112,10 +112,13 @@
   </Dialog>
 </template>
 <script setup lang="ts">
-import { getIntDictOptions, getStrDictOptions, getBoolDictOptions, DICT_TYPE } from '@/utils/dict'
-import { ${simpleClassName}Api, ${subSimpleClassName} } from '@/api/${table.moduleName}/${table.businessName}'
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
 
-const { t } = useI18n() // 国际化
+  const { t } = useI18n() // 国际化
 const message = useMessage() // 消息弹窗
 
 const dialogVisible = ref(false) // 弹窗的是否展示

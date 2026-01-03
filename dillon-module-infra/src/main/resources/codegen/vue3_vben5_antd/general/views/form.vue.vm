@@ -1,30 +1,28 @@
 <script lang="ts" setup>
-import type { Rule } from 'ant-design-vue/es/form';
-import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
+  import type {Rule} from 'ant-design-vue/es/form';
 
-import { computed, ref } from 'vue';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
+  import {create${simpleClassName}, get${simpleClassName}, update${simpleClassName}} from '#/api/';
 
-import { useVbenModal } from '@vben/common-ui';
-import { DICT_TYPE } from '@vben/constants';
-import { getDictOptions } from '@vben/hooks';
-import { Tinymce as RichTextarea } from '#/components/tinymce';
-import { ImageUpload, FileUpload } from "#/components/upload";
-import { message, Tabs, Form, Input, Textarea, Select, RadioGroup, Radio, CheckboxGroup, Checkbox, DatePicker, TreeSelect } from 'ant-design-vue';
-#if($table.templateType == 2)## 树表需要导入这些
-import { get${simpleClassName}List } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-import { handleTree } from '@vben/utils'
+  import {computed, ref} from 'vue';
+
+  import {useVbenModal} from '@vben/common-ui';
+  import {message} from 'ant-design-vue';
+  import {handleTree} from '@vben/utils'
+  import ${subSimpleClassName}Form from './'
+      #if($table.templateType == 2)## 树表需要导入这些
 #end
 ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 10 || $table.templateType == 12 )
   #foreach ($subSimpleClassName in $subSimpleClassNames)
   #set ($index = $foreach.count - 1)
   #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
-  import ${subSimpleClassName}Form from './${subSimpleClassName_strikeCase}-form.vue'
   #end
 #end
-
-import { $t } from '#/locales';
-import { get${simpleClassName}, create${simpleClassName}, update${simpleClassName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
 
 const emit = defineEmits(['success']);
 

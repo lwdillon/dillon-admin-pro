@@ -1,9 +1,6 @@
 package com.dillon.lw.fx.view.system.user;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.api.system.UserApi;
@@ -15,19 +12,18 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import com.dtflys.forest.Forest;
+import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class UserFormViewModel extends BaseViewModel {

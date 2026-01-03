@@ -1,11 +1,11 @@
 package com.dillon.lw.module.infra.dal.dataobject.job;
 
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.quartz.core.handler.JobHandler;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.dillon.lw.module.infra.enums.job.JobLogStatusEnum;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 import java.time.LocalDateTime;

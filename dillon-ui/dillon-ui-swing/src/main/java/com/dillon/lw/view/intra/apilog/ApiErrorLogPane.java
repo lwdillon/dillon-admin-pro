@@ -14,7 +14,6 @@ import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErrorLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
@@ -23,21 +22,21 @@ import com.dillon.lw.utils.DictTypeEnum;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
 
-import java.awt.*;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
+import java.awt.*;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_API_ERROR_LOG_PROCESS_STATUS;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
-import static javax.swing.JOptionPane.*;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 
 /**
  * @author wenli
@@ -198,17 +197,17 @@ public class ApiErrorLogPane extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton viewBut = new JButton("详情");
-        viewBut.setForeground(UIManager.getColor("App.accentColor"));
+        viewBut.setForeground(UIManager.getColor("App.accent.color"));
         viewBut.setIcon(new FlatSVGIcon("icons/chakan.svg", 15, 15));
         viewBut.addActionListener(e -> showDetailsDialog());
 
         JButton processedBut = new JButton("已处理");
         processedBut.addActionListener(e -> processed(1));
-        processedBut.setForeground(UIManager.getColor("App.accentColor"));
+        processedBut.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton ignoredBut = new JButton("已忽略");
         ignoredBut.addActionListener(e -> processed(2));
-        ignoredBut.setForeground(UIManager.getColor("App.accentColor"));
+        ignoredBut.setForeground(UIManager.getColor("App.accent.color"));
 
         optBar.add(Box.createGlue());
         optBar.add(viewBut);

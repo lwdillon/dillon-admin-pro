@@ -1,10 +1,10 @@
 package com.dillon.lw.framework.datapermission.core.db;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.extension.plugins.handler.MultiDataPermissionHandler;
 import com.dillon.lw.framework.datapermission.core.rule.DataPermissionRule;
 import com.dillon.lw.framework.datapermission.core.rule.DataPermissionRuleFactory;
 import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
-import com.baomidou.mybatisplus.extension.plugins.handler.MultiDataPermissionHandler;
 import lombok.RequiredArgsConstructor;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;

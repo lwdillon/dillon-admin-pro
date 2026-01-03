@@ -1,14 +1,14 @@
 package com.dillon.lw.module.system.dal.dataobject.permission;
 
-import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.tenant.core.db.TenantBaseDO;
-import com.dillon.lw.module.system.enums.permission.DataScopeEnum;
-import com.dillon.lw.module.system.enums.permission.RoleTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.tenant.core.db.TenantBaseDO;
+import com.dillon.lw.module.system.enums.permission.DataScopeEnum;
+import com.dillon.lw.module.system.enums.permission.RoleTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

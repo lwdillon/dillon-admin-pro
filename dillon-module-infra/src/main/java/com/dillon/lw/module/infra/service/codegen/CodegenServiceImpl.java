@@ -2,6 +2,8 @@ package com.dillon.lw.module.infra.service.codegen;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.CodegenCreateListReqVO;
@@ -18,8 +20,6 @@ import com.dillon.lw.module.infra.framework.codegen.config.CodegenProperties;
 import com.dillon.lw.module.infra.service.codegen.inner.CodegenBuilder;
 import com.dillon.lw.module.infra.service.codegen.inner.CodegenEngine;
 import com.dillon.lw.module.infra.service.db.DatabaseTableService;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.google.common.annotations.VisibleForTesting;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

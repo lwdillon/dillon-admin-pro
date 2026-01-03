@@ -102,6 +102,7 @@ public class WaitPane extends JPanel {
         setAlpha(finalAlpha);
         getBusyLabel().setBusy(true);
         getBusyLabel().setText(message);
+
     }
 
     public void showMessageLayer(String message) {

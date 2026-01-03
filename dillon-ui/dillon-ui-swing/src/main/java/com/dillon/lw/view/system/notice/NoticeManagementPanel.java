@@ -8,18 +8,17 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeRespVO;
-import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.NoticeApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.SwingExceptionHandler;
-import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeRespVO;
+import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTable;
 
@@ -28,7 +27,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -158,20 +156,19 @@ public class NoticeManagementPanel extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
         edit.addActionListener(e -> showEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton push = new JButton("推送");
         push.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         push.addActionListener(e -> push());
-        push.setForeground(UIManager.getColor("App.accentColor"));
+        push.setForeground(UIManager.getColor("App.accent.color"));
 
 
         optBar.add(Box.createGlue());

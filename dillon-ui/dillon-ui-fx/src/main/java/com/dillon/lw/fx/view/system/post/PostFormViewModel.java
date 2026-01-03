@@ -1,7 +1,6 @@
 package com.dillon.lw.fx.view.system.post;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -11,8 +10,9 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import com.dtflys.forest.Forest;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
+import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;

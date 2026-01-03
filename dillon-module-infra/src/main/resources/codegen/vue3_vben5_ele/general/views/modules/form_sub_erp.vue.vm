@@ -3,21 +3,18 @@
 #set ($subJoinColumn = $subJoinColumns.get($subIndex))##当前 join 字段
 #set ($subSimpleClassName = $subSimpleClassNames.get($subIndex))
 <script lang="ts" setup>
-  import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-  import type { FormRules } from 'element-plus';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
+  import {create${subSimpleClassName}, get${subSimpleClassName}, update${subSimpleClassName}} from '#/api/';
+  import type {FormRules} from 'element-plus';
+  import {ElMessage} from 'element-plus';
 
-  import { computed, ref, reactive } from 'vue';
+  import {computed, reactive, ref} from 'vue';
 
-  import { useVbenModal } from '@vben/common-ui';
-  import { DICT_TYPE } from '@vben/constants';
-  import { getDictOptions } from '@vben/hooks';
-  import { Tinymce as RichTextarea } from '#/components/tinymce';
-  import { ImageUpload, FileUpload } from "#/components/upload";
-  import { ElMessage, ElTabs, ElTabPane, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElRadioGroup, ElRadio, ElCheckboxGroup, ElCheckbox, ElDatePicker, ElTreeSelect } from 'element-plus';
-
-  import { $t } from '#/locales';
-
-  import { get${subSimpleClassName}, create${subSimpleClassName}, update${subSimpleClassName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
+  import {useVbenModal} from '@vben/common-ui';
 
   const emit = defineEmits(['success']);
   const getTitle = computed(() => {

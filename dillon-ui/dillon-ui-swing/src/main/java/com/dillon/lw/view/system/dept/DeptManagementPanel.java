@@ -5,18 +5,18 @@ import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
-import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
+import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.DeptApi;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -142,17 +142,16 @@ public class DeptManagementPanel extends JPanel implements Observer {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
 
         edit.addActionListener(e -> showDeptEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton add = new JButton("新增");
         add.addActionListener(e -> {
             int selRow = treeTable.getSelectedRow();
@@ -166,7 +165,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
             }
             showDeptAddDialog(deptId);
         });
-        add.setForeground(UIManager.getColor("App.accentColor"));
+        add.setForeground(UIManager.getColor("App.accent.color"));
         add.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
         optBar.add(Box.createGlue());
         optBar.add(edit);

@@ -1,13 +1,13 @@
 package com.dillon.lw.framework.test.core.ut;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.dillon.lw.framework.datasource.config.DillonDataSourceAutoConfiguration;
 import com.dillon.lw.framework.mybatis.config.DillonMybatisAutoConfiguration;
 import com.dillon.lw.framework.redis.config.DillonRedisAutoConfiguration;
 import com.dillon.lw.framework.test.config.RedisTestConfiguration;
 import com.dillon.lw.framework.test.config.SqlInitializationTestConfiguration;
-import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;

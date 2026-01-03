@@ -138,16 +138,18 @@
   </Dialog>
 </template>
 <script setup lang="ts">
-import { getIntDictOptions, getStrDictOptions, getBoolDictOptions, DICT_TYPE } from '@/utils/dict'
-import { ${simpleClassName}Api, ${simpleClassName} } from '@/api/${table.moduleName}/${table.businessName}'
-## 特殊：树表专属逻辑
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
+  import {handleTree} from '@/utils/tree'
+      ## 特殊：树表专属逻辑
 #if ( $table.templateType == 2 )
-import { defaultProps, handleTree } from '@/utils/tree'
 #end
 ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 10 || $table.templateType == 12 )
 #foreach ($subSimpleClassName in $subSimpleClassNames)
-import ${subSimpleClassName}Form from './components/${subSimpleClassName}Form.vue'
 #end
 #end
 

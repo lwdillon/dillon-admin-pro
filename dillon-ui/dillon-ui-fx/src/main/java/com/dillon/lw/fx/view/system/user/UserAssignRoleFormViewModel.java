@@ -1,8 +1,5 @@
 package com.dillon.lw.fx.view.system.user;
 
-import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
@@ -12,6 +9,9 @@ import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;

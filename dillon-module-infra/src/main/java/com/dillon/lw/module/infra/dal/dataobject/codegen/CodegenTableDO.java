@@ -1,15 +1,15 @@
 package com.dillon.lw.module.infra.dal.dataobject.codegen;
 
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
 import com.dillon.lw.module.infra.enums.codegen.CodegenFrontTypeEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenSceneEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenTemplateTypeEnum;
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import lombok.Data;
 
 /**

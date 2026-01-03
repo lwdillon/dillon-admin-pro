@@ -3,6 +3,8 @@ package com.dillon.lw.module.infra.service.codegen.inner;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.module.infra.convert.codegen.CodegenConvert;
 import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenColumnDO;
@@ -10,8 +12,6 @@ import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenTableDO;
 import com.dillon.lw.module.infra.enums.codegen.CodegenColumnHtmlTypeEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenColumnListConditionEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenTemplateTypeEnum;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Component;
 

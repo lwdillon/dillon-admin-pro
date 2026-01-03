@@ -5,7 +5,10 @@ import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
-import com.dtflys.forest.annotation.*;
+import com.dtflys.forest.annotation.Body;
+import com.dtflys.forest.annotation.Get;
+import com.dtflys.forest.annotation.Post;
+import com.dtflys.forest.annotation.Query;
 
 import java.util.Set;
 

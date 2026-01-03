@@ -260,20 +260,20 @@
 </template>
 
 <script setup lang="ts">
-import { getIntDictOptions, getStrDictOptions, getBoolDictOptions, DICT_TYPE } from '@/utils/dict'
-import { isEmpty } from '@/utils/is'
-import { dateFormatter } from '@/utils/formatTime'
-## 特殊：树表专属逻辑
+  import {handleTree} from '@/utils/tree'
+  import download from '@/utils/download'
+
+  import {
+          ${simpleClassName}Api
+  }
+    from
+        '@/api/'
+      ## 特殊：树表专属逻辑
 #if ( $table.templateType == 2 )
-import { handleTree } from '@/utils/tree'
 #end
-import download from '@/utils/download'
-import { ${simpleClassName}Api, ${simpleClassName} } from '@/api/${table.moduleName}/${table.businessName}'
-import ${simpleClassName}Form from './${simpleClassName}Form.vue'
-## 特殊：主子表专属逻辑
+      ## 特殊：主子表专属逻辑
 #if ( $table.templateType != 10 )
 #foreach ($subSimpleClassName in $subSimpleClassNames)
-import ${subSimpleClassName}List from './components/${subSimpleClassName}List.vue'
 #end
 #end
 

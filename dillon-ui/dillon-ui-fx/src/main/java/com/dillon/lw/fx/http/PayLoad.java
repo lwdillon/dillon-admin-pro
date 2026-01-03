@@ -6,6 +6,7 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LogoutEvent;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.utils.MessageType;
+
 import java.util.function.Function;
 
 /**

@@ -1,7 +1,7 @@
 package com.dillon.lw.framework.idempotent.core.annotation;
 
-import com.dillon.lw.framework.idempotent.core.keyresolver.impl.DefaultIdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.IdempotentKeyResolver;
+import com.dillon.lw.framework.idempotent.core.keyresolver.impl.DefaultIdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.impl.ExpressionIdempotentKeyResolver;
 import com.dillon.lw.framework.idempotent.core.keyresolver.impl.UserIdempotentKeyResolver;
 

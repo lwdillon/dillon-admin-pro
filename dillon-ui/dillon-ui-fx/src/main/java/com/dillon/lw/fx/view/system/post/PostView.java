@@ -2,11 +2,11 @@ package com.dillon.lw.fx.view.system.post;
 
 import atlantafx.base.controls.ModalPane;
 import cn.hutool.core.date.DateUtil;
-import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.fx.view.layout.PagingControl;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

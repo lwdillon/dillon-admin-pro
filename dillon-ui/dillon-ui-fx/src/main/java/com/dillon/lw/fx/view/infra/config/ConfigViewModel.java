@@ -1,12 +1,8 @@
 package com.dillon.lw.fx.view.infra.config;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dtflys.forest.Forest;
-import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.infra.ConfigApi;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
@@ -15,6 +11,10 @@ import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dtflys.forest.Forest;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;

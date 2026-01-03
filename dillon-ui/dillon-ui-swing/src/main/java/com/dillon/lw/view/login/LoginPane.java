@@ -4,25 +4,29 @@
 
 package com.dillon.lw.view.login;
 
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.components.AlphaPanel;
+import com.dillon.lw.components.AutoCompleteField;
+import com.dillon.lw.config.UserHistory;
+import com.dillon.lw.config.UserHistoryService;
+import com.dillon.lw.eventbus.EventBusCenter;
+import com.dillon.lw.eventbus.event.LoginEvent;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
-import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.utils.ExecuteUtils;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.formdev.flatlaf.extras.components.FlatButton;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli
@@ -33,6 +37,7 @@ public class LoginPane extends JPanel {
 
     public LoginPane() {
         initComponents();
+        initData();
     }
 
     private void initComponents() {
@@ -44,20 +49,20 @@ public class LoginPane extends JPanel {
         titleLabel = new JLabel();
         subTitleLabel = new JLabel();
         progressBar = new JProgressBar();
-        userNameField = new JTextField("admin");
-        passwordField = new JPasswordField("admin123");
+        userNameField = new AutoCompleteField();
+        passwordField = new JPasswordField();
+        panel1 = new JPanel();
+        delButton = new FlatButton();
         rememberCheckBox = new JCheckBox();
-        msgLabel = new JLabel();
         loginButton = new JButton();
         corporationText = new JLabel();
 
         //======== this ========
-        setOpaque(false);
         setPreferredSize(new Dimension(900, 580));
         setLayout(new MigLayout(
             "fill,hidemode 3",
             // columns
-            "0[fill]0" +
+            "0[grow,fill]0" +
             "[380!,fill]0",
             // rows
             "0[]0"));
@@ -72,7 +77,6 @@ public class LoginPane extends JPanel {
 
         //======== contentPane ========
         {
-            contentPane.setOpaque(false);
             contentPane.setBorder(new EmptyBorder(5, 30, 5, 45));
             contentPane.setLayout(new MigLayout(
                 "fill,hidemode 3",
@@ -84,9 +88,8 @@ public class LoginPane extends JPanel {
                 "[30!]0" +
                 "[10!]0" +
                 "[50!]" +
-                "[50!]" +
-                "[20!]0" +
-                "[30!,grow,fill]0" +
+                "[50!]0" +
+                "[40!,grow,center]0" +
                 "[50!]" +
                 "[]"));
 
@@ -103,35 +106,86 @@ public class LoginPane extends JPanel {
             subTitleLabel.setText("\u6b22\u8fce\u767b\u5f55");
             contentPane.add(subTitleLabel, "cell 0 2,align center top,grow 0 0");
             contentPane.add(progressBar, "cell 0 3");
+
+            //---- userNameField ----
+            userNameField.setText("admin");
             contentPane.add(userNameField, "cell 0 4,growy");
+
+            //---- passwordField ----
+            passwordField.setText("admin123");
             contentPane.add(passwordField, "cell 0 5,growy");
 
-            //---- rememberCheckBox ----
-            rememberCheckBox.setText("\u8bb0\u4f4f\u5bc6\u7801");
-            contentPane.add(rememberCheckBox, "cell 0 6,alignx right,growx 0");
+            //======== panel1 ========
+            {
+                panel1.setOpaque(false);
+                panel1.setLayout(new MigLayout(
+                    "fill,hidemode 3",
+                    // columns
+                    "[fill]",
+                    // rows
+                    "0[40!,grow,center]0"));
 
-            //---- msgLabel ----
-            msgLabel.setForeground(new Color(0xff0066));
-            contentPane.add(msgLabel, "cell 0 7,alignx center,grow 0 100");
+                //---- delButton ----
+                delButton.setText("\u79fb\u9664\u5e10\u53f7");
+                panel1.add(delButton, "cell 0 0");
+
+                //---- rememberCheckBox ----
+                rememberCheckBox.setText("\u8bb0\u4f4f\u5bc6\u7801");
+                panel1.add(rememberCheckBox, "cell 0 0");
+            }
+            contentPane.add(panel1, "cell 0 6,alignx right,growx 0");
 
             //---- loginButton ----
             loginButton.setText("\u767b\u5f55");
             loginButton.setMinimumSize(new Dimension(49, 34));
-            contentPane.add(loginButton, "cell 0 8,growy");
+            contentPane.add(loginButton, "cell 0 7,growy");
 
             //---- corporationText ----
             corporationText.setText("@liwen");
-            contentPane.add(corporationText, "cell 0 9,align center bottom,grow 0 0");
+            corporationText.setForeground(new Color(0xcecece));
+            contentPane.add(corporationText, "cell 0 8,align center bottom,grow 0 0");
         }
         add(contentPane, "cell 1 0,growy");
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
+// 2. 设置自定义渲染器 (示例：让文字变蓝色)
+        delButton.setButtonType(FlatButton.ButtonType.toolBarButton);
+        delButton.setFocusable(false);
+        delButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
+        userNameField.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            JLabel label = new JLabel(value.toString());
 
+            if (value instanceof UserHistory) {
+                label.setText(value.getUsername());
+            }
+            label.setOpaque(true);
+            if (isSelected) {
+                label.setForeground(list.getSelectionForeground());
+                label.setBackground(list.getSelectionBackground());
+            } else {
+                label.setForeground(list.getForeground());
+                label.setBackground(list.getBackground());
+            }
+            return label;
+        });
+        // 配置：告诉组件通过 User 的 name 属性搜索
+        userNameField.setMapper(user -> user.getUsername());
+        userNameField.getList().setFixedCellHeight(40);
+        userNameField.getList().addListSelectionListener(e -> {
+
+        });
         // 添加功能
         loadSvg();
 
         initCustomComponents();
         intListeners();
     }
+
+
+    private void initData() {
+
+        userNameField.setDataList(UserHistoryService.loadUsers());
+    }
+
 
     private void loadSvg() {
         functions.add(new FunctionType("用户管理", "用户管理功能允许管理员轻松管理系统中的用户", "icons/user-manage.svg"));
@@ -145,6 +199,7 @@ public class LoginPane extends JPanel {
         logoLabel.setIcon(new FlatSVGIcon("icons/guanli.svg", 60, 60));
         subTitleLabel.putClientProperty("FlatLaf.style", "font: bold 20");
 
+        this.setBackground(new Color(0x32BAF6));
         progressBar.setVisible(false);
         userNameField.setFont(UIManager.getFont("h3.font"));
         userNameField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "用户名");
@@ -156,7 +211,6 @@ public class LoginPane extends JPanel {
         passwordField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         passwordField.setFont(UIManager.getFont("h3.font"));
 
-        msgLabel.setVisible(false);
         loginButton.setForeground(new Color(0xffffff));
         loginButton.setBackground(UIManager.getColor("App.accentColor"));
 
@@ -196,6 +250,25 @@ public class LoginPane extends JPanel {
             cardLayout.next(infoPane);
         });
         timer.start();
+
+        userNameField.getList().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+
+            UserHistory u = userNameField.getSelectedValue();
+            if (u == null) return;
+
+            // 仅用于 UI 预览，不要提交
+            passwordField.setText(u.getPasswrod());
+        });
+
+        delButton.addActionListener(e -> {
+            if (userNameField.getSelectedValue() != null) {
+                UserHistoryService.removeUser(userNameField.getSelectedValue().getUserId() + "");
+                userNameField.setText("");
+                passwordField.setText("");
+                userNameField.setDataList(UserHistoryService.loadUsers());
+            }
+        });
     }
 
     private void login() {
@@ -205,29 +278,39 @@ public class LoginPane extends JPanel {
         authLoginReqVO.setPassword(new String(passwordField.getPassword()));
 
         updateUiBeforeRequest();
-        CompletableFuture.supplyAsync(() -> {
-            AuthApi authApi = Forest.client(AuthApi.class);
-            AuthLoginRespVO authLoginRespVO = authApi.login(authLoginReqVO).getCheckedData();
-            // 更新 Token
-            AppStore.setAuthLoginRespVO(authLoginRespVO);
-            // 发起权限信息请求
-            return authApi.getPermissionInfo().getCheckedData();
-        }).thenAcceptAsync(authPermissionInfo -> {
-            handleSuccess(authPermissionInfo);
-        }, SwingUtilities::invokeLater).whenComplete((unused, throwable) -> {
-            SwingUtilities.invokeLater(() -> {
-                resetUiAfterRequest();
-                if (throwable != null) {
-                    handleError(throwable);
-                    SwingExceptionHandler.handle(throwable);
+        // 2. 使用封装的 ExecuteUtils 发起异步请求
+        ExecuteUtils.execute(
+                () -> {
+                    // 【后台线程】执行耗时操作
+                    AuthApi authApi = Forest.client(AuthApi.class);
+                    AuthLoginRespVO authLoginRespVO = authApi.login(authLoginReqVO).getCheckedData();
+
+                    // 存储 Token 等登录信息
+                    AppStore.setAuthLoginRespVO(authLoginRespVO);
+
+                    // 获取用户权限和个人信息
+                    return authApi.getPermissionInfo().getCheckedData();
+                },
+                authPermissionInfo -> {
+                    // 【EDT 线程】请求成功后处理业务逻辑（跳转主界面等）
+                    handleSuccess(authPermissionInfo);
+                    if (rememberCheckBox.isSelected()) {
+                        UserHistoryService.recordLogin(
+                                new UserHistory(authPermissionInfo.getUser().getId()+"", authPermissionInfo.getUser().getUsername(), authLoginReqVO.getPassword()),
+                                true
+                        );
+                    }
+
+                },
+                () -> {
+                    // 【EDT 线程】无论成功失败，重置 UI 状态（恢复按钮点击、隐藏动画）
+                    resetUiAfterRequest();
                 }
-            });
-        });
+        );
 
     }
 
     private void updateUiBeforeRequest() {
-        msgLabel.setVisible(false);
         loginButton.setText("正在请求登录...");
         loginButton.setEnabled(false);
         progressBar.setIndeterminate(true);
@@ -235,18 +318,6 @@ public class LoginPane extends JPanel {
 
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setComposite(AlphaComposite.SrcOver.derive(0.95f));
-
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        GradientPaint gradientPaint = new GradientPaint(0, 0, new Color(0x63A1FA), 0, getHeight(), new Color(0x97A7ED));
-        g2.setPaint(gradientPaint);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-        g2.dispose();
-    }
 
     private void resetUiAfterRequest() {
         loginButton.setEnabled(true);
@@ -256,16 +327,14 @@ public class LoginPane extends JPanel {
     }
 
     private void handleSuccess(AuthPermissionInfoRespVO authPermissionInfo) {
-        msgLabel.setVisible(false);
-        msgLabel.setText("");
         AppStore.setAuthPermissionInfoRespVO(authPermissionInfo);
         timer.stop();
-        MainFrame.getInstance().showMain();
         AppStore.loadDictData();
+
+        EventBusCenter.get().post(new LoginEvent(0));
     }
 
     private void handleError(Throwable throwable) {
-        msgLabel.setVisible(true);
 //        msgLabel.setText(throwable.getMessage());
         loginButton.setEnabled(true);
         loginButton.setText("登录");
@@ -295,6 +364,12 @@ public class LoginPane extends JPanel {
         }
     }
 
+    @Override
+    public void removeNotify() {
+        timer.stop();
+        super.removeNotify();
+    }
+
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license
     private JPanel infoPane;
@@ -303,10 +378,11 @@ public class LoginPane extends JPanel {
     private JLabel titleLabel;
     private JLabel subTitleLabel;
     private JProgressBar progressBar;
-    private JTextField userNameField;
+    private AutoCompleteField<UserHistory> userNameField;
     private JPasswordField passwordField;
+    private JPanel panel1;
+    private FlatButton delButton;
     private JCheckBox rememberCheckBox;
-    private JLabel msgLabel;
     private JButton loginButton;
     private JLabel corporationText;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on

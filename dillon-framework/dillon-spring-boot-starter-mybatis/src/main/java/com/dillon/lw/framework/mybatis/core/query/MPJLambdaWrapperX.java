@@ -2,8 +2,8 @@ package com.dillon.lw.framework.mybatis.core.query;
 
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.dillon.lw.framework.common.util.collection.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.dillon.lw.framework.common.util.collection.ArrayUtils;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.springframework.util.StringUtils;
 

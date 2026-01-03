@@ -1,26 +1,16 @@
 package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.SwingExceptionHandler;
-import com.dillon.lw.api.infra.ConfigApi;
-import com.dillon.lw.framework.common.pojo.CommonResult;
-import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
-import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
+import com.dillon.lw.components.WCardPanel;
+import com.dillon.lw.eventbus.EventBusCenter;
+import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.theme.DarkTheme;
-import com.dillon.lw.theme.GlazzedTheme;
-import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
-import com.dtflys.forest.Forest;
-import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.formdev.flatlaf.util.LoggingFacade;
+import com.google.common.eventbus.Subscribe;
 import com.jidesoft.swing.JideTabbedPane;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
@@ -32,11 +22,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 主应用界面面板 (MainPane) - 兼容 Java 8
@@ -55,14 +43,8 @@ public class MainPane extends JPanel {
     private JLabel titleLabel;
     private JToolBar tabLeadingBar;
     private JToolBar tabTrailingBar;
-    private JButton themeBut;
     private JButton refreshBut;
-    private JButton noticeBut;
 
-    // 弹出菜单
-    private JPopupMenu themePopupMenu;
-    private JPopupMenu personalPopupMenu;
-    private JMenuBar titleMenuBar;
 
     // 导航栏状态变量
     private int navBarExpandedWidth; // 导航栏展开时的宽度 (320px)
@@ -76,23 +58,25 @@ public class MainPane extends JPanel {
         initCustomComponents();
         initListeners();
         updateTreeTableRoot(); // 首次加载菜单数据
+        EventBusCenter.get().register(this);
     }
 
     // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
     private void initComponents() {
         // ... (JFormDesigner Generated Code remains unchanged for structure)
-        navBarPane = new JPanel();
-        navBarPane.setOpaque(false);
+        navBarPane = new WCardPanel();
+        navBarPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,0));
         navBarTreeTablePane = new JScrollPane();
+        navBarTreeTablePane.setOpaque(false);
+        navBarTreeTablePane.getViewport().setOpaque(false);
+        navBarTreeTablePane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         navBarTreeTable = new JXTreeTable();
-        tabbedPane = new JideTabbedPane(){
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2=(Graphics2D)g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UIManager.getColor("App.background.card"));
-                g2.fillRoundRect(0,0,getWidth(),getHeight(),20,20);
-                g2.dispose();
-            }};
+// TreeTable 本身
+        navBarTreeTable.setOpaque(false);
+        navBarTreeTable.setBackground(new Color(0, 0, 0, 0));
+
+        tabbedPane = new JideTabbedPane();
+        tabbedPane.setOpaque(false);
         statusPane = new JToolBar();
 
         //======== this ========
@@ -104,7 +88,11 @@ public class MainPane extends JPanel {
         }
         navBarTreeTablePane.setViewportView(navBarTreeTable);
         add(navBarPane, BorderLayout.WEST);
-        add(tabbedPane, BorderLayout.CENTER);
+        WCardPanel wPanel=     new WCardPanel();
+        wPanel.setLayout(new BorderLayout());
+        wPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
+        wPanel.add(tabbedPane);
+        add(wPanel, BorderLayout.CENTER);
 
         //======== statusPane ========
         {
@@ -122,7 +110,6 @@ public class MainPane extends JPanel {
 
         // 记录导航栏展开时的宽度
         navBarExpandedWidth = navBarPane.getPreferredSize().width;
-
         // 1. 设置 navBarPane 使用 CardLayout 来切换视图
         navBarPane.setLayout(new CardLayout());
 
@@ -145,7 +132,7 @@ public class MainPane extends JPanel {
 
 
         // 添加默认主页标签
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 25, 25), new JLabel());
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 25, 25), new JPanel());
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签页两侧的工具栏
@@ -176,9 +163,9 @@ public class MainPane extends JPanel {
      */
     private void configureTreeTable() {
         navBarTreeTable.setTreeTableModel(new MenuModel());
-        navBarTreeTable.setShowHorizontalLines(true);
+//        navBarTreeTable.setShowHorizontalLines(true);
         navBarTreeTable.setOpaque(false);
-        navBarTreeTable.setIntercellSpacing(new Dimension(1, 1));
+//        navBarTreeTable.setIntercellSpacing(new Dimension(1, 1));
 
         // 设置表头高度
         JTableHeader header = new JTableHeader() {
@@ -190,11 +177,9 @@ public class MainPane extends JPanel {
         navBarTreeTable.setTableHeader(header);
         navBarTreeTable.setRowHeight(45);
 
-        // 添加鼠标悬停高亮
         navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
                 UIManager.getColor("App.hoverBackground"),
                 null));
-
         // 设置树节点渲染器：用于显示菜单名称和图标 (Java 8 兼容)
         navBarTreeTable.setTreeCellRenderer(new DefaultTreeCellRenderer() {
             @Override
@@ -282,18 +267,10 @@ public class MainPane extends JPanel {
     private void initCollapsedIconPanel() {
         // 确保面板被创建和正确设置布局
         if (collapsedIconPanel == null) {
-            collapsedIconPanel = new JPanel(){
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2=(Graphics2D)g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(UIManager.getColor("App.background.card"));
-                    g2.fillRoundRect(0,0,getWidth(),getHeight(),20,20);
-                    g2.dispose();
-                }
-            };
+            collapsedIconPanel = new JPanel();
+            collapsedIconPanel.setOpaque(false);
             collapsedIconPanel.setLayout(new BoxLayout(collapsedIconPanel, BoxLayout.Y_AXIS));
-            collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+            collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
         } else {
             // 清空旧组件，准备重新加载菜单图标
             collapsedIconPanel.removeAll();
@@ -488,224 +465,11 @@ public class MainPane extends JPanel {
                     return new Dimension(super.getPreferredSize().width, 60);
                 }
             };
+            tabTrailingBar.setOpaque(false);
         }
         return tabTrailingBar;
     }
 
-    /**
-     * 获取主标题栏菜单（包含标题、主题、通知和用户）。
-     */
-    public JMenuBar getTitleMenuBar() {
-        if (titleMenuBar == null) {
-            titleMenuBar = new JMenuBar() {
-                // 确保在 Look and Feel 变化时，弹出菜单也更新 UI
-                @Override
-                public void updateUI() {
-                    super.updateUI();
-                    if (themePopupMenu != null) {
-                        SwingUtilities.updateComponentTreeUI(themePopupMenu);
-                    }
-                    if (personalPopupMenu != null) {
-                        SwingUtilities.updateComponentTreeUI(personalPopupMenu);
-                    }
-                }
-
-                @Override
-                protected void paintComponent(Graphics g) {
-                    // 1. 调用父类方法，清空背景
-                    super.paintComponent(g);
-
-                    // 2. 将 Graphics 对象转换为 Graphics2D
-                    Graphics2D g2d = (Graphics2D) g.create();
-
-                    g2d.setColor(UIManager.getColor("App.background"));
-                    g2d.fillRect(0,0,getWidth(),getHeight());
-                    int w = 300;
-                    int h = getHeight();
-
-                    // 确定中心点
-                    float centerX = w / 2.0f;
-                    float centerY = h / 2.0f;
-
-                    // 确定半径
-                    // 确保半径大于中心到最远边缘的距离，以覆盖全部区域
-                    float radius = (float) Math.hypot(w / 2.0f, h / 2.0f);
-                    // 另一种简单做法：float radius = Math.max(w, h) / 2.0f;
-
-                    // 3. 创建径向渐变 (Radial Gradient)
-
-                    // 颜色分布：
-                    float[] fractions = {
-                            0.0f,     // 中心 (0%)
-                            1.0f      // 边缘 (100%)
-                    };
-
-                    // 颜色数组：
-                    Color[] colors = {
-                            UIManager.getColor("App.title.background"), // 中心：完全不透明的红色 (Alpha=255)
-                            new Color(255, 0, 0, 0)    // 边缘：完全透明 (Alpha=0)
-                    };
-
-                    // 创建 RadialGradientPaint
-                    RadialGradientPaint rgp = new RadialGradientPaint(
-                            centerX,
-                            centerY,
-                            radius,
-                            fractions,
-                            colors,
-                            MultipleGradientPaint.CycleMethod.NO_CYCLE
-                    );
-
-
-                    // 4. 设置画笔为径向渐变
-                    g2d.setPaint(rgp);
-
-                    // 5. 填充整个组件区域
-                    g2d.fillRect(0, 0, w, h);
-
-                    // 6. 释放 Graphics2D 资源
-                    g2d.dispose();
-                }
-
-            };
-            // 布局：左侧标题，中间空白，右侧操作按钮
-            titleMenuBar.add(getTitleLabel());
-            titleMenuBar.add(Box.createGlue());
-            titleMenuBar.add(getThemeBut());
-            titleMenuBar.add(getNoticeBut());
-            titleMenuBar.add(getUserBut());
-//            titleMenuBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("App.borderColor")));
-        }
-        return titleMenuBar;
-    }
-
-    /**
-     * 获取通知按钮。
-     */
-    public JButton getNoticeBut() {
-        if (noticeBut == null) {
-            noticeBut = new JButton();
-            noticeBut.setIcon(new FlatSVGIcon("icons/bell.svg", 25, 25));
-            noticeBut.putClientProperty("JButton.buttonType", "toolBarButton");
-            noticeBut.setFocusable(false);
-            noticeBut.addActionListener(e -> {
-                // 打开或切换到“我的消息”标签页
-                int tabIndex = tabbedPane.indexOfTab("我的消息");
-                MyNotifyMessagePane myNotifyMessagePane;
-                if (tabIndex == -1) {
-                    myNotifyMessagePane = new MyNotifyMessagePane();
-                    tabbedPane.addTab("我的消息", new FlatSVGIcon("icons/bell.svg", 25, 25), myNotifyMessagePane);
-                } else {
-                    myNotifyMessagePane = (MyNotifyMessagePane) tabbedPane.getComponentAt(tabIndex);
-                }
-                tabbedPane.setSelectedIndex(tabbedPane.indexOfTab("我的消息"));
-                myNotifyMessagePane.updateData();
-            });
-        }
-        return noticeBut;
-    }
-
-    /**
-     * 获取主题切换按钮。
-     */
-    public JButton getThemeBut() {
-        if (themeBut == null) {
-            themeBut = new JButton();
-            themeBut.putClientProperty("JButton.buttonType", "toolBarButton");
-            themeBut.setIcon(new FlatSVGIcon("icons/skin.svg", 26, 26));
-            // 使用方法引用 (Java 8 兼容)
-            themeBut.addActionListener(this::showPopupSkinButtonActionPerformed);
-        }
-        return themeBut;
-    }
-
-    /**
-     * 显示皮肤主题切换弹出菜单。
-     */
-    private void showPopupSkinButtonActionPerformed(ActionEvent e) {
-        Component invoker = (Component) e.getSource();
-        if (themePopupMenu == null) {
-
-            themePopupMenu = new JPopupMenu();
-            ButtonGroup group = new ButtonGroup();
-
-            // 主题选项：白色
-            JCheckBoxMenuItem lighterMenuItem = new JCheckBoxMenuItem("白色");
-            group.add(lighterMenuItem);
-            themePopupMenu.add(lighterMenuItem);
-            lighterMenuItem.addActionListener(e1 -> {
-                theme("白色");
-                updateUserTheme("白色");
-            });
-
-            // 主题选项：深色
-            JCheckBoxMenuItem darkMenuItem = new JCheckBoxMenuItem("深色");
-            darkMenuItem.addActionListener(e1 -> {
-                theme("深色");
-                updateUserTheme("深色");
-            });
-            themePopupMenu.add(darkMenuItem);
-            group.add(darkMenuItem);
-
-            // 主题选项：玻璃
-            JCheckBoxMenuItem glazzedMenuItem = new JCheckBoxMenuItem("玻璃");
-            glazzedMenuItem.addActionListener(e1 -> {
-                theme("玻璃");
-                updateUserTheme("玻璃");
-            });
-            themePopupMenu.add(glazzedMenuItem);
-            group.add(glazzedMenuItem);
-        }
-        themePopupMenu.show(invoker, 0, invoker.getHeight());
-    }
-
-    /**
-     * 切换应用程序的主题外观。
-     *
-     * @param theme 主题名称 ("白色", "深色", "玻璃")。
-     */
-    public void theme(String theme) {
-        EventQueue.invokeLater(() -> {
-            FlatAnimatedLafChange.showSnapshot();
-
-            try {
-                // 动态设置 Look and Feel (Laf)
-                // 恢复传统的 switch 语句 (Java 8 兼容)
-                switch (theme) {
-                    case "深色":
-                        UIManager.setLookAndFeel(DarkTheme.class.getName());
-                        break;
-                    case "白色":
-                        UIManager.setLookAndFeel(LightTheme.class.getName());
-                        break;
-                    case "玻璃":
-                        UIManager.setLookAndFeel(GlazzedTheme.class.getName());
-                        break;
-                    default:
-                        UIManager.setLookAndFeel(LightTheme.class.getName());
-                        break;
-                }
-
-                // 添加鼠标悬停高亮
-                navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
-                        UIManager.getColor("App.hoverBackground"),
-                        null));
-            } catch (Exception ex) {
-                LoggingFacade.INSTANCE.logSevere(null, ex);
-            }
-
-            // 更新标题栏属性和全局 UI
-            MainFrame.getInstance().getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, UIManager.getColor("App.titleBarBackground"));
-            MainFrame.getInstance().getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_FOREGROUND, UIManager.getColor("App.titleBarForeground"));
-
-            FlatLaf.updateUI();
-
-            // 更新标签页前景颜色和图标颜色
-            tabForegroundChanged();
-
-            FlatAnimatedLafChange.hideSnapshotWithAnimation();
-        });
-    }
 
     /**
      * 根据当前选中的标签页，更新标签页的前景颜色和图标颜色。
@@ -726,59 +490,11 @@ public class MainPane extends JPanel {
             tabbedPane.setBackground(UIManager.getColor("TabbedPane.background"));
 
             // 使用 ColorFilter 更新 SVG 图标的颜色
-            Color finalColor = color;
-            icon.setColorFilter(new FlatSVGIcon.ColorFilter(c -> finalColor));
+//            Color finalColor = color;
+//            icon.setColorFilter(new FlatSVGIcon.ColorFilter(c -> finalColor));
         }
     }
 
-    /**
-     * 更新用户在服务器端的配置主题设置。
-     *
-     * @param theme 主题名称。
-     */
-    public void updateUserTheme(String theme) {
-        String finalUserTheme = theme;
-        // 假设 getId() 返回 Long 或 Integer，使用 toString() 兼容性更好
-        String userId = AppStore.getAuthPermissionInfoRespVO().getUser().getId().toString();
-        String key = "swing.theme.userid." + userId;
-        ConfigApi configApi = Forest.client(ConfigApi.class);
-
-        CompletableFuture.supplyAsync(() -> {
-            CommonResult<ConfigRespVO> configResult = configApi.getConfig(key);
-            ConfigRespVO configRespVO = configResult.isSuccess() ? configResult.getData() : null;
-
-            ConfigSaveReqVO saveReqVO = new ConfigSaveReqVO();
-            saveReqVO.setKey(key);
-            saveReqVO.setValue(finalUserTheme);
-            saveReqVO.setVisible(true);
-            saveReqVO.setCategory("ui");
-            saveReqVO.setName("用户主题");
-
-            if (configRespVO == null) {
-                return configApi.createConfig(saveReqVO).getCheckedData(); // 创建配置
-            } else {
-                saveReqVO.setId(configRespVO.getId());
-                return configApi.updateConfig(saveReqVO).getCheckedData(); // 更新配置
-            }
-        }).thenAcceptAsync(result -> {
-            // 成功
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
-    /**
-     * 显示个人信息和退出登录的弹出菜单。
-     */
-    private void showPopupMenuButtonActionPerformed(Component invoker) {
-        if (personalPopupMenu == null) {
-            personalPopupMenu = createPersonalPopupMenu();
-        }
-        personalPopupMenu.show(invoker, 0, invoker.getHeight());
-    }
 
     /**
      * 创建个人信息弹出菜单的内容。
@@ -836,20 +552,6 @@ public class MainPane extends JPanel {
             titleLabel.setBorder(BorderFactory.createEmptyBorder(7, 3, 7, 7));
         }
         return titleLabel;
-    }
-
-    /**
-     * 获取用户信息按钮。
-     */
-    public JButton getUserBut() {
-        FlatSVGIcon svgIcon = new FlatSVGIcon("icons/user.svg", 25, 25);
-        JButton userBut = new JButton(AppStore.getAuthPermissionInfoRespVO().getUser().getNickname());
-        userBut.setIcon(svgIcon);
-        userBut.putClientProperty("JButton.buttonType", "toolBarButton");
-        userBut.setFocusable(false);
-        userBut.setFont(userBut.getFont().deriveFont(18f));
-        userBut.addActionListener(e -> showPopupMenuButtonActionPerformed((Component) e.getSource()));
-        return userBut;
     }
 
     /**
@@ -1039,9 +741,45 @@ public class MainPane extends JPanel {
 //        super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setPaint(UIManager.getColor("App.background"));
+//        g2.setPaint(Color.RED);
         g2.fillRect(0, 0, getWidth(), getHeight());
         g2.dispose();
+    }
 
+    @Subscribe
+    private void onAddTab(AddMainTabEvent addMainTabEvent) {
+
+        SwingUtilities.invokeLater(() -> {
+            String tabName = addMainTabEvent.getTabName();
+            String icon = addMainTabEvent.getIcon();
+            JComponent component = addMainTabEvent.getTabContent();
+            int tabIndex = tabbedPane.indexOfTab(tabName);
+            if (tabIndex == -1) {
+                tabbedPane.addTab(tabName, new FlatSVGIcon(icon, 25, 25), component);
+            }
+            tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(tabName));
+        });
+
+
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        if (navBarTreeTable != null) {
+            // 添加鼠标悬停高亮
+            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
+                    UIManager.getColor("App.hoverBackground"),
+                    null));
+        }
+
+    }
+
+
+    @Override
+    public void removeNotify() {
+        EventBusCenter.get().unregister(this);
+        super.removeNotify();
 
     }
 }

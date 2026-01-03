@@ -9,7 +9,6 @@ import com.dillon.lw.framework.security.core.handler.AuthenticationEntryPointImp
 import com.dillon.lw.framework.security.core.service.SecurityFrameworkService;
 import com.dillon.lw.framework.security.core.service.SecurityFrameworkServiceImpl;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
-import javax.annotation.Resource;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
@@ -20,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+
+import javax.annotation.Resource;
 
 /**
  * Spring Security 自动配置类，主要用于相关组件的配置

@@ -3,8 +3,8 @@ package com.dillon.lw.module.infra.service.demo.demo02;
 import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02CategoryListReqVO;
 import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02CategorySaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo02.Demo02CategoryDO;
-import javax.validation.Valid;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**

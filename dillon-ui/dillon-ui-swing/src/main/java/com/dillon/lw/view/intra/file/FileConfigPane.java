@@ -8,29 +8,29 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.FileConfigApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
-import java.awt.*;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
+import java.awt.*;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_FILE_STORAGE;
@@ -174,19 +174,18 @@ public class FileConfigPane extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
         edit.addActionListener(e -> showEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton primaryBut = new JButton("主配置");
         primaryBut.addActionListener(e -> updateFileConfigMaster());
-        primaryBut.setForeground(UIManager.getColor("App.accentColor"));
+        primaryBut.setForeground(UIManager.getColor("App.accent.color"));
         primaryBut.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
 
         optBar.add(Box.createGlue());

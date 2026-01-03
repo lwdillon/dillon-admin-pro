@@ -6,25 +6,14 @@
 #set ($SubJoinColumnName = $subJoinColumn.javaField.substring(0,1).toUpperCase() + ${subJoinColumn.javaField.substring(1)})##首字母大写
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 <script lang="ts" setup>
-  import type { ${apiName} } from '#/api/${table.moduleName}/${table.businessName}';
+  import {nextTick, watch} from 'vue';
+  import type {OnActionClickParams} from '#/adapter/vxe-table';
+  import {useVbenVxeGrid} from '#/adapter/vxe-table';
+  import {useVbenForm} from '#/adapter/form';
 
-  import { computed, ref, h, onMounted,watch,nextTick } from 'vue';
-
-  import { $t } from '#/locales';
-
-#if ($subTable.subJoinMany) ## 一对多
-import { Plus } from "@vben/icons";
-import { Button, Tabs, Checkbox, Input, Textarea, Select,RadioGroup,CheckboxGroup, DatePicker } from 'ant-design-vue';
-import { ImageUpload, FileUpload } from "#/components/upload";
-import type { OnActionClickParams } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { use${subSimpleClassName}GridEditColumns } from '../data';
-import { get${subSimpleClassName}ListBy${SubJoinColumnName} } from '#/api/${table.moduleName}/${table.businessName}';
-#else
-import { useVbenForm } from '#/adapter/form';
-import { use${subSimpleClassName}FormSchema } from '../data';
-import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.moduleName}/${table.businessName}';
-#end
+      #if ($subTable.subJoinMany) ## 一对多
+      #else
+      #end
 
 const props = defineProps<{
    ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）

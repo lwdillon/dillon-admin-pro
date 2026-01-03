@@ -1,13 +1,13 @@
 package com.dillon.lw.framework.datapermission.config;
 
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import com.dillon.lw.framework.datapermission.core.aop.DataPermissionAnnotationAdvisor;
 import com.dillon.lw.framework.datapermission.core.db.DataPermissionRuleHandler;
 import com.dillon.lw.framework.datapermission.core.rule.DataPermissionRule;
 import com.dillon.lw.framework.datapermission.core.rule.DataPermissionRuleFactory;
 import com.dillon.lw.framework.datapermission.core.rule.DataPermissionRuleFactoryImpl;
 import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
-import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 

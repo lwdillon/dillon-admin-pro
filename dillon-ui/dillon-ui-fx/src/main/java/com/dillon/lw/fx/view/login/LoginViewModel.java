@@ -1,13 +1,13 @@
 package com.dillon.lw.fx.view.login;
 
 
-import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LoginSuccessEvent;
 import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
+import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

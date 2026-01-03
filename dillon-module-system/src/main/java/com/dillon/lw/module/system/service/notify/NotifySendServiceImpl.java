@@ -13,7 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
+import static com.dillon.lw.module.system.enums.ErrorCodeConstants.NOTICE_NOT_FOUND;
+import static com.dillon.lw.module.system.enums.ErrorCodeConstants.NOTIFY_SEND_TEMPLATE_PARAM_MISS;
 
 /**
  * 站内信发送 Service 实现类

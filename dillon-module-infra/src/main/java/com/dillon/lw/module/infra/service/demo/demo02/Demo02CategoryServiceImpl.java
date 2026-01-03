@@ -5,10 +5,10 @@ import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02Category
 import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02CategorySaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo02.Demo02CategoryDO;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo02.Demo02CategoryMapper;
-import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 

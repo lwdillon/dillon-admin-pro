@@ -1,8 +1,8 @@
 package com.dillon.lw.fx.view.system.log.operatelog;
 
-import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
 import javafx.beans.property.*;
 
 import java.time.LocalDateTime;

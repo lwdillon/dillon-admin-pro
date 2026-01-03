@@ -7,29 +7,23 @@
 #set ($SubJoinColumnName = $subJoinColumn.javaField.substring(0,1).toUpperCase() + ${subJoinColumn.javaField.substring(1)})##首字母大写
 #set ($apiName = "${table.moduleName.substring(0,1).toUpperCase()}${table.moduleName.substring(1)}${simpleClassName}Api")
 <script lang="ts" setup>
-import type { VxeTableGridOptions } from '#/adapter/vxe-table';
-import type { ${apiName} } from '#/api/${table.moduleName}/${table.businessName}';
+  import type {VxeTableGridOptions} from '#/adapter/vxe-table';
+  import {useVbenVxeGrid} from '#/adapter/vxe-table';
 
-#if ($table.templateType == 11) ## erp
-import ${subSimpleClassName}Form from './${subSimpleClassName_strikeCase}-form.vue'
+  import {delete${subSimpleClassName}} from '#/api/';
+  import ${subSimpleClassName}Form from './'
+  import {useVbenModal} from '@vben/common-ui';
+  import {ElLoading, ElMessage} from 'element-plus';
+  import {nextTick, ref, watch} from 'vue';
+
+      #if ($table.templateType == 11) ## erp
 #end
-import { useVbenModal } from '@vben/common-ui';
-import { ElMessage, ElLoading } from 'element-plus';
-import { ref, computed, nextTick,watch } from 'vue';
-import { $t } from '#/locales';
-import { ACTION_ICON, TableAction, useVbenVxeGrid } from '#/adapter/vxe-table';
 
 #if ($table.templateType == 11) ## erp
-import { delete${subSimpleClassName},#if ($deleteBatchEnable) delete${subSimpleClassName}List,#end get${subSimpleClassName}Page } from '#/api/${table.moduleName}/${table.businessName}';
-import { use${subSimpleClassName}GridFormSchema, use${subSimpleClassName}GridColumns } from '../data';
-import { isEmpty } from '@vben/utils';
 #else
 #if ($subTable.subJoinMany) ## 一对多
-import { get${subSimpleClassName}ListBy${SubJoinColumnName} } from '#/api/${table.moduleName}/${table.businessName}';
 #else
-import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.moduleName}/${table.businessName}';
 #end
-import { use${subSimpleClassName}GridColumns } from '../data';
 #end
 
 const props = defineProps<{

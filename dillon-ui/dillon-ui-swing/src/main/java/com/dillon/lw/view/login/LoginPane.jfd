@@ -1,11 +1,11 @@
-JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.5" encoding: "UTF-8"
+JFDML JFormDesigner: "8.2.4.0.393" Java: "21.0.9" encoding: "UTF-8"
 
 new FormModel {
 	contentType: "form/swing"
 	root: new FormRoot {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 			"$layoutConstraints": "fill,hidemode 3"
-			"$columnConstraints": "0[fill]0[380!,fill]0"
+			"$columnConstraints": "0[grow,fill]0[380!,fill]0"
 			"$rowConstraints": "0[]0"
 		} ) {
 			name: "this"
@@ -20,7 +20,7 @@ new FormModel {
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 				"$layoutConstraints": "fill,hidemode 3"
 				"$columnConstraints": "[fill]"
-				"$rowConstraints": "[fill][45!]0[30!]0[10!]0[50!][50!][20!]0[30!,grow,fill]0[50!][]"
+				"$rowConstraints": "[fill][45!]0[30!]0[10!]0[50!][50!]0[40!,grow,center]0[50!][]"
 			} ) {
 				name: "contentPane"
 				"border": new javax.swing.border.EmptyBorder( 5, 30, 5, 45 )
@@ -50,38 +50,51 @@ new FormModel {
 				} )
 				add( new FormComponent( "javax.swing.JTextField" ) {
 					name: "userNameField"
+					"text": "admin"
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 0 4,growy"
 				} )
 				add( new FormComponent( "javax.swing.JPasswordField" ) {
 					name: "passwordField"
+					"text": "admin123"
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 0 5,growy"
 				} )
-				add( new FormComponent( "javax.swing.JCheckBox" ) {
-					name: "rememberCheckBox"
-					"text": "记住密码"
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
+					"$columnConstraints": "[fill]"
+					"$rowConstraints": "0[40!,grow,center]0"
+					"$layoutConstraints": "fill,hidemode 3"
+				} ) {
+					name: "panel1"
+					"opaque": false
+					add( new FormComponent( "javax.swing.JButton" ) {
+						name: "delButton"
+						"text": "移除帐号"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 0"
+					} )
+					add( new FormComponent( "javax.swing.JCheckBox" ) {
+						name: "rememberCheckBox"
+						"text": "记住密码"
+					}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
+						"value": "cell 0 0"
+					} )
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 					"value": "cell 0 6,alignx right,growx 0"
-				} )
-				add( new FormComponent( "javax.swing.JLabel" ) {
-					name: "msgLabel"
-					"foreground": new java.awt.Color( 255, 0, 102, 255 )
-				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-					"value": "cell 0 7,alignx center,grow 0 100"
 				} )
 				add( new FormComponent( "javax.swing.JButton" ) {
 					name: "loginButton"
 					"text": "登录"
 					"minimumSize": new java.awt.Dimension( 49, 34 )
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-					"value": "cell 0 8,growy"
+					"value": "cell 0 7,growy"
 				} )
 				add( new FormComponent( "javax.swing.JLabel" ) {
 					name: "corporationText"
 					"text": "@liwen"
+					"foreground": new java.awt.Color( 206, 206, 206, 255 )
 				}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
-					"value": "cell 0 9,align center bottom,grow 0 0"
+					"value": "cell 0 8,align center bottom,grow 0 0"
 				} )
 			}, new FormLayoutConstraints( class net.miginfocom.layout.CC ) {
 				"value": "cell 1 0,growy"

@@ -8,28 +8,27 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.ApiAccessLogApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
-import java.awt.*;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
+import java.awt.*;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_OPERATE_TYPE;
@@ -198,7 +197,7 @@ public class ApiAccessLogPane extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton viewBut = new JButton("详情");
-        viewBut.setForeground(UIManager.getColor("App.accentColor"));
+        viewBut.setForeground(UIManager.getColor("App.accent.color"));
         viewBut.setIcon(new FlatSVGIcon("icons/chakan.svg", 15, 15));
         viewBut.addActionListener(e -> showDetailsDialog());
 

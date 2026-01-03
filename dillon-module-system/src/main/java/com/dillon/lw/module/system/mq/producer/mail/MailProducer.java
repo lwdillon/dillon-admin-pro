@@ -6,11 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-
 import java.util.Collection;
-import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 /**
  * Mail 邮件相关消息的 Producer

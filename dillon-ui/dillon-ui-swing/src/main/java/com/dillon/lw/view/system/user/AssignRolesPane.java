@@ -6,18 +6,14 @@ package com.dillon.lw.view.system.user;
 
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
-import com.jidesoft.swing.CheckBoxList;
-import com.dtflys.forest.Forest;
-import java.util.concurrent.CompletableFuture;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.api.system.RoleApi;
-import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.components.WScrollPane;
-import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.dillon.lw.view.frame.MainFrame;
+import com.dtflys.forest.Forest;
+import com.jidesoft.swing.CheckBoxList;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -26,10 +22,11 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
-import java.util.List;
 
 /**
  * @author wenli

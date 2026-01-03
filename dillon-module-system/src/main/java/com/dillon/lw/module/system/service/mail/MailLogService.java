@@ -7,7 +7,6 @@ import com.dillon.lw.module.system.dal.dataobject.mail.MailLogDO;
 import com.dillon.lw.module.system.dal.dataobject.mail.MailTemplateDO;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**

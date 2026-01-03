@@ -2,11 +2,11 @@ package com.dillon.lw.fx.view.system.role;
 
 import atlantafx.base.controls.ModalPane;
 import cn.hutool.core.date.DateUtil;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.fx.view.layout.PagingControl;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;

@@ -1,11 +1,11 @@
 package com.dillon.lw.module.infra.dal.dataobject.db;
 
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.mybatis.core.type.EncryptTypeHandler;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.mybatis.core.type.EncryptTypeHandler;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import lombok.Data;
 
 /**

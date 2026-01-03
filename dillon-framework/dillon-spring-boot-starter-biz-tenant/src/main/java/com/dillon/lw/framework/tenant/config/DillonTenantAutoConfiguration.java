@@ -1,5 +1,7 @@
 package com.dillon.lw.framework.tenant.config;
 
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.dillon.lw.framework.common.biz.system.tenant.TenantCommonApi;
 import com.dillon.lw.framework.common.enums.WebFilterOrderEnum;
 import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
@@ -20,8 +22,6 @@ import com.dillon.lw.framework.tenant.core.web.TenantContextWebFilter;
 import com.dillon.lw.framework.tenant.core.web.TenantVisitContextInterceptor;
 import com.dillon.lw.framework.web.config.WebProperties;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
-import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

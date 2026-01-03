@@ -8,14 +8,16 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.MenuApi;
-import com.dillon.lw.components.*;
+import com.dillon.lw.components.WButton;
+import com.dillon.lw.components.WPanel;
+import com.dillon.lw.components.WaitPane;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.store.AppStore;
+import com.dillon.lw.utils.ExecuteUtils;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -117,12 +119,18 @@ public class MenuManagementPanel extends JPanel implements Observer {
         ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
         treeTable.setHighlighters(rollover);
         treeTable.putClientProperty(JXTreeTable.USE_DTCR_COLORMEMORY_HACK, Boolean.FALSE);
-//        treeTable.setSelectionBackground(UIManager.getColor("Table.selectionBackground"));
+
         JScrollPane tsp = new JScrollPane(treeTable);
-        this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        this.setLayout(new BorderLayout(0, 10));
-        this.add(toolBar, BorderLayout.NORTH);
-        this.add(tsp);
+        tsp.setBorder(BorderFactory.createEmptyBorder());
+
+        JPanel cantenPane = new WPanel(new BorderLayout(0, 10));
+//        cantenPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        cantenPane.add(toolBar, BorderLayout.NORTH);
+        cantenPane.add(tsp, BorderLayout.CENTER);
+        waitPane = new WaitPane(cantenPane);
+
+        this.setLayout(new BorderLayout());
+        this.add(waitPane, BorderLayout.CENTER);
 
 
     }
@@ -145,17 +153,16 @@ public class MenuManagementPanel extends JPanel implements Observer {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
 
         edit.addActionListener(e -> showMenuEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> delMenu());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton add = new JButton("新增");
         add.addActionListener(e -> {
             int selRow = treeTable.getSelectedRow();
@@ -169,7 +176,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
             }
             showMenuAddDialog(menuId);
         });
-        add.setForeground(UIManager.getColor("App.accentColor"));
+        add.setForeground(UIManager.getColor("App.accent.color"));
         add.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
         optBar.add(Box.createGlue());
         optBar.add(edit);
@@ -184,7 +191,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
     private void showMenuAddDialog(Long id) {
         menuEditPane = new MenuEditPane();
         menuEditPane.updateData(id, true);
-        int opt = WOptionPane.showOptionDialog(null, menuEditPane, "添加菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, menuEditPane, "添加菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             addMenu();
         }
@@ -204,7 +211,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         }
         menuEditPane = new MenuEditPane();
         menuEditPane.updateData(menuId, false);
-        int opt = WOptionPane.showOptionDialog(null, menuEditPane, "修改菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, menuEditPane, "修改菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             editMenu();
         }
@@ -219,36 +226,29 @@ public class MenuManagementPanel extends JPanel implements Observer {
         }
         Map<String, Object> queryMap = BeanUtil.beanToMap(sysMenuModel, false, true);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            long min = data.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-            TreeNodeConfig config = new TreeNodeConfig();
-            config.setWeightKey("orderNum");
-            config.setParentIdKey("parentId");
-            config.setNameKey("menuName");
-            Tree<Long> treeList = TreeUtil.buildSingle(data, min, config, ((object, treeNode) -> {
-                treeNode.setId(object.getId());
-                treeNode.setParentId(object.getParentId());
-                treeNode.setName(object.getName());
-                treeNode.putExtra("icon", object.getIcon());
-                treeNode.putExtra("component", object.getComponentSwing());
-                treeNode.putExtra("orderNum", object.getSort());
-                treeNode.putExtra("status", object.getStatus());
-                treeNode.putExtra("perms", object.getPermission());
-                treeNode.putExtra("menuType", object.getType());
-                treeNode.putExtra("componentName", object.getComponentName());
-            }));
-            updateTreeTableRoot(treeList);
-            if (exButton.isSelected()) {
-                treeTable.expandAll();
-            }
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        ExecuteUtils.execute(()->Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData(),
+                data->{long min = data.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+                    TreeNodeConfig config = new TreeNodeConfig();
+                    config.setWeightKey("orderNum");
+                    config.setParentIdKey("parentId");
+                    config.setNameKey("menuName");
+                    Tree<Long> treeList = TreeUtil.buildSingle(data, min, config, ((object, treeNode) -> {
+                        treeNode.setId(object.getId());
+                        treeNode.setParentId(object.getParentId());
+                        treeNode.setName(object.getName());
+                        treeNode.putExtra("icon", object.getIcon());
+                        treeNode.putExtra("component", object.getComponentSwing());
+                        treeNode.putExtra("orderNum", object.getSort());
+                        treeNode.putExtra("status", object.getStatus());
+                        treeNode.putExtra("perms", object.getPermission());
+                        treeNode.putExtra("menuType", object.getType());
+                        treeNode.putExtra("componentName", object.getComponentName());
+                    }));
+                    updateTreeTableRoot(treeList);
+                    if (exButton.isSelected()) {
+                        treeTable.expandAll();
+                    }},()->{},"查询成功！",waitPane);
+
     }
 
     private void updateTreeTableRoot(Object root) {
@@ -383,7 +383,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
             }
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + menuName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + menuName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

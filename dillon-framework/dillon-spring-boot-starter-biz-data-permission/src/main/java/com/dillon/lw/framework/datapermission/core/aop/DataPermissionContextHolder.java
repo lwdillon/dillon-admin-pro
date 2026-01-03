@@ -1,7 +1,7 @@
 package com.dillon.lw.framework.datapermission.core.aop;
 
-import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
 import com.alibaba.ttl.TransmittableThreadLocal;
+import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
 
 import java.util.LinkedList;
 import java.util.List;

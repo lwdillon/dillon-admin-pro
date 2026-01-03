@@ -1,9 +1,6 @@
 package com.dillon.lw.fx.view.system.menu;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -14,6 +11,9 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.*;

@@ -3,10 +3,10 @@ package com.dillon.lw.module.infra.controller.admin.codegen.vo;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.column.CodegenColumnSaveReqVO;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.table.CodegenTableSaveReqVO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import lombok.Data;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Schema(description = "管理后台 - 代码生成表和字段的修改 Request VO")

@@ -1,11 +1,11 @@
 package com.dillon.lw.module.system.controller.admin.captcha;
 
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.framework.common.util.servlet.ServletUtils;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.anji.captcha.model.common.ResponseModel;
 import com.anji.captcha.model.vo.CaptchaVO;
 import com.anji.captcha.service.CaptchaService;
+import com.dillon.lw.framework.common.util.servlet.ServletUtils;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;

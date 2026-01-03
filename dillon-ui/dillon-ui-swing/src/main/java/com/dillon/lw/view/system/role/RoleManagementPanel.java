@@ -8,15 +8,13 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
@@ -32,7 +30,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -186,24 +183,23 @@ public class RoleManagementPanel extends JPanel {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
         edit.addActionListener(e -> showEditDialog());
-        edit.setForeground(UIManager.getColor("App.accentColor"));
+        edit.setForeground(UIManager.getColor("App.accent.color"));
 
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton menuPermissionBut = new JButton("菜单权限");
         menuPermissionBut.addActionListener(e -> showRoleAssignMenuDialog());
-        menuPermissionBut.setForeground(UIManager.getColor("App.accentColor"));
+        menuPermissionBut.setForeground(UIManager.getColor("App.accent.color"));
         menuPermissionBut.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
 
         JButton dataPermissionBut = new JButton("数据权限");
         dataPermissionBut.addActionListener(e -> showDataPermissionPaneDialog());
-        dataPermissionBut.setForeground(UIManager.getColor("App.accentColor"));
+        dataPermissionBut.setForeground(UIManager.getColor("App.accent.color"));
         dataPermissionBut.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
 
 

@@ -1,8 +1,8 @@
 package com.dillon.lw.framework.lock4j.core;
 
+import com.baomidou.lock.LockFailureStrategy;
 import com.dillon.lw.framework.common.exception.ServiceException;
 import com.dillon.lw.framework.common.exception.enums.GlobalErrorCodeConstants;
-import com.baomidou.lock.LockFailureStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;

@@ -1,17 +1,17 @@
 package com.dillon.lw.fx.view.system.role;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.google.common.eventbus.Subscribe;
 import com.dillon.lw.api.system.RoleApi;
+import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dtflys.forest.Forest;
+import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;

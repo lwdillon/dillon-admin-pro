@@ -1,9 +1,9 @@
 package com.dillon.lw.fx.view.system.user;
 
 import atlantafx.base.controls.Popover;
+import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
-import com.dillon.lw.fx.mvvm.base.BaseView;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.collections.ListChangeListener;

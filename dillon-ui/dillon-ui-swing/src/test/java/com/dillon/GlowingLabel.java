@@ -1,7 +1,7 @@
 package com.dillon;
 
-import java.awt.*;
 import javax.swing.*;
+import java.awt.*;
 
 public class GlowingLabel extends JLabel {
 

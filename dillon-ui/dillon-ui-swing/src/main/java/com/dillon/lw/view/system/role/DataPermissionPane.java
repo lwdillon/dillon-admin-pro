@@ -6,8 +6,8 @@ package com.dillon.lw.view.system.role;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleDataScopeReqVO;
@@ -15,9 +15,9 @@ import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespV
 import com.dillon.lw.module.system.enums.permission.DataScopeEnum;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.DictTypeEnum;
+import com.dillon.lw.utils.TreeUtils;
 import com.dtflys.forest.Forest;
 import com.jidesoft.swing.CheckBoxTree;
-import com.jidesoft.tree.TreeUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -26,8 +26,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**

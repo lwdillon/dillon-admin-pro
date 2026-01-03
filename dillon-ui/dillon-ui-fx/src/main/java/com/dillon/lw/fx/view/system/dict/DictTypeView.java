@@ -2,7 +2,6 @@ package com.dillon.lw.fx.view.system.dict;
 
 import atlantafx.base.controls.ModalPane;
 import cn.hutool.core.date.DateUtil;
-import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MainTabEvent;
 import com.dillon.lw.fx.mvvm.base.BaseView;
@@ -10,6 +9,7 @@ import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.fx.view.layout.PagingControl;
 import com.dillon.lw.fx.view.system.dict.data.DictDataView;
+import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;

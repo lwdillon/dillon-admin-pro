@@ -12,11 +12,11 @@ import com.dillon.lw.module.infra.dal.dataobject.demo.demo03.Demo03StudentDO;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.inner.Demo03CourseInnerMapper;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.inner.Demo03GradeInnerMapper;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.inner.Demo03StudentInnerMapper;
-import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;

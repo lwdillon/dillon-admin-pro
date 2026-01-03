@@ -8,17 +8,23 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.FileApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileRespVO;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import net.miginfocom.swing.MigLayout;
+import org.jdesktop.swingx.JXTable;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -28,12 +34,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import net.miginfocom.swing.MigLayout;
-import org.jdesktop.swingx.JXTable;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
@@ -174,12 +174,11 @@ public class FileListPane extends JPanel {
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("app-error-color-5"));
-
+        del.setForeground(UIManager.getColor("App.danger.color"));
         JButton downLoadBut = new JButton("下载");
         downLoadBut.setIcon(new FlatSVGIcon("icons/xiazai.svg", 15, 15));
         downLoadBut.addActionListener(e -> download());
-        del.setForeground(UIManager.getColor("App.accentColor"));
+        del.setForeground(UIManager.getColor("App.accent.color"));
 
         optBar.add(Box.createGlue());
         optBar.add(downLoadBut);

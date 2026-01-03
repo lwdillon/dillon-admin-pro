@@ -2,8 +2,8 @@ package com.dillon.lw.framework.dict.core;
 
 import cn.hutool.core.collection.CollUtil;
 import com.dillon.lw.framework.common.biz.system.dict.DictDataCommonApi;
-import com.dillon.lw.framework.common.util.cache.CacheUtils;
 import com.dillon.lw.framework.common.biz.system.dict.dto.DictDataRespDTO;
+import com.dillon.lw.framework.common.util.cache.CacheUtils;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.SneakyThrows;

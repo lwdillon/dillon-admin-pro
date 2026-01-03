@@ -1,7 +1,7 @@
 package com.dillon.lw.framework.tenant.core.context;
 
-import com.dillon.lw.framework.common.enums.DocumentEnum;
 import com.alibaba.ttl.TransmittableThreadLocal;
+import com.dillon.lw.framework.common.enums.DocumentEnum;
 
 /**
  * 多租户上下文 Holder

@@ -6,38 +6,25 @@
 #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($subIndex))
 #set ($SubJoinColumnName = $subJoinColumn.javaField.substring(0,1).toUpperCase() + ${subJoinColumn.javaField.substring(1)})##首字母大写
 <script lang="ts" setup>
-import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-import type { VxeTableInstance } from '#/adapter/vxe-table';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
+  import {delete${subSimpleClassName}} from '#/api/';
 
-import { reactive,ref, h, nextTick,watch,onMounted } from 'vue';
+  import {nextTick, onMounted, reactive, ref, watch} from 'vue';
+  import {useVbenModal} from '@vben/common-ui';
+  import {useTableToolbar} from '@vben/plugins/vxe-table';
+  import {Form, message} from 'ant-design-vue';
 
-import { DICT_TYPE } from '@vben/constants';
-import { getDictOptions } from '@vben/hooks';
-
-import { DictTag } from '#/components/dict-tag';
-import { getRangePickerDefaultProps } from '#/utils';
-import { VxeColumn, VxeTable } from '#/adapter/vxe-table';
-import { ContentWrap } from '#/components/content-wrap';
-
-#if ($table.templateType == 11) ## erp
-import { useVbenModal } from '@vben/common-ui';
-import { useTableToolbar, VbenVxeTableToolbar } from '@vben/plugins/vxe-table';
-import ${subSimpleClassName}Form from './${subSimpleClassName_strikeCase}-form.vue'
-import { Tinymce as RichTextarea } from '#/components/tinymce';
-import { ImageUpload, FileUpload } from "#/components/upload";
-import { message,Button, Tabs,Pagination, Form, Input, Textarea, Select, RadioGroup, Radio, CheckboxGroup, Checkbox,RangePicker, DatePicker, TreeSelect } from 'ant-design-vue';
-import { Plus, Trash2 } from '@vben/icons';
-import { $t } from '#/locales';
+      #if ($table.templateType == 11) ## erp
 #end
 
 #if ($table.templateType == 11) ## erp
-import { delete${subSimpleClassName},#if ($deleteBatchEnable) delete${subSimpleClassName}List,#end get${subSimpleClassName}Page } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-import { isEmpty } from '@vben/utils';
 #else
 #if ($subTable.subJoinMany) ## 一对多
-import { get${subSimpleClassName}ListBy${SubJoinColumnName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
 #else
-import { get${subSimpleClassName}By${SubJoinColumnName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
 #end
 #end
 

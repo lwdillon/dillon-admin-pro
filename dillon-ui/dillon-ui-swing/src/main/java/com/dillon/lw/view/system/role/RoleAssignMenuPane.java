@@ -4,15 +4,15 @@
 
 package com.dillon.lw.view.system.role;
 
+import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.api.system.PermissionApi;
-import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.dillon.lw.utils.TreeUtils;
 import com.dtflys.forest.Forest;
 import com.jidesoft.swing.CheckBoxTree;
-import com.jidesoft.tree.TreeUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -21,8 +21,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**

@@ -5,16 +5,15 @@
 package com.dillon.lw.view.intra.job;
 
 import cn.hutool.core.convert.Convert;
-import com.dtflys.forest.Forest;
-import java.util.concurrent.CompletableFuture;
 import com.dillon.lw.SwingExceptionHandler;
 import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.dtflys.forest.Forest;
-import java.util.concurrent.CompletableFuture;
-import javax.swing.*;
 import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author wenli

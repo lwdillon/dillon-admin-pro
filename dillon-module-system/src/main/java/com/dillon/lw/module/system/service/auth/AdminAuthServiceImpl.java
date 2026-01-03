@@ -1,6 +1,9 @@
 package com.dillon.lw.module.system.service.auth;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
 import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.framework.common.util.monitor.TracerUtils;
@@ -22,9 +25,6 @@ import com.dillon.lw.module.system.service.logger.LoginLogService;
 import com.dillon.lw.module.system.service.member.MemberService;
 import com.dillon.lw.module.system.service.oauth2.OAuth2TokenService;
 import com.dillon.lw.module.system.service.user.AdminUserService;
-import com.anji.captcha.model.common.ResponseModel;
-import com.anji.captcha.model.vo.CaptchaVO;
-import com.anji.captcha.service.CaptchaService;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

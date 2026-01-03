@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import ${simpleClassName}Modal from './${simpleClassName}Modal.vue'
-import { columns, searchFormSchema } from './${classNameVar}.data'
-import { useI18n } from '@/hooks/web/useI18n'
-import { useMessage } from '@/hooks/web/useMessage'
-import { useModal } from '@/components/Modal'
-import { IconEnum } from '@/enums/appEnum'
-import { BasicTable, TableAction, useTable } from '@/components/Table'
-import { delete${simpleClassName}, export${simpleClassName}, get${simpleClassName}Page } from '@/api/${table.moduleName}/${table.businessName}'
+  import {columns, searchFormSchema} from './'
+  import {useI18n} from '@/hooks/web/useI18n'
+  import {useMessage} from '@/hooks/web/useMessage'
+  import {useModal} from '@/components/Modal'
+  import {useTable} from '@/components/Table'
 
-defineOptions({ name: '${table.className}' })
+  import {delete${simpleClassName}, export${simpleClassName}} from '@/api/'
+
+  defineOptions({ name: '${table.className}' })
 
 const { t } = useI18n()
 const { createConfirm, createMessage } = useMessage()

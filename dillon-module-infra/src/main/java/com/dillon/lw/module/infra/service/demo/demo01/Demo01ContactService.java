@@ -4,8 +4,8 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactPageReqVO;
 import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo01.Demo01ContactDO;
-import javax.validation.Valid;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**

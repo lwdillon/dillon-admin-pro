@@ -111,13 +111,13 @@
             <artifactId>rstaui</artifactId>
             <version>3.2.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.wulu</groupId>
-            <artifactId>jide</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.wulu</groupId>-->
+<!--            <artifactId>jide</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--            <scope>system</scope>-->
+<!--            <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>svgSalamander</artifactId>

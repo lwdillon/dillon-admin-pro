@@ -1,5 +1,6 @@
 package com.dillon.lw.module.system.framework.captcha.core;
 
+import cn.hutool.core.util.RandomUtil;
 import com.anji.captcha.model.common.RepCodeEnum;
 import com.anji.captcha.model.common.ResponseModel;
 import com.anji.captcha.model.vo.CaptchaVO;
@@ -8,7 +9,6 @@ import com.anji.captcha.service.impl.CaptchaServiceFactory;
 import com.anji.captcha.util.AESUtil;
 import com.anji.captcha.util.ImageUtils;
 import com.anji.captcha.util.RandomUtils;
-import cn.hutool.core.util.RandomUtil;
 import org.apache.commons.lang3.Strings;
 
 import java.awt.*;

@@ -1,11 +1,5 @@
 package com.dillon.lw.fx.view.system.config;
 
-import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -13,6 +7,12 @@ import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
+import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
+import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;

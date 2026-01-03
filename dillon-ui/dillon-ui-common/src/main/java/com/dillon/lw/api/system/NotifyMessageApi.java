@@ -4,7 +4,9 @@ import com.dillon.lw.api.BaseApi;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
-import com.dtflys.forest.annotation.*;
+import com.dtflys.forest.annotation.Get;
+import com.dtflys.forest.annotation.Put;
+import com.dtflys.forest.annotation.Query;
 
 import java.util.List;
 import java.util.Map;

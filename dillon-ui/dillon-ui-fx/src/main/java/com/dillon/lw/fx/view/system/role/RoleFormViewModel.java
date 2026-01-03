@@ -1,8 +1,6 @@
 package com.dillon.lw.fx.view.system.role;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -12,6 +10,8 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;

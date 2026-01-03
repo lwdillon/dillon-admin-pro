@@ -17,7 +17,8 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.hutool.core.date.DatePattern.*;
+import static cn.hutool.core.date.DatePattern.UTC_MS_WITH_XXX_OFFSET_PATTERN;
+import static cn.hutool.core.date.DatePattern.createFormatter;
 
 /**
  * 时间工具类，用于 {@link LocalDateTime}

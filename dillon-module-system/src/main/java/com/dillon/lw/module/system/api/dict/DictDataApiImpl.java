@@ -1,7 +1,7 @@
 package com.dillon.lw.module.system.api.dict;
 
-import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.framework.common.biz.system.dict.dto.DictDataRespDTO;
+import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.module.system.dal.dataobject.dict.DictDataDO;
 import com.dillon.lw.module.system.service.dict.DictDataService;
 import org.springframework.stereotype.Service;

@@ -4,9 +4,8 @@ import com.dillon.lw.framework.apilog.core.filter.ApiAccessLogFilter;
 import com.dillon.lw.framework.apilog.core.interceptor.ApiAccessLogInterceptor;
 import com.dillon.lw.framework.common.biz.infra.logger.ApiAccessLogCommonApi;
 import com.dillon.lw.framework.common.enums.WebFilterOrderEnum;
-import com.dillon.lw.framework.web.config.WebProperties;
 import com.dillon.lw.framework.web.config.DillonWebAutoConfiguration;
-import javax.servlet.Filter;
+import com.dillon.lw.framework.web.config.WebProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,6 +13,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.servlet.Filter;
 
 @AutoConfiguration(after = DillonWebAutoConfiguration.class)
 public class DillonApiLogAutoConfiguration implements WebMvcConfigurer {

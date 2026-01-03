@@ -3,24 +3,21 @@
 #set ($subJoinColumn = $subJoinColumns.get($subIndex))##当前 join 字段
 #set ($subSimpleClassName = $subSimpleClassNames.get($subIndex))
 <script lang="ts" setup>
-import type { Rule } from 'ant-design-vue/es/form';
-import type { ${simpleClassName}Api } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
+  import type {Rule} from 'ant-design-vue/es/form';
 
-import { computed, ref } from 'vue';
+  import type {
+          ${simpleClassName}Api
+  }
+    from
+        '#/api/';
+  import {create${subSimpleClassName}, get${subSimpleClassName}, update${subSimpleClassName}} from '#/api/';
 
-import { useVbenModal } from '@vben/common-ui';
-import { DICT_TYPE } from '@vben/constants';
-import { getDictOptions } from '@vben/hooks';
-import { cloneDeep, formatDateTime } from '@vben/utils';
-import { Tinymce as RichTextarea } from '#/components/tinymce';
-import { ImageUpload, FileUpload } from "#/components/upload";
-import { message, Tabs, Form, Input, Textarea, Select, RadioGroup, Radio, CheckboxGroup, Checkbox, DatePicker, TreeSelect } from 'ant-design-vue';
+  import {computed, ref} from 'vue';
 
-import { $t } from '#/locales';
+  import {useVbenModal} from '@vben/common-ui';
+  import {message} from 'ant-design-vue';
 
-import { get${subSimpleClassName}, create${subSimpleClassName}, update${subSimpleClassName} } from '#/api/${table.moduleName}/${simpleClassName_strikeCase}';
-
-const emit = defineEmits(['success']);
+  const emit = defineEmits(['success']);
 const getTitle = computed(() => {
   return formData.value?.id
       ? $t('ui.actionTitle.edit', ['${subTable.classComment}'])

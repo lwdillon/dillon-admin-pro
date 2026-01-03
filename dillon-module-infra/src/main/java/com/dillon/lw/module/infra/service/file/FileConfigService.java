@@ -5,8 +5,8 @@ import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigPage
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.file.FileConfigDO;
 import com.dillon.lw.module.infra.framework.file.core.client.FileClient;
-import javax.validation.Valid;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
