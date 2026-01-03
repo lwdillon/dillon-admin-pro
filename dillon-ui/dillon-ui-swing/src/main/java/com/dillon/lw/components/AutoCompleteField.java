@@ -171,37 +171,37 @@ public class AutoCompleteField<T> extends JTextField {
         }
     }
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Java 8 AutoComplete");
-        AutoCompleteField<User> field = new AutoCompleteField<>();
-
-        // 配置：告诉组件通过 User 的 name 属性搜索
-        field.setMapper(user -> user.name);
-
-        // 模拟数据
-        List<User> users = new ArrayList<>();
-        users.add(new User("Administrator"));
-        users.add(new User("Alice"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        users.add(new User("Bob"));
-        field.setDataList(users);
-
-        field.setPreferredSize(new Dimension(200, 30));
-        frame.setLayout(new FlowLayout());
-        frame.add(new JLabel("Login:"));
-        frame.add(field);
-        frame.pack();
-        frame.setVisible(true);
-    }
+//    public static void main(String[] args) {
+//        JFrame frame = new JFrame("Java 8 AutoComplete");
+//        AutoCompleteField<User> field = new AutoCompleteField<>();
+//
+//        // 配置：告诉组件通过 User 的 name 属性搜索
+//        field.setMapper(user -> user.name);
+//
+//        // 模拟数据
+//        List<User> users = new ArrayList<>();
+//        users.add(new User("Administrator"));
+//        users.add(new User("Alice"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        users.add(new User("Bob"));
+//        field.setDataList(users);
+//
+//        field.setPreferredSize(new Dimension(200, 30));
+//        frame.setLayout(new FlowLayout());
+//        frame.add(new JLabel("Login:"));
+//        frame.add(field);
+//        frame.pack();
+//        frame.setVisible(true);
+//    }
 
     @Override
     public void setBackground(Color bg) {

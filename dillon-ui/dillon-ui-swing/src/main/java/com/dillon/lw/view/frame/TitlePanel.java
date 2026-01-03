@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.frame;
 
+import javax.swing.border.*;
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.eventbus.EventBusCenter;
@@ -71,6 +72,7 @@ public class TitlePanel extends JPanel {
         //======== toolBar ========
         {
             toolBar.setFloatable(false);
+            toolBar.setBorder(new EmptyBorder(0, 7, 0, 7));
 
             //---- titleLabel ----
             titleLabel.setText("Dillon-Swing");

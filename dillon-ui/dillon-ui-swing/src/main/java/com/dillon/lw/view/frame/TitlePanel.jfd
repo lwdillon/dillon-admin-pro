@@ -13,6 +13,7 @@ new FormModel {
 			add( new FormContainer( "javax.swing.JToolBar", new FormLayoutManager( class javax.swing.JToolBar ) ) {
 				name: "toolBar"
 				"floatable": false
+				"border": new javax.swing.border.EmptyBorder( 0, 7, 0, 7 )
 				add( new FormComponent( "javax.swing.JLabel" ) {
 					name: "titleLabel"
 					"text": "Dillon-Swing"

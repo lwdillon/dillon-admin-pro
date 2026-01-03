@@ -57,7 +57,6 @@ public class MainPane extends JPanel {
         initComponents();
         initCustomComponents();
         initListeners();
-        updateTreeTableRoot(); // 首次加载菜单数据
         EventBusCenter.get().register(this);
     }
 
@@ -535,7 +534,7 @@ public class MainPane extends JPanel {
         // 退出登录项
         JMenuItem logoutItem = new JMenuItem("退出");
         logoutItem.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
-        logoutItem.addActionListener(e -> MainFrame.getInstance().showLogin());
+        logoutItem.addActionListener(e -> MainFrame.getInstance().showLogin(false));
         popupMenu.add(logoutItem);
 
         return popupMenu;
@@ -557,7 +556,7 @@ public class MainPane extends JPanel {
     /**
      * 更新导航菜单的根节点数据，并在数据变更时刷新展开和折叠视图。
      */
-    private void updateTreeTableRoot() {
+    public void updateTreeTableRoot() {
         // 创建一个虚拟的根节点来包裹一级菜单
         AuthPermissionInfoRespVO.MenuVO rootNode = new AuthPermissionInfoRespVO.MenuVO();
         rootNode.setName("root");

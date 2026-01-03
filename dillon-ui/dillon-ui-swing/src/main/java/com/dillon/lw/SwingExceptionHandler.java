@@ -34,7 +34,7 @@ public final class SwingExceptionHandler {
         if (se != null) {
 
             if (se.getCode() == 401) {
-                MainFrame.getInstance().showLogin();
+                MainFrame.getInstance().showLogin(false);
             }
             showError(se.getMessage());
             return;

@@ -44,6 +44,11 @@
         </dependency>
         <dependency>
             <groupId>com.dillon.lw</groupId>
+            <artifactId>dillon-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dillon.lw</groupId>
             <artifactId>dillon-module-system</artifactId>
             <version>${revision}</version>
         </dependency>
@@ -83,6 +88,13 @@
             <artifactId>jackson-annotations</artifactId>
             <version>2.9.10</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.20.0</version>
+        </dependency>
+
 
 
 

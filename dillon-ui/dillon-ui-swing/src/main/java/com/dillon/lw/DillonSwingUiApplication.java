@@ -110,7 +110,8 @@ public class DillonSwingUiApplication {
 
             // create frame
             MainFrame frame = MainFrame.getInstance();
-            frame.showLogin();
+            frame.showLogin(true);
+            frame.setVisible(true);
         });
     }
 }

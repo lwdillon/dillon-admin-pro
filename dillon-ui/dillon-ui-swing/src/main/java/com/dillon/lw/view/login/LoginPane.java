@@ -37,7 +37,6 @@ public class LoginPane extends JPanel {
 
     public LoginPane() {
         initComponents();
-        initData();
     }
 
     private void initComponents() {
@@ -181,7 +180,7 @@ public class LoginPane extends JPanel {
     }
 
 
-    private void initData() {
+    public void initData() {
 
         userNameField.setDataList(UserHistoryService.loadUsers());
     }
@@ -212,7 +211,7 @@ public class LoginPane extends JPanel {
         passwordField.setFont(UIManager.getFont("h3.font"));
 
         loginButton.setForeground(new Color(0xffffff));
-        loginButton.setBackground(UIManager.getColor("App.accentColor"));
+        loginButton.setBackground(new Color(0x256EF6));
 
 
         // 创建面板数组
@@ -249,7 +248,7 @@ public class LoginPane extends JPanel {
             CardLayout cardLayout = (CardLayout) infoPane.getLayout();
             cardLayout.next(infoPane);
         });
-        timer.start();
+
 
         userNameField.getList().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) return;
@@ -333,6 +332,11 @@ public class LoginPane extends JPanel {
 
         EventBusCenter.get().post(new LoginEvent(0));
     }
+
+    public void startLogoInfo(){
+        timer.start();
+    }
+
 
     private void handleError(Throwable throwable) {
 //        msgLabel.setText(throwable.getMessage());

@@ -95,6 +95,112 @@
             <groupId>com.dillon.lw</groupId>
             <artifactId>dillon-ui-common</artifactId>
             <version>${revision}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-biz-data-permission</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-biz-ip</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-biz-tenant</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-excel</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-job</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-monitor</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-mq</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-mybatis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-protection</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-redis</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-security</artifactId>
+                </exclusion>
+
+                <!-- 业务组件 -->
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-test</artifactId>
+                </exclusion>
+
+                <!-- Web 相关 -->
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.dillon.lw</groupId>
+                    <artifactId>dillon-spring-boot-starter-websocket</artifactId>
+                </exclusion>
+
+                <exclusion>
+                    <groupId>com.baomidou</groupId>
+                    <artifactId>mybatis-plus-generator</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.velocity</groupId>
+                    <artifactId>velocity-engine-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>de.codecentric</groupId>
+                    <artifactId>spring-boot-admin-starter-server</artifactId>
+                </exclusion>
+                <!-- 三方云服务相关 -->
+                <exclusion>
+                    <groupId>commons-net</groupId>
+                    <artifactId>commons-net</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.jcraft</groupId>
+                    <artifactId>jsch</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>s3</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.tika</groupId>
+                    <artifactId>tika-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-validation</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.anji-plus</groupId>
+                    <artifactId>captcha-spring-boot-starter</artifactId> <!-- 验证码，一般用于登录使用 -->
+                </exclusion>
+
+            </exclusions>
+
         </dependency>
         <dependency>
             <groupId>net.java.timingframework</groupId>
@@ -111,13 +217,13 @@
             <artifactId>rstaui</artifactId>
             <version>3.2.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.wulu</groupId>-->
-<!--            <artifactId>jide</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--            <scope>system</scope>-->
-<!--            <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.wulu</groupId>-->
+        <!--            <artifactId>jide</artifactId>-->
+        <!--            <version>1.0.0</version>-->
+        <!--            <scope>system</scope>-->
+        <!--            <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>svgSalamander</artifactId>
@@ -140,9 +246,11 @@
             <artifactId>autocomplete</artifactId>
             <version>3.2.0</version>
         </dependency>
-
-
-
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.5.0-jre</version>
+        </dependency>
 
     </dependencies>
 
@@ -161,9 +269,12 @@
                         <goals>
                             <goal>repackage</goal> <!-- 将引入的 jar 打入其中 -->
                         </goals>
+
                     </execution>
+
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>
