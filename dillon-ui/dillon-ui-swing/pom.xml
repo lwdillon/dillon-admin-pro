@@ -231,11 +231,11 @@
             <scope>compile</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.vladsch.flexmark</groupId>
-            <artifactId>flexmark-all</artifactId>
-            <version>0.64.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.vladsch.flexmark</groupId>-->
+<!--            <artifactId>flexmark-all</artifactId>-->
+<!--            <version>0.64.0</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
