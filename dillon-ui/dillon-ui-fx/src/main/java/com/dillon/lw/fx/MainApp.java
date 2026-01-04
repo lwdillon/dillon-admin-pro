@@ -1,5 +1,6 @@
 package com.dillon.lw.fx;
 
+import com.dillon.lw.fx.http.forest.ForestConfig;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.view.window.WindowView;
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessPane;
@@ -28,8 +29,9 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        Thread.currentThread().setUncaughtExceptionHandler(new DefaultExceptionHandler(stage));
+        Thread.currentThread().setUncaughtExceptionHandler((t, e) -> DefaultExceptionHandler.handle(e));
         loadApplicationProperties();
+        ForestConfig.init();
         MainApp.setUserAgentStylesheet(Resources.resolve("/styles/primer-light.css"));
 
         int insets = 40;

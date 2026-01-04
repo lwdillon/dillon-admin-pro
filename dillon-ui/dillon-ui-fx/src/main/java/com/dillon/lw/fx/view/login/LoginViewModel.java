@@ -8,6 +8,7 @@ import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
+import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -35,7 +36,7 @@ public class LoginViewModel extends BaseViewModel {
         loginButDisable.setValue(true);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO>().apply(Forest.client(AuthApi.class).login(loginReqVO));
+            return new PayLoad<AuthLoginRespVO>().apply(Forest.client(AuthApi.class).login(loginReqVO));
         }).thenAcceptAsync(data -> {
             AppStore.setToken(data.getAccessToken());
             AppStore.loadDictData();

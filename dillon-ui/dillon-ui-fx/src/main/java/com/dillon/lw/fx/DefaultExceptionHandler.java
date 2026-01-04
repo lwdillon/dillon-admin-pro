@@ -2,67 +2,103 @@
 
 package com.dillon.lw.fx;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+
+import com.dillon.lw.framework.common.exception.ServiceException;
+import com.dillon.lw.fx.eventbus.EventBusCenter;
+import com.dillon.lw.fx.eventbus.event.LogoutEvent;
+import com.dillon.lw.fx.eventbus.event.MessageEvent;
+import com.dillon.lw.fx.utils.MessageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Objects;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
-import static java.lang.Double.MAX_VALUE;
+public class DefaultExceptionHandler {
 
-public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
-    private final Stage stage;
+    private DefaultExceptionHandler() {}
 
-    public DefaultExceptionHandler(Stage stage) {
-        this.stage = stage;
+    public static void handle(Throwable e) {
+        log.error("客户端异常", e);
+
+        Throwable root = findRootCause(e);
+
+        // ① 网络异常优先处理
+        if (isNetworkException(root)) {
+            showError(getNetworkErrorMessage(root));
+            return;
+        }
+
+        // ② 业务异常
+        ServiceException se = findServiceException(e);
+        if (se != null) {
+
+            if (se.getCode() == 401) {
+                // JavaFX 登录切换（示例）
+                EventBusCenter.get().post(new LogoutEvent());
+            }
+
+            showError(se.getMessage());
+            return;
+        }
+
+        // ③ 兜底技术异常
+        showError("系统异常："
+                + root.getClass().getSimpleName()
+                + (root.getMessage() != null ? "\n" + root.getMessage() : ""));
     }
 
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        e.printStackTrace();
+    /* ---------------- 私有方法 ---------------- */
 
-        var dialog = createExceptionDialog(e);
-        if (dialog != null) {
-            dialog.showAndWait();
+    private static boolean isNetworkException(Throwable t) {
+        return t instanceof ConnectException
+                || t instanceof SocketTimeoutException
+                || t instanceof UnknownHostException
+                || t instanceof SocketException
+                || t instanceof IOException;
+    }
+
+    private static String getNetworkErrorMessage(Throwable t) {
+        if (t instanceof ConnectException) {
+            return "网络异常：无法连接到服务器";
+        } else if (t instanceof SocketTimeoutException) {
+            return "网络异常：请求超时";
+        } else if (t instanceof UnknownHostException) {
+            return "网络异常：无法解析服务器地址";
+        } else if (t instanceof SocketException) {
+            return "网络异常：连接被重置或中断";
+        } else {
+            return "网络异常：" + t.getMessage();
         }
     }
 
-    private Alert createExceptionDialog(Throwable throwable) {
-        Objects.requireNonNull(throwable);
-
-        var alert = new Alert(AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(throwable.getMessage());
-
-        try (var sw = new StringWriter(); var printWriter = new PrintWriter(sw)) {
-            throwable.printStackTrace(printWriter);
-
-            var label = new Label("Full stacktrace:");
-
-            var textArea = new TextArea(sw.toString());
-            textArea.setEditable(false);
-            textArea.setWrapText(false);
-            textArea.setMaxWidth(MAX_VALUE);
-            textArea.setMaxHeight(MAX_VALUE);
-
-            var content = new VBox(5, label, textArea);
-            content.setMaxWidth(MAX_VALUE);
-
-            alert.getDialogPane().setExpandableContent(content);
-            alert.initOwner(stage);
-
-            return alert;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    private static ServiceException findServiceException(Throwable e) {
+        Throwable cur = e;
+        while (cur != null) {
+            if (cur instanceof ServiceException) {
+                return (ServiceException) cur;
+            }
+            cur = cur.getCause();
         }
+        return null;
+    }
+
+    private static Throwable findRootCause(Throwable e) {
+        Throwable cur = e;
+        while (cur != null && cur.getCause() != null && cur.getCause() != cur) {
+            cur = cur.getCause();
+        }
+        return cur != null ? cur : e;
+    }
+
+    private static void showError(String msg) {
+
+        EventBusCenter.get().post(new MessageEvent(msg, MessageType.DANGER));
+
     }
 }
