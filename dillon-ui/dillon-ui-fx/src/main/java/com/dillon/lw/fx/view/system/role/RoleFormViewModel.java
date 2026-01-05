@@ -2,10 +2,10 @@ package com.dillon.lw.fx.view.system.role;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.dillon.lw.api.system.RoleApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -40,13 +40,13 @@ public class RoleFormViewModel extends BaseViewModel {
             return;
         }
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<RoleRespVO>().apply(Forest.client(RoleApi.class).getRole(id));
+            return Forest.client(RoleApi.class).getRole(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             RoleSaveReqVO roleRespVO = new RoleSaveReqVO();
             BeanUtil.copyProperties(data, roleRespVO);
             setRole(roleRespVO);
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
@@ -63,26 +63,26 @@ public class RoleFormViewModel extends BaseViewModel {
 
     public void addRole(ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(RoleApi.class).createRole(getUserSaveReqVO()));
+            return Forest.client(RoleApi.class).createRole(getUserSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
             EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void updateRole(ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(RoleApi.class).updateRole(getUserSaveReqVO()));
+            return Forest.client(RoleApi.class).updateRole(getUserSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
             EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

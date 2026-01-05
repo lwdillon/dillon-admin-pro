@@ -3,11 +3,11 @@ package com.dillon.lw.fx.view.infra.job;
 import cn.hutool.core.convert.Convert;
 import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -60,12 +60,12 @@ public class JobViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<JobRespVO>>().apply(Forest.client(JobApi.class).getJobPage(queryMap));
+            return Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             tableItems.setAll(data.getList());
             total.set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -75,50 +75,49 @@ public class JobViewModel extends BaseViewModel {
     public void getJobNextTimes(Long id, Integer count) {
         nextDateTimes.clear();
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<LocalDateTime>>().apply(Forest.client(JobApi.class).getJobNextTimes(id, count));
+            return Forest.client(JobApi.class).getJobNextTimes(id, count).getCheckedData();
         }).thenAcceptAsync(data -> {
             nextDateTimes.setAll(data);
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void deleteJob(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).deleteJob(id));
+            return Forest.client(JobApi.class).deleteJob(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void triggerJob(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).triggerJob(id));
+            return Forest.client(JobApi.class).triggerJob(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-            EventBusCenter.get().post(new MessageEvent("触发成功", MessageType.SUCCESS));
+            EventBusCenter.get().post(new MessageEvent("执行成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void updateJobStatus(Long id, Integer status, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(JobApi.class).updateJobStatus(id, status));
+            return Forest.client(JobApi.class).updateJobStatus(id, status).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
             EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

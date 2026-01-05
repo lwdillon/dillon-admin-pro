@@ -4,10 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -46,7 +46,7 @@ public class UserFormViewModel extends BaseViewModel {
         if (id == null) {
             setUser(new UserSaveReqVO());
             CompletableFuture.supplyAsync(() -> {
-                return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+                return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
             }).thenAcceptAsync(deptList -> {
                 DeptSimpleRespVO rootVO = new DeptSimpleRespVO();
                 rootVO.setId(0L);
@@ -75,7 +75,7 @@ public class UserFormViewModel extends BaseViewModel {
 
             }, Platform::runLater).thenComposeAsync(v -> {
                 return CompletableFuture.supplyAsync(() -> {
-                    return new PayLoad<List<PostSimpleRespVO>>().apply(Forest.client(PostApi.class).getSimplePostList());
+                    return Forest.client(PostApi.class).getSimplePostList().getCheckedData();
                 });
             }).thenAcceptAsync(postList -> {
                 ObservableList<PostSimpleRespVO> list = FXCollections.observableArrayList(postList);
@@ -90,14 +90,13 @@ public class UserFormViewModel extends BaseViewModel {
 
                 postItems.set(list);
             }, Platform::runLater).exceptionally(throwable -> {
-                throwable.printStackTrace();
-                EventBusCenter.get().post(new MessageEvent("查询岗位失败", MessageType.DANGER));
+                DefaultExceptionHandler.handle(throwable);
                 return null;
             });
         } else {
 
             CompletableFuture.supplyAsync(() -> {
-                return new PayLoad<UserRespVO>().apply(Forest.client(UserApi.class).getUser(id));
+                return Forest.client(UserApi.class).getUser(id).getCheckedData();
             }).thenAcceptAsync(user -> {
                 if (user == null) {
                     setUser(new UserSaveReqVO());
@@ -108,7 +107,7 @@ public class UserFormViewModel extends BaseViewModel {
                 }
             }, Platform::runLater).thenComposeAsync(v -> {
                 return CompletableFuture.supplyAsync(() -> {
-                    return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+                    return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
                 });
             }).thenAcceptAsync(deptList -> {
                 DeptSimpleRespVO rootVO = new DeptSimpleRespVO();
@@ -138,7 +137,7 @@ public class UserFormViewModel extends BaseViewModel {
 
             }, Platform::runLater).thenComposeAsync(v -> {
                 return CompletableFuture.supplyAsync(() -> {
-                    return new PayLoad<List<PostSimpleRespVO>>().apply(Forest.client(PostApi.class).getSimplePostList());
+                    return Forest.client(PostApi.class).getSimplePostList().getCheckedData();
                 });
             }).thenAcceptAsync(postList -> {
                 ObservableList<PostSimpleRespVO> list = FXCollections.observableArrayList(postList);
@@ -153,8 +152,7 @@ public class UserFormViewModel extends BaseViewModel {
 
                 postItems.set(list);
             }, Platform::runLater).exceptionally(throwable -> {
-                throwable.printStackTrace();
-                EventBusCenter.get().post(new MessageEvent("查询岗位失败", MessageType.DANGER));
+                DefaultExceptionHandler.handle(throwable);
                 return null;
             });
 
@@ -222,13 +220,13 @@ public class UserFormViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(UserApi.class).createUser(getUserSaveReqVO()));
+            return Forest.client(UserApi.class).createUser(getUserSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -236,13 +234,13 @@ public class UserFormViewModel extends BaseViewModel {
     public void updateUser(ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(UserApi.class).updateUser(getUserSaveReqVO()));
+            return Forest.client(UserApi.class).updateUser(getUserSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

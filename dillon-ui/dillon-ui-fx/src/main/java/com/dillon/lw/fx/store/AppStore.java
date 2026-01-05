@@ -1,7 +1,7 @@
 package com.dillon.lw.fx.store;
 
 import com.dillon.lw.api.system.DictDataApi;
-import com.dillon.lw.fx.http.PayLoad;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.utils.DictTypeEnum;
@@ -89,7 +89,7 @@ public class AppStore {
     public static void loadDictData() {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<DictDataSimpleRespVO>>().apply(Forest.client(DictDataApi.class).getSimpleDictDataList());
+            return Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             // 按 type 属性分组
             Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.stream()
@@ -98,7 +98,7 @@ public class AppStore {
             setDictDataListMap(groupedByType);
         }, Platform::runLater).exceptionally(throwable -> {
             // 处理错误
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 

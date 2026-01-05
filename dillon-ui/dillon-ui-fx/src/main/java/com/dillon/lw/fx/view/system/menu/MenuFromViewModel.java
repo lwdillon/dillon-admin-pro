@@ -2,11 +2,11 @@ package com.dillon.lw.fx.view.system.menu;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.dillon.lw.api.system.MenuApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -40,8 +40,6 @@ public class MenuFromViewModel extends BaseViewModel {
 
     public MenuFromViewModel() {
         sortProperty().set(-1);
-        System.err.println("MenuFromViewModel init" + this);
-
     }
 
 
@@ -54,14 +52,14 @@ public class MenuFromViewModel extends BaseViewModel {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(MenuApi.class).updateMenu(menuSaveVO));
+            return Forest.client(MenuApi.class).updateMenu(menuSaveVO).getCheckedData();
         }).thenAcceptAsync(result -> {// 订阅成功
             EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));// 发布更新菜单列表事件
             EventBusCenter.get().post(new SideMenuEvent("更新菜单"));// 发布更新侧边菜单事件
             EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));// 发布成功消息事件
             dialog.close();// 关闭对话框
-        }, Platform::runLater).exceptionally(throwable -> {// 订阅失败
-            throwable.printStackTrace();// 打印异常堆栈
+        }, Platform::runLater).exceptionally(throwable -> {
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -71,7 +69,7 @@ public class MenuFromViewModel extends BaseViewModel {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(MenuApi.class).createMenu(menuSaveVO));
+            return Forest.client(MenuApi.class).createMenu(menuSaveVO).getCheckedData();
         }).thenAcceptAsync(listCommonResult -> {
 
             EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
@@ -80,7 +78,7 @@ public class MenuFromViewModel extends BaseViewModel {
             dialog.close();
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -94,7 +92,7 @@ public class MenuFromViewModel extends BaseViewModel {
         setMenuRespVO(saveVO);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<MenuSimpleRespVO>>().apply(Forest.client(MenuApi.class).getSimpleMenuList());
+            return Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData();
         }).thenAcceptAsync(listCommonResult -> {
 
             MenuSimpleRespVO respVO = new MenuSimpleRespVO();
@@ -137,7 +135,7 @@ public class MenuFromViewModel extends BaseViewModel {
 
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             setMenuRespVO(new MenuSaveVO());
             return null;
         });

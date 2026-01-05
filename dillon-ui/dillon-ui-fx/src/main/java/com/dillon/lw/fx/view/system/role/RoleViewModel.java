@@ -3,10 +3,10 @@ package com.dillon.lw.fx.view.system.role;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
@@ -63,14 +63,14 @@ public class RoleViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<RoleRespVO>>().apply(Forest.client(RoleApi.class).getRolePage(queryMap));
+            return Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<RoleRespVO> roleRespVOS = FXCollections.observableArrayList();
             roleRespVOS.addAll(data.getList());
             tableItems.set(roleRespVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -79,12 +79,12 @@ public class RoleViewModel extends BaseViewModel {
 
     public void delRole(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(RoleApi.class).deleteRole(id));
+            return Forest.client(RoleApi.class).deleteRole(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

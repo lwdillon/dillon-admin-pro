@@ -3,11 +3,11 @@ package com.dillon.lw.fx.view.infra.config;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.ConfigApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -67,14 +67,14 @@ public class ConfigViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<ConfigRespVO>>().apply(Forest.client(ConfigApi.class).getConfigPage(queryMap));
+            return Forest.client(ConfigApi.class).getConfigPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<ConfigRespVO> userRespVOS = FXCollections.observableArrayList();
             userRespVOS.addAll(data.getList());
             tableItems.set(userRespVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -83,13 +83,13 @@ public class ConfigViewModel extends BaseViewModel {
 
     public void deleteConfig(long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(ConfigApi.class).deleteConfig(id));
+            return Forest.client(ConfigApi.class).deleteConfig(id).getCheckedData();
         }).thenAcceptAsync(r -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新参数配置列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

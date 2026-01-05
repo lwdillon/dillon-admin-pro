@@ -1,6 +1,7 @@
 package com.dillon.lw.module.system.controller.admin.user.vo.user;
 
 import com.dillon.lw.framework.common.pojo.PageParam;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +30,7 @@ public class UserPageReqVO extends PageParam {
     private Integer status;
 
     @Schema(description = "创建时间", example = "[2022-07-01 00:00:00, 2022-07-01 23:59:59]")
-    @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime[] createTime;
 
     @Schema(description = "部门编号，同时筛选子部门", example = "1024")

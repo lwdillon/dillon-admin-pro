@@ -3,10 +3,10 @@ package com.dillon.lw.fx.view.infra.file;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.FileApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -59,12 +59,12 @@ public class FileListViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<FileRespVO>>().apply(Forest.client(FileApi.class).getFilePage(queryMap));
+            return Forest.client(FileApi.class).getFilePage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             tableItems.setAll(data.getList());
             total.set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -74,27 +74,27 @@ public class FileListViewModel extends BaseViewModel {
     public void uploadFile(String path, File file) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<String>().apply(Forest.client(FileApi.class).uploadFile(path, file));
+            return Forest.client(FileApi.class).uploadFile(path, file).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
             EventBusCenter.get().post(new MessageEvent("上传成功", MessageType.SUCCESS));
             loadTableData();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void deleteFile(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(FileApi.class).deleteFile(id));
+            return Forest.client(FileApi.class).deleteFile(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             confirmDialog.close();
             loadTableData();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

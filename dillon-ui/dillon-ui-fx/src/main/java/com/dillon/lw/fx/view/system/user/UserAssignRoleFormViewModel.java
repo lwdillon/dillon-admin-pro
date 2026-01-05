@@ -2,10 +2,10 @@ package com.dillon.lw.fx.view.system.user;
 
 import com.dillon.lw.api.system.PermissionApi;
 import com.dillon.lw.api.system.RoleApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -41,12 +41,12 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Set<Long>>().apply(Forest.client(PermissionApi.class).listAdminRoles(userRespVO.getId()));
+            return Forest.client(PermissionApi.class).listAdminRoles(userRespVO.getId()).getCheckedData();
         }).thenAcceptAsync(roleIds -> {
             selRoleIdItems = FXCollections.observableSet(roleIds);
         }, Platform::runLater).thenComposeAsync(v -> {
             return CompletableFuture.supplyAsync(() -> {
-                return new PayLoad<List<RoleRespVO>>().apply(Forest.client(RoleApi.class).getSimpleRoleList());
+                return Forest.client(RoleApi.class).getSimpleRoleList().getCheckedData();
             });
         }).thenAcceptAsync(roleRespVOS -> {
             ObservableList<RoleRespVO> list = FXCollections.observableArrayList();
@@ -60,7 +60,7 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
             }
             roleItems.set(list);
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -107,14 +107,13 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
         }
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO));
+            return Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             EventBusCenter.get().post(new MessageEvent("分配角色成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
-            EventBusCenter.get().post(new MessageEvent("分配角色失败", MessageType.DANGER));
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

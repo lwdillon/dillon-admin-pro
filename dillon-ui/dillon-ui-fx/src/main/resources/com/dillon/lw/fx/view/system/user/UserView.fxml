@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.dlsc.gemsfx.daterange.DateRangePicker?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
 <StackPane fx:id="rootPane" prefHeight="454.0" prefWidth="1060.0" styleClass="tab-center-pane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.user.UserView">
     <children>
         <HBox fx:id="contentPane" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
@@ -18,7 +26,7 @@
                 </VBox>
                 <VBox fx:id="rightPane" prefHeight="200.0" prefWidth="100.0" spacing="7.0" styleClass="sample" HBox.hgrow="ALWAYS">
                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="5.0">
+                        <HBox fx:id="toolPane" alignment="CENTER_LEFT" spacing="5.0">
                             <children>
                                 <TextField fx:id="usernameField" promptText="请输入用户名称" />
                                 <TextField fx:id="mobileField" promptText="请输入手机号码" />
@@ -30,7 +38,7 @@
                                         </FXCollections>
                                     </items>
                                 </ComboBox>
-                                <DateRangePicker fx:id="createTimePicker" customRangeText="创建时间" promptText="开始日期-结束日期" />
+                                <DateRangePicker fx:id="createTimePicker"  />
                                 <Button fx:id="searchBut" mnemonicParsing="false" text="查询">
                                     <graphic>
                                         <FontIcon iconLiteral="fth-search" />

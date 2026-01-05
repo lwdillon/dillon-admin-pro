@@ -3,10 +3,10 @@ package com.dillon.lw.fx.view.infra.file;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.infra.FileConfigApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
@@ -56,7 +56,7 @@ public class FileConfigFormViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Map<String, Object>>().apply(Forest.client(FileConfigApi.class).getFileConfig(id));
+            return Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData();
         }).thenAcceptAsync(jsonObject -> {
             FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
             saveReqVO.setName(Convert.toStr(jsonObject.get("name")));
@@ -91,7 +91,7 @@ public class FileConfigFormViewModel extends BaseViewModel {
             }
 
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -102,26 +102,26 @@ public class FileConfigFormViewModel extends BaseViewModel {
     public void createFileConfig(ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(FileConfigApi.class).createFileConfig(getSaveReqVO()));
+            return Forest.client(FileConfigApi.class).createFileConfig(getSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
             EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
     public void updateFileConfig(ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(FileConfigApi.class).updateFileConfig(getSaveReqVO()));
+            return Forest.client(FileConfigApi.class).updateFileConfig(getSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
             EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

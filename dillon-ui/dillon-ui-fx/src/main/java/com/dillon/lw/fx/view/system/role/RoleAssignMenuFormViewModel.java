@@ -2,10 +2,10 @@ package com.dillon.lw.fx.view.system.role;
 
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.api.system.PermissionApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -37,13 +37,13 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         roleId.set(roleRespVO.getId());
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Set<Long>>().apply(Forest.client(PermissionApi.class).getRoleMenuList(roleRespVO.getId()));
+            return Forest.client(PermissionApi.class).getRoleMenuList(roleRespVO.getId()).getCheckedData();
         }).thenAcceptAsync(data -> {
             menuIds.clear();
             menuIds.addAll(data);
         }, Platform::runLater).thenComposeAsync(data -> {
             return CompletableFuture.supplyAsync(() -> {
-                return new PayLoad<List<MenuSimpleRespVO>>().apply(Forest.client(MenuApi.class).getSimpleMenuList());
+                return Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData();
             });
         }).thenAcceptAsync(menuList -> {
             MenuSimpleRespVO respVO = new MenuSimpleRespVO();
@@ -77,7 +77,7 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
             menuTreeRoot.set(root);
 
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -92,13 +92,13 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         permissionAssignRoleMenuReqVO.setMenuIds(selMenuIds);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO));
+            return Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
             EventBusCenter.get().post(new MessageEvent("分配成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

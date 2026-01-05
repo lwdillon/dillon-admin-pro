@@ -1,5 +1,6 @@
 package com.dillon.lw.fx.mvvm.mapping;
 
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.mvvm.mapping.accessorfunctions.MapPropertyAccessor;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
@@ -64,7 +65,7 @@ class FxMapPropertyField<M, K, V, T extends ObservableMap<K, V>, R extends Prope
 			targetProperty.get().clear();
 			setAll(targetProperty, defaultValue);
 		} catch (Exception e) {
-			System.out.println(e);
+			DefaultExceptionHandler.handle(e);
 		}
 	}
 

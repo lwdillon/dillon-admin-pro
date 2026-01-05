@@ -4,10 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -53,13 +53,13 @@ public class DeptFromViewModel extends BaseViewModel {
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(DeptApi.class).createDept(deptSaveReqVO));
+            return Forest.client(DeptApi.class).createDept(deptSaveReqVO).getCheckedData();
         }).thenAcceptAsync(rel -> {
             EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -70,13 +70,13 @@ public class DeptFromViewModel extends BaseViewModel {
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(DeptApi.class).updateDept(deptSaveReqVO));
+            return Forest.client(DeptApi.class).updateDept(deptSaveReqVO).getCheckedData();
         }).thenAcceptAsync(rel -> {
             EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -88,7 +88,7 @@ public class DeptFromViewModel extends BaseViewModel {
         wrapper.set(saveVO);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<UserSimpleRespVO>>().apply(Forest.client(UserApi.class).getSimpleUserList());
+            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
         }).thenAcceptAsync(userList -> {
             leaderUserList.set(FXCollections.observableList(userList));
 
@@ -98,8 +98,8 @@ public class DeptFromViewModel extends BaseViewModel {
                 }
             }
         }, Platform::runLater).thenApplyAsync(unused -> {
-            return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
-        }).thenAcceptAsync(listCommonResult -> {
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
+        }).thenAcceptAsync(deptList -> {
 
             DeptSimpleRespVO respVO = new DeptSimpleRespVO();
             respVO.setId(0L);
@@ -110,12 +110,12 @@ public class DeptFromViewModel extends BaseViewModel {
             // Build the tree
             Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
             nodeMap.put(0l, root); // Root node
-            for (DeptSimpleRespVO dept : listCommonResult) {
+            for (DeptSimpleRespVO dept : deptList) {
                 TreeItem<DeptSimpleRespVO> node = new TreeItem<>(dept);
                 nodeMap.put(dept.getId(), node);
             }
 
-            listCommonResult.forEach(deptSimpleRespVO -> {
+            deptList.forEach(deptSimpleRespVO -> {
                 TreeItem<DeptSimpleRespVO> parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
                 TreeItem<DeptSimpleRespVO> childNode = nodeMap.get(deptSimpleRespVO.getId());
                 if (parentNode != null) {
@@ -133,7 +133,7 @@ public class DeptFromViewModel extends BaseViewModel {
             deptTreeRoot.set(root);
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

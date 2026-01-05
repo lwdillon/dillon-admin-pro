@@ -1,5 +1,6 @@
 package com.dillon.lw.fx.mvvm.base;
 
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.mvvm.i18n.I18n;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.Initializable;
@@ -9,6 +10,7 @@ import javafx.scene.Scene;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,15 +22,29 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
     protected ResourceBundle bundle = I18n.getBundle();
     private static final Map<Class<?>, Constructor<?>> constructorCache = new ConcurrentHashMap<>();
 
-
     private ChangeListener<? super Scene> sceneListener;
 
     /**
-     * 通过构造器传入 ViewModel 类型，避免反射不稳
+     * 默认构造器，通过泛型反射创建 ViewModel
      */
     public BaseView() {
         this.viewModel = createViewModelByGeneric();
         this.viewModel.init();
+    }
+
+    /**
+     * 允许外部注入 ViewModel 的构造器
+     */
+    public BaseView(T viewModel) {
+        this.viewModel = viewModel;
+        if (this.viewModel != null) {
+            this.viewModel.init();
+        }
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        this.bundle = resources != null ? resources : I18n.getBundle();
     }
 
     @SuppressWarnings("unchecked")
@@ -43,7 +59,7 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
                         try {
                             return c.getDeclaredConstructor();
                         } catch (Exception e) {
-                            throw new RuntimeException("构造器缓存失败", e);
+                            throw new RuntimeException("构造器缓存失败: " + clazz.getName(), e);
                         }
                     });
                     return ctor.newInstance();
@@ -53,9 +69,8 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
             throw new RuntimeException("无法通过反射创建 ViewModel 实例", e);
         }
 
-        throw new RuntimeException("无法获取 ViewModel 类型，请确保使用了泛型");
+        throw new RuntimeException("无法获取 ViewModel 类型，请确保使用了泛型: " + getClass().getName());
     }
-
 
     /**
      * 自动监听 node 是否从 Scene 中移除，自动清理
@@ -67,8 +82,8 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
 
         // 如果之前有监听器，先移除
         if (sceneListener != null) {
-            node.sceneProperty().removeListener( sceneListener);
-            sceneListener=null;
+            node.sceneProperty().removeListener(sceneListener);
+            sceneListener = null;
         }
 
         sceneListener = (obsScene, oldScene, newScene) -> {
@@ -77,7 +92,7 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
             }
         };
 
-        node.sceneProperty().addListener( sceneListener);
+        node.sceneProperty().addListener(sceneListener);
     }
 
     public Parent getNode() {
@@ -93,8 +108,12 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
         return viewModel;
     }
 
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
     /**
-     * 视图被移除时回调，子类可覆盖
+     * 视图被移除时回调，清理资源
      */
     public void onRemove() {
         try {
@@ -102,8 +121,7 @@ public abstract class BaseView<T extends BaseViewModel> implements Initializable
                 viewModel.dispose();
             }
         } catch (Exception e) {
-            // 这里建议记录异常日志，避免影响流程
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
         }
     }
 }

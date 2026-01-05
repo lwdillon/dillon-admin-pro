@@ -4,11 +4,11 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.UserApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -83,11 +83,11 @@ public class DeptManageViewModel extends BaseViewModel {
 
 
         CompletableFuture<List<UserSimpleRespVO>> userListFuture = CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<UserSimpleRespVO>>().apply(Forest.client(UserApi.class).getSimpleUserList());
+            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
         });
 
         CompletableFuture<List<DeptRespVO>> deptListFuture = CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<DeptRespVO>>().apply(Forest.client(DeptApi.class).getDeptList(queryMap));
+            return Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData();
         });
 
         userListFuture.thenCombineAsync(deptListFuture, (userListData, data) -> {
@@ -129,8 +129,7 @@ public class DeptManageViewModel extends BaseViewModel {
             });
             treeItemObjectProperty.set(rootItem);
         }, Platform::runLater).exceptionally(throwable -> {
-            // 错误处理
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -140,14 +139,14 @@ public class DeptManageViewModel extends BaseViewModel {
 
     public void deleteDept(Long deptId, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(DeptApi.class).deleteDept(deptId));
+            return Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
 
             EventBusCenter.get().post(new MessageEvent("删除成功！", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

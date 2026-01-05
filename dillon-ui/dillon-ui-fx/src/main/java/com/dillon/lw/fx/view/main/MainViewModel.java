@@ -7,12 +7,12 @@ import com.dillon.lw.api.infra.ConfigApi;
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LogoutEvent;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.ThemeEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
@@ -56,7 +56,7 @@ public class MainViewModel extends BaseViewModel {
     public void initData() {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<AuthPermissionInfoRespVO>().apply(Forest.client(AuthApi.class).getPermissionInfo());
+            return Forest.client(AuthApi.class).getPermissionInfo().getCheckedData();
         }).thenAcceptAsync(data -> {
             AppStore.setAuthPermissionInfoRespVO(data);
             userNameProperty.set(StrUtil.subSuf(data.getUser().getNickname(), data.getUser().getNickname().length() - 1));
@@ -72,24 +72,24 @@ public class MainViewModel extends BaseViewModel {
 
         }, Platform::runLater).exceptionally(throwable -> {
             // 处理错误
-            System.err.println("Error: " + throwable.getMessage());
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<UserProfileRespVO>().apply(Forest.client(UserProfileApi.class).getUserProfile());
+            return Forest.client(UserProfileApi.class).getUserProfile().getCheckedData();
         }).thenAcceptAsync(response -> {
             userProfileRespVO.set(response);
         }, Platform::runLater).thenApplyAsync(unused -> {
             // 获取用户主题
             String key = userProfileRespVO.get().getId() + "";
-            return new PayLoad<String>().apply(Forest.client(ConfigApi.class).getConfigKey(key));
+            return Forest.client(ConfigApi.class).getConfigKey(key).getCheckedData();
         }).thenAcceptAsync(data -> {
             setDarkMode(StrUtil.contains(data, "dark"));
             updateTheme();
         }, Platform::runLater).exceptionally(throwable -> {
             // 处理错误
-            System.err.println("Error: " + throwable.getMessage());
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -100,7 +100,7 @@ public class MainViewModel extends BaseViewModel {
         AppStore.setDictDataListMap(null);
         // 退出登录
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(AuthApi.class).logout());
+            return Forest.client(AuthApi.class).logout().getCheckedData();
         }).thenAcceptAsync(data -> {
             if (exeit) {
                 System.exit(0);
@@ -110,8 +110,7 @@ public class MainViewModel extends BaseViewModel {
             }
         }, Platform::runLater).exceptionally(throwable -> {
             // 处理错误
-            EventBusCenter.get().post(new MessageEvent("退出失败！", MessageType.DANGER));
-            System.err.println("Error: " + throwable.getMessage());
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -375,17 +374,17 @@ public class MainViewModel extends BaseViewModel {
         map.put("key", key);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<ConfigRespVO>>().apply(Forest.client(ConfigApi.class).getConfigPage(map));
+            return Forest.client(ConfigApi.class).getConfigPage(map).getCheckedData();
         }).thenAcceptAsync(respVO -> {
             if (respVO != null && respVO.getTotal() > 0) {
                 saveReqVO.setId(respVO.getList().get(0).getId());
-                new PayLoad<Boolean>().apply(Forest.client(ConfigApi.class).updateConfig(saveReqVO));
+                Forest.client(ConfigApi.class).updateConfig(saveReqVO).getCheckedData();
             } else {
-                new PayLoad<Long>().apply(Forest.client(ConfigApi.class).createConfig(saveReqVO));
+                Forest.client(ConfigApi.class).createConfig(saveReqVO).getCheckedData();
             }
         }).exceptionally(throwable -> {
             // 处理错误
-            System.err.println("Error: " + throwable.getMessage());
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

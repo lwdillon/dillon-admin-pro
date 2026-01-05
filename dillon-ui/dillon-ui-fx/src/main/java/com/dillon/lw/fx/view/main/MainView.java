@@ -21,8 +21,10 @@ import com.dillon.lw.fx.view.infra.apilog.ApiErrorLogView;
 import com.dillon.lw.fx.view.infra.config.ConfigView;
 import com.dillon.lw.fx.view.infra.file.FileConfigView;
 import com.dillon.lw.fx.view.infra.file.FileListView;
+import com.dillon.lw.fx.view.infra.job.JobLogView;
 import com.dillon.lw.fx.view.infra.job.JobView;
 import com.dillon.lw.fx.view.layout.SearchDialog;
+import com.dillon.lw.fx.view.system.config.UserInfoView;
 import com.dillon.lw.fx.view.system.dept.DeptManageView;
 import com.dillon.lw.fx.view.system.dict.DictTypeView;
 import com.dillon.lw.fx.view.system.log.loginlog.LoginLogView;
@@ -486,11 +488,11 @@ public class MainView extends BaseView<MainViewModel> {
         contextMenu.show(userAvatarView, bounds.getMinX(), bounds.getMinY() + bounds.getHeight());
 
         menuItem2.setOnAction(actionEvent -> viewModel.loginOut(false));
-//        menuItem1.setOnAction(actionEvent -> {
-//
-//            ViewTuple<UserInfoView, UserInfoViewModel> viewTuple = FluentViewLoader.fxmlView(UserInfoView.class).load();
-//            MvvmFX.getNotificationCenter().publish("addTab", "个人中心", Feather.USER, viewTuple.getView());
-//        });
+        menuItem1.setOnAction(actionEvent -> {
+            UserInfoView userInfoView = ViewLoader.load(UserInfoView.class);
+            EventBusCenter.get().post(new MainTabEvent( "fth-user", "个人中心",userInfoView.getNode()));
+
+        });
 
 
     }
@@ -584,14 +586,20 @@ public class MainView extends BaseView<MainViewModel> {
     private void updateTheme(ThemeEvent event) {
         Platform.runLater(() -> {
             animateThemeChange(Duration.millis(350));
-            if (viewModel.isDarkMode()) {
-                themeBut.setGraphic(new FontIcon(Feather.SUN));
-                MainApp.setUserAgentStylesheet(Resources.resolve("/styles/" + event.getTheme()));
-            } else {
-                themeBut.setGraphic(new FontIcon(Feather.MOON));
-                MainApp.setUserAgentStylesheet(Resources.resolve("/styles/" + event.getTheme()));
-            }
+            // 1️⃣ 图标
+            themeBut.setGraphic(
+                    new FontIcon(viewModel.isDarkMode() ? Feather.SUN : Feather.MOON)
+            );
+
+            // 2️⃣ UserAgent：只放“纯主题”
+            MainApp.setUserAgentStylesheet(
+                    Resources.resolve("/styles/" + event.getTheme())
+            );
+
+
         });
+
+
     }
 
     private void animateThemeChange(Duration duration) {

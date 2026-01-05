@@ -2,9 +2,9 @@ package com.dillon.lw.fx.view.login;
 
 
 import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.LoginSuccessEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
@@ -27,7 +27,6 @@ public class LoginViewModel extends BaseViewModel {
     private BooleanProperty loginButDisable = new SimpleBooleanProperty(false);
 
     public void login() {
-
         AuthLoginReqVO loginReqVO = new AuthLoginReqVO();
         loginReqVO.setUsername(getUsername());
         loginReqVO.setPassword(getPassword());
@@ -36,7 +35,7 @@ public class LoginViewModel extends BaseViewModel {
         loginButDisable.setValue(true);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<AuthLoginRespVO>().apply(Forest.client(AuthApi.class).login(loginReqVO));
+            return Forest.client(AuthApi.class).login(loginReqVO).getCheckedData();
         }).thenAcceptAsync(data -> {
             AppStore.setToken(data.getAccessToken());
             AppStore.loadDictData();
@@ -45,11 +44,8 @@ public class LoginViewModel extends BaseViewModel {
         }, Platform::runLater).whenCompleteAsync((unused, throwable) -> {
             progressbarVisible.setValue(false);
             loginButDisable.set(false);
-            if (throwable != null) {
-                msg.set(throwable.getCause() != null ? throwable.getCause().getMessage() : throwable.getMessage());
-            }
+            DefaultExceptionHandler.handle(throwable);
         }, Platform::runLater);
-
     }
 
     public String getUsername() {

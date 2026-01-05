@@ -1,9 +1,9 @@
 package com.dillon.lw.fx.view.system.config;
 
 import com.dillon.lw.api.system.UserProfileApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -41,11 +41,11 @@ public class UserInfoViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<UserProfileRespVO>().apply(Forest.client(UserProfileApi.class).getUserProfile());
+            return Forest.client(UserProfileApi.class).getUserProfile().getCheckedData();
         }).thenAcceptAsync(data -> {
             setUserProfile(data);
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -55,12 +55,12 @@ public class UserInfoViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(UserProfileApi.class).updateUserProfile(userProfileUpdateReqVO));
+            return Forest.client(UserProfileApi.class).updateUserProfile(userProfileUpdateReqVO).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
             initData();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -70,11 +70,11 @@ public class UserInfoViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(UserProfileApi.class).updateUserProfilePassword(userProfileUpdatePasswordReqVO));
+            return Forest.client(UserProfileApi.class).updateUserProfilePassword(userProfileUpdatePasswordReqVO).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("保存成功！", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 

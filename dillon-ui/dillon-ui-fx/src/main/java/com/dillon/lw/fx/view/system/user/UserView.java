@@ -19,6 +19,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -105,7 +106,8 @@ public class UserView extends BaseView<UserViewModel> implements Initializable {
     private TextField usernameField;
 
     private PagingControl pagingControl;
-
+    @FXML
+    private HBox toolPane;
 
     private ModalPane modalPane;
 
@@ -125,7 +127,7 @@ public class UserView extends BaseView<UserViewModel> implements Initializable {
         pagingControl.pageSizeProperty().addListener((observable, oldValue, newValue) -> {
             viewModel.loadTableData();
         });
-        createTimePicker.setValue(new DateRange("创建时间", LocalDate.MIN));
+        createTimePicker.setMaxWidth(Double.MAX_VALUE);
         userNameCol.setCellValueFactory(new PropertyValueFactory<>("username"));
         createTimeCol.setCellValueFactory(new PropertyValueFactory<>("createTime"));
         deptCol.setCellValueFactory(new PropertyValueFactory<>("deptName"));
@@ -260,9 +262,14 @@ public class UserView extends BaseView<UserViewModel> implements Initializable {
             usernameField.setText(null);
             mobileField.setText(null);
             statusComboBox.getSelectionModel().select(null);
-            createTimePicker.setValue(new DateRange("创建时间", LocalDate.MIN));
+            createTimePicker.setValue(null);
+
+           viewModel.loadTableData();
+
         });
+        createTimePicker.setCustomRangeText("创建日期");
         createTimePicker.valueProperty().bindBidirectional(viewModel.dateRangeProperty());
+        createTimePicker.getDateRangeView().setPresetsLocation(Side.RIGHT);
 
         addBut.setOnAction(actionEvent -> showUserFormView(null));
     }

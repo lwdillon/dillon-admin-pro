@@ -3,11 +3,11 @@ package com.dillon.lw.fx.view.system.log.loginlog;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.LoginLogApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -64,14 +64,14 @@ public class LoginLogViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<LoginLogRespVO>>().apply(Forest.client(LoginLogApi.class).getLoginLogPage(queryMap));
+            return Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData();
         }).thenAcceptAsync(listCommonResult -> {
             ObservableList<LoginLogRespVO> userRespVOS = FXCollections.observableArrayList();
             userRespVOS.addAll(listCommonResult.getList());
             tableItems.set(userRespVOS);
             totalProperty().set(listCommonResult.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -83,13 +83,13 @@ public class LoginLogViewModel extends BaseViewModel {
             return;
         }
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(LoginLogApi.class).deleteLoginLog(id));
+            return Forest.client(LoginLogApi.class).deleteLoginLog(id).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             // 删除成功后重新加载数据
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新登录日志列表"));
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

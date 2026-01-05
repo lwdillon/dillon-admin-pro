@@ -3,9 +3,9 @@ package com.dillon.lw.fx.view.infra.apilog;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.ApiErrorLogApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -67,14 +67,14 @@ public class ApiErrorLogViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<ApiErrorLogRespVO>>().apply(Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap));
+            return Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<ApiErrorLogRespVO> respVOS = FXCollections.observableArrayList();
             respVOS.addAll(data.getList());
             tableItems.set(respVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -83,14 +83,14 @@ public class ApiErrorLogViewModel extends BaseViewModel {
 
     public void updateApiErrorLogProcess(Long id, Integer processStatus, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus));
+            return Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
             confirmDialog.close();
             // 重新加载数据
             loadTableData();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

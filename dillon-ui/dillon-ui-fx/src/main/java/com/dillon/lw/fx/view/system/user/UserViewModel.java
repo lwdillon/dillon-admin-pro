@@ -5,11 +5,11 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -42,7 +42,7 @@ public class UserViewModel extends BaseViewModel {
     private ObjectProperty<ObservableList<UserRespVO>> tableItems = new SimpleObjectProperty<>();
 
     private ObjectProperty<DeptSimpleRespVO> selectDept = new SimpleObjectProperty<>(new DeptSimpleRespVO());
-    private ObjectProperty<DateRange> dateRange = new SimpleObjectProperty<>(new DateRange("创建时间", LocalDate.MIN));
+    private ObjectProperty<DateRange> dateRange = new SimpleObjectProperty<>();
     private StringProperty username = new SimpleStringProperty();
     private StringProperty mobile = new SimpleStringProperty();
     private ObjectProperty<Integer> status = new SimpleObjectProperty<>();
@@ -56,7 +56,7 @@ public class UserViewModel extends BaseViewModel {
     public void loadTreeData() {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
         }).thenAcceptAsync(data -> {
             DeptSimpleRespVO respVO = new DeptSimpleRespVO();
             respVO.setId(-1L);
@@ -85,7 +85,7 @@ public class UserViewModel extends BaseViewModel {
             deptTreeRoot.set(root);
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -102,19 +102,20 @@ public class UserViewModel extends BaseViewModel {
         queryMap.put("mobile", mobile.get());
         queryMap.put("status", status.get());
 
-        if (ObjectUtil.isAllNotEmpty(dateRange.getValue().getStartDate(), dateRange.getValue().getEndDate())) {
+        if (ObjectUtil.isAllNotEmpty(dateRange.getValue(), dateRange.getValue())) {
+
             if (dateRange.getValue().getStartDate() != LocalDate.MIN && dateRange.getValue().getEndDate() != LocalDate.MIN) {
-                String[] dateTimes = new String[2];
-                dateTimes[0] = DateUtil.format(dateRange.getValue().getStartDate().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-                dateTimes[1] = DateUtil.format(dateRange.getValue().getEndDate().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-                queryMap.put("createTime", dateTimes);
+                java.lang.String startDate= DateUtil.format(dateRange.getValue().getStartDate().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+                java.lang.String endDate= DateUtil.format(dateRange.getValue().getEndDate().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+                queryMap.put("createTime", List.of(startDate,endDate));
             }
+
 
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<UserRespVO>>().apply(Forest.client(UserApi.class).getUserPage(queryMap));
+            return Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
 
             ObservableList<UserRespVO> userRespVOS = FXCollections.observableArrayList();
@@ -123,7 +124,7 @@ public class UserViewModel extends BaseViewModel {
             totalProperty().set(data.getTotal().intValue());
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -131,13 +132,12 @@ public class UserViewModel extends BaseViewModel {
 
     public void updateUserPassword(UserUpdatePasswordReqVO passwordReqVO, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(UserApi.class).updateUserPassword(passwordReqVO));
+            return Forest.client(UserApi.class).updateUserPassword(passwordReqVO).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             EventBusCenter.get().post(new MessageEvent("密码更新成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            EventBusCenter.get().post(new MessageEvent("密码更新异常: " + throwable.getMessage(), MessageType.DANGER));
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -145,14 +145,13 @@ public class UserViewModel extends BaseViewModel {
 
     public void delUser(Long userId, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(UserApi.class).deleteUser(userId));
+            return Forest.client(UserApi.class).deleteUser(userId).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            EventBusCenter.get().post(new MessageEvent("删除失败: " + throwable.getMessage(), MessageType.DANGER));
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 

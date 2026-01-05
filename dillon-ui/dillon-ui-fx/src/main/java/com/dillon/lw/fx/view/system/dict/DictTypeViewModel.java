@@ -3,11 +3,11 @@ package com.dillon.lw.fx.view.system.dict;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -64,7 +64,7 @@ public class DictTypeViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<DictTypeRespVO>>().apply(Forest.client(DictTypeApi.class).pageDictTypes(queryMap));
+            return Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<DictTypeRespVO> userRespVOS = FXCollections.observableArrayList();
             userRespVOS.addAll(data.getList());
@@ -72,7 +72,7 @@ public class DictTypeViewModel extends BaseViewModel {
             totalProperty().set(data.getTotal().intValue());
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -81,13 +81,13 @@ public class DictTypeViewModel extends BaseViewModel {
 
     public void deleteDictType(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(DictTypeApi.class).deleteDictType(id));
+            return Forest.client(DictTypeApi.class).deleteDictType(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

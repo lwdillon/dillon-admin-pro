@@ -2,8 +2,8 @@ package com.dillon.lw.fx.view.infra.apilog;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.ApiAccessLogApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
@@ -65,14 +65,14 @@ public class ApiAccessLogViewModel extends BaseViewModel {
 
         queryMap.values().removeAll(Collections.singleton(null));
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<ApiAccessLogRespVO>>().apply(Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap));
+            return Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<ApiAccessLogRespVO> respVOS = FXCollections.observableArrayList();
             respVOS.addAll(data.getList());
             tableItems.set(respVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 

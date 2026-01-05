@@ -3,12 +3,11 @@ package com.dillon.lw.fx.view.infra.file;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.FileConfigApi;
-import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -68,7 +67,7 @@ public class FileConfigViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<Map<String, Object>>>().apply(Forest.client(FileConfigApi.class).getFileConfigPage(queryMap));
+            return Forest.client(FileConfigApi.class).getFileConfigPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             List<Map<String, Object>> list = data.getList();
             for (Map<String, Object> map : list) {
@@ -83,7 +82,7 @@ public class FileConfigViewModel extends BaseViewModel {
             }
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             total.set(0);
             return null;
         });
@@ -92,13 +91,13 @@ public class FileConfigViewModel extends BaseViewModel {
 
     public void updateFileConfigMaster(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(FileConfigApi.class).updateFileConfigMaster(id));
+            return Forest.client(FileConfigApi.class).updateFileConfigMaster(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
             EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             EventBusCenter.get().post(new MessageEvent("更新失败", MessageType.DANGER));
             return null;
         });
@@ -106,13 +105,13 @@ public class FileConfigViewModel extends BaseViewModel {
 
     public void deleteFileConfig(Long id, ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(FileConfigApi.class).deleteFileConfig(id));
+            return Forest.client(FileConfigApi.class).deleteFileConfig(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             EventBusCenter.get().post(new MessageEvent("删除失败", MessageType.DANGER));
             return null;
         });

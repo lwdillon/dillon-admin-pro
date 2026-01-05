@@ -2,10 +2,10 @@ package com.dillon.lw.fx.view.system.dict;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.dillon.lw.api.system.DictTypeApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
@@ -35,13 +35,13 @@ public class DictTypeFormViewModel extends BaseViewModel {
             return;
         }
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<DictTypeRespVO>().apply(Forest.client(DictTypeApi.class).getDictType(id));
+            return Forest.client(DictTypeApi.class).getDictType(id).getCheckedData();
         }).thenAcceptAsync(data -> {
             DictTypeSaveReqVO dictTypeSaveReqVO = new DictTypeSaveReqVO();
             BeanUtil.copyProperties(data, dictTypeSaveReqVO);
             setDictType(dictTypeSaveReqVO);
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
@@ -65,13 +65,13 @@ public class DictTypeFormViewModel extends BaseViewModel {
     public void addDictType(ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(DictTypeApi.class).createDictType(getDictType()));
+            return Forest.client(DictTypeApi.class).createDictType(getDictType()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
             EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -80,13 +80,13 @@ public class DictTypeFormViewModel extends BaseViewModel {
 
     public void updateDictType(ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(DictTypeApi.class).updateDictType(getDictType()));
+            return Forest.client(DictTypeApi.class).updateDictType(getDictType()).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
             EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

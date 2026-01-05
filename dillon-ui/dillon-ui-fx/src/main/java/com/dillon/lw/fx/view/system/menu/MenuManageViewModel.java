@@ -3,12 +3,12 @@ package com.dillon.lw.fx.view.system.menu;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.MenuApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -84,7 +84,7 @@ public class MenuManageViewModel extends BaseViewModel {
         Map<String, Object> queryMap = BeanUtil.beanToMap(menuListReqVO, false, true);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<MenuRespVO>>().apply(Forest.client(MenuApi.class).getMenuList(queryMap));
+            return Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
 
             // 创建根节点（空的或具有实际数据）
@@ -110,7 +110,7 @@ public class MenuManageViewModel extends BaseViewModel {
             treeItemObjectProperty.setValue(rootItem);
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -126,7 +126,7 @@ public class MenuManageViewModel extends BaseViewModel {
 
     public void deleteMenu(Long menuId, ConfirmDialog dialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(MenuApi.class).deleteMenu(menuId));
+            return Forest.client(MenuApi.class).deleteMenu(menuId).getCheckedData();
         }).thenAcceptAsync(commonResult -> {
             EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
@@ -134,7 +134,7 @@ public class MenuManageViewModel extends BaseViewModel {
             dialog.close();
 
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

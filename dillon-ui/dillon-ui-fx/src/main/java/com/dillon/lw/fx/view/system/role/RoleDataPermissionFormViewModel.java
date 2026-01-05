@@ -2,10 +2,10 @@ package com.dillon.lw.fx.view.system.role;
 
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PermissionApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
@@ -45,7 +45,7 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
         dataScope.set(roleRespVO.getDataScope());
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<DeptSimpleRespVO>>().apply(Forest.client(DeptApi.class).getSimpleDeptList());
+            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
         }).thenAcceptAsync(data -> {
             DeptSimpleRespVO respVO = new DeptSimpleRespVO();
             respVO.setId(0L);
@@ -75,7 +75,7 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
 
             deptTreeRoot.set(root);
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
@@ -92,13 +92,13 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
         permissionAssignRoleDataScopeReqVO.setDataScopeDeptIds(selMenuIds);
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO));
+            return Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData();
         }).thenAcceptAsync(data -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
             EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 

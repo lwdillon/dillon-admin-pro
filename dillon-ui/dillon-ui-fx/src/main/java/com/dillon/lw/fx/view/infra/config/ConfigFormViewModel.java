@@ -3,10 +3,10 @@ package com.dillon.lw.fx.view.infra.config;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
 import com.dillon.lw.api.infra.ConfigApi;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.store.AppStore;
@@ -51,13 +51,13 @@ public class ConfigFormViewModel extends BaseViewModel {
             return;
         }
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<ConfigRespVO>().apply(Forest.client(ConfigApi.class).getConfig(id));
+            return Forest.client(ConfigApi.class).getConfig(id).getCheckedData();
         }).thenAcceptAsync(r -> {
             ConfigSaveReqVO reqVO = new ConfigSaveReqVO();
             BeanUtil.copyProperties(r, reqVO);
             setValue(reqVO);
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -77,26 +77,26 @@ public class ConfigFormViewModel extends BaseViewModel {
     public void createConfig(ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Long>().apply(Forest.client(ConfigApi.class).createConfig(getSaveReqVO()));
+            return Forest.client(ConfigApi.class).createConfig(getSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(r -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新参数配置列表"));
             EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }
 
     public void updateConfig(ConfirmDialog confirmDialog) {
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(ConfigApi.class).updateConfig(getSaveReqVO()));
+            return Forest.client(ConfigApi.class).updateConfig(getSaveReqVO()).getCheckedData();
         }).thenAcceptAsync(r -> {
             confirmDialog.close();
             EventBusCenter.get().post(new UpdateDataEvent("更新参数配置列表"));
             EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
     }

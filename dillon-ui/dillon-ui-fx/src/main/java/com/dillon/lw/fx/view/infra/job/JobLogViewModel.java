@@ -4,7 +4,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.JobLogApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.fx.http.PayLoad;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.module.infra.controller.admin.job.vo.log.JobLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
@@ -61,12 +61,12 @@ public class JobLogViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<JobLogRespVO>>().apply(Forest.client(JobLogApi.class).getJobLogPage(queryMap));
+            return Forest.client(JobLogApi.class).getJobLogPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             tableItems.setAll(data.getList());
             total.set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 

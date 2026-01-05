@@ -3,11 +3,11 @@ package com.dillon.lw.fx.view.system.post;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -63,14 +63,14 @@ public class PostViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<PostRespVO>>().apply(Forest.client(PostApi.class).getPostPage(queryMap));
+            return Forest.client(PostApi.class).getPostPage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<PostRespVO> userRespVOS = FXCollections.observableArrayList();
             userRespVOS.addAll(data.getList());
             tableItems.set(userRespVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -80,13 +80,13 @@ public class PostViewModel extends BaseViewModel {
     public void deletePost(Long postId, ConfirmDialog confirmDialog) {
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(PostApi.class).deletePost(postId));
+            return Forest.client(PostApi.class).deletePost(postId).getCheckedData();
         }).thenAcceptAsync(data -> {
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }

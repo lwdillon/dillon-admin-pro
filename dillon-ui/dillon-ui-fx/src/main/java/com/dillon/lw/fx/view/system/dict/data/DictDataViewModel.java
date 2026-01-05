@@ -4,11 +4,11 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
-import com.dillon.lw.fx.http.PayLoad;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -52,7 +52,7 @@ public class DictDataViewModel extends BaseViewModel {
         dictTypeSimpleRespVOItems.clear();
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<List<DictTypeSimpleRespVO>>().apply(Forest.client(DictTypeApi.class).getSimpleDictTypeList());
+            return Forest.client(DictTypeApi.class).getSimpleDictTypeList().getCheckedData();
         }).thenAcceptAsync(data -> {
             dictTypeSimpleRespVOItems.setAll(data);
             if (ObjectUtil.isNotEmpty(dictType)) {
@@ -64,7 +64,7 @@ public class DictDataViewModel extends BaseViewModel {
                 }
             }
         }, Platform::runLater).exceptionally(e -> {
-            e.printStackTrace();
+            DefaultExceptionHandler.handle(e);
             return null;
         });
 
@@ -92,14 +92,14 @@ public class DictDataViewModel extends BaseViewModel {
 
 
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<PageResult<DictDataRespVO>>().apply(Forest.client(DictDataApi.class).getDictTypePage(queryMap));
+            return Forest.client(DictDataApi.class).getDictTypePage(queryMap).getCheckedData();
         }).thenAcceptAsync(data -> {
             ObservableList<DictDataRespVO> userRespVOS = FXCollections.observableArrayList();
             userRespVOS.addAll(data.getList());
             tableItems.set(userRespVOS);
             totalProperty().set(data.getTotal().intValue());
         }, Platform::runLater).exceptionally(throwable -> {
-            throwable.printStackTrace();
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
 
@@ -110,13 +110,13 @@ public class DictDataViewModel extends BaseViewModel {
             return;
         }
         CompletableFuture.supplyAsync(() -> {
-            return new PayLoad<Boolean>().apply(Forest.client(DictDataApi.class).deleteDictData(id));
+            return Forest.client(DictDataApi.class).deleteDictData(id).getCheckedData();
         }).thenAcceptAsync(result -> {
             EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
             EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
-            System.err.println("删除字典数据异常：" + throwable.getMessage());
+            DefaultExceptionHandler.handle(throwable);
             return null;
         });
     }
