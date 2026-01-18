@@ -28,7 +28,8 @@ public class DillonSwingUiApplication {
     static {
         TimingSource ts = new SwingTimerTimingSource();
         Animator.setDefaultTimingSource(ts);
-        ts.init();
+
+    ts.init();
     }
 
 

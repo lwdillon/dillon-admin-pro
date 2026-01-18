@@ -11,10 +11,10 @@
 
     <!-- 文件滚动 -->
     <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/dillon-admin-ui.log</file>
+        <file>logs/dillon-admin-fx.log</file>
         <append>true</append>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/dillon-admin-ui-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/dillon-admin-fx-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>
         </rollingPolicy>

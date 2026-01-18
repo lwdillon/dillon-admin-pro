@@ -47,39 +47,19 @@
         </dependency>
 
 
-        <!--pinyin4j-->
-        <dependency>
-            <groupId>com.belerweb</groupId>
-            <artifactId>pinyin4j</artifactId>
-            <version>${pinyin4j.version}</version>
-        </dependency>
         <!--jfree-->
         <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
             <version>${jfreechart.version}</version>
         </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.miglayout</groupId>
             <artifactId>miglayout-swing</artifactId>
             <version>5.3</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.swinglabs.swingx</groupId>
             <artifactId>swingx-all</artifactId>
@@ -217,13 +197,7 @@
             <artifactId>rstaui</artifactId>
             <version>3.2.0</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>com.wulu</groupId>-->
-        <!--            <artifactId>jide</artifactId>-->
-        <!--            <version>1.0.0</version>-->
-        <!--            <scope>system</scope>-->
-        <!--            <systemPath>${pom.basedir}/../libs/jide-1.0.0.jar</systemPath>-->
-        <!--        </dependency>-->
+
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>svgSalamander</artifactId>
@@ -231,11 +205,6 @@
             <scope>compile</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.vladsch.flexmark</groupId>-->
-<!--            <artifactId>flexmark-all</artifactId>-->
-<!--            <version>0.64.0</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>

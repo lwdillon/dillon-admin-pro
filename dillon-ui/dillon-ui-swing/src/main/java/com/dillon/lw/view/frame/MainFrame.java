@@ -153,9 +153,6 @@ public class MainFrame extends JFrame {
 
         setSize(900, 600);
         setLocationRelativeTo(null);
-
-
-
     }
 
     public void showMain() {
