@@ -42,7 +42,7 @@ public class AppStore {
             try {
                 clazz = Class.forName(className);
                 container = (JComponent) clazz.newInstance();
-                container.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+                container.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
                 container.setOpaque(false);
             } catch (Exception e1) {
                 container = new JLabel("暂无投运", JLabel.CENTER);

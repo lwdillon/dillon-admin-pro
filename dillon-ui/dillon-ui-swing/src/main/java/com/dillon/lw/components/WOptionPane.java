@@ -960,7 +960,6 @@ public class WOptionPane extends JOptionPane {
         JRootPane rootPane = dialog.getRootPane();
         if (rootPane != null) {
             rootPane.setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
-            rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, UIManager.getColor("App.titleBarBackground"));
 //            rootPane.setBorder(BorderFactory.createLineBorder(UIManager.getColor("App.titleBarBackground"),4));
 
         }

@@ -5,8 +5,10 @@ new FormModel {
 	root: new FormRoot {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
 			name: "this"
+			"opaque": false
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.FlowLayout ) ) {
 				name: "macFullWindowContentButtonsPlaceholder"
+				"opaque": false
 			}, new FormLayoutConstraints( class java.lang.String ) {
 				"value": "Before"
 			} )
@@ -14,6 +16,7 @@ new FormModel {
 				name: "toolBar"
 				"floatable": false
 				"border": new javax.swing.border.EmptyBorder( 0, 7, 0, 7 )
+				"opaque": false
 				add( new FormComponent( "javax.swing.JLabel" ) {
 					name: "titleLabel"
 					"text": "Dillon-Swing"
@@ -23,6 +26,7 @@ new FormModel {
 			} )
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.FlowLayout ) ) {
 				name: "winFullWindowContentButtonsPlaceholder"
+				"opaque": false
 			}, new FormLayoutConstraints( class java.lang.String ) {
 				"value": "After"
 			} )

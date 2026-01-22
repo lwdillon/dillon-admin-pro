@@ -25,7 +25,7 @@ public class WPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setColor(UIManager.getColor("App.background.card1"));
+        g2.setColor(UIManager.getColor("App.baseBackground"));
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
         if (isDrawBoder()) {
             g2.setColor(UIManager.getColor("App.borderColor"));

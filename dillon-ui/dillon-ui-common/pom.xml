@@ -15,6 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <pinyin4j.version>2.5.1</pinyin4j.version>
     </properties>
 
     <dependencies>
@@ -90,8 +91,5 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
-
-
-
     </dependencies>
 </project>

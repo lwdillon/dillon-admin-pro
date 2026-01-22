@@ -20,6 +20,7 @@ import com.jidesoft.swing.JideTabbedPane;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.config.AppPrefs.KEY_UI_THEME;
@@ -53,7 +54,7 @@ public class MainFrame extends JFrame {
     /* ======================== CardLayout ======================== */
 
     private static final String CARD_LOGIN = "login";
-    private static final String CARD_MAIN  = "main";
+    private static final String CARD_MAIN = "main";
 
     private final JRootPane rootPane;
 
@@ -111,6 +112,8 @@ public class MainFrame extends JFrame {
             rootPane.putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
             rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 45);
         }
+        rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, Color.GRAY);
+
     }
 
     /* ======================== 初始化页面 ======================== */
@@ -124,8 +127,58 @@ public class MainFrame extends JFrame {
         // 主界面
         titlePanel = new TitlePanel();
         mainPane = new MainPane();
+        mainPane.setOpaque(false);
 
-        JPanel mainContainer = new JPanel(new BorderLayout());
+        JPanel mainContainer = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                try {
+                    g2.setRenderingHint(
+                            RenderingHints.KEY_RENDERING,
+                            RenderingHints.VALUE_RENDER_QUALITY
+                    );
+                    g2.setRenderingHint(
+                            RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON
+                    );
+                    g2.setPaint(UIManager.getColor("App.mainBackground"));
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+
+                    // 光源位置（左上角稍微偏移，效果更自然）
+                    Point2D center = new Point2D.Float(200, 40);
+
+                    float[] dist = {
+                            0.0f,
+                            0.35f,
+                            0.55f,
+                            0.75f,
+                            1.0f
+                    };
+
+                    Color[] colors = {
+                            new Color(0, 180, 120, 140), // 中心亮
+                            new Color(0, 180, 120, 90),  // 强过渡
+                            new Color(0, 180, 120, 70),  // 中过渡
+                            new Color(0, 180, 120, 40),  // 弱过渡
+                            new Color(0, 180, 120, 0)    // 消失
+                    };
+
+
+                    RadialGradientPaint paint =
+                            new RadialGradientPaint(center, 300, dist, colors);
+
+                    g2.setPaint(paint);
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+
+                } finally {
+                    g2.dispose();
+                }
+            }
+        };
+
         mainContainer.add(titlePanel, BorderLayout.PAGE_START);
         mainContainer.add(mainPane, BorderLayout.CENTER);
 
@@ -176,7 +229,6 @@ public class MainFrame extends JFrame {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         setSize((int) (screen.width * 0.9), (int) (screen.height * 0.9));
         setLocationRelativeTo(null);
-
 
 
     }

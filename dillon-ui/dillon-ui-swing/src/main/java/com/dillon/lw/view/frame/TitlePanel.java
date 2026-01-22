@@ -4,43 +4,33 @@
 
 package com.dillon.lw.view.frame;
 
-import javax.swing.border.*;
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.LoginEvent;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.theme.DarkTheme;
-import com.dillon.lw.theme.GlazzedTheme;
-import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.theme.ThemeType;
 import com.dillon.lw.utils.ExecuteUtils;
 import com.dillon.lw.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatButton;
 import com.formdev.flatlaf.util.LoggingFacade;
-import org.jdesktop.swingx.decorator.ColorHighlighter;
-import org.jdesktop.swingx.decorator.HighlightPredicate;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.concurrent.CompletableFuture;
-import javax.swing.*;
 
 /**
  * @author wenli
  */
 public class TitlePanel extends JPanel {
-    // 弹出菜单
-    private JPopupMenu themePopupMenu;
-    private JPopupMenu personalPopupMenu;
 
     // 自定义组件和状态变量
     private FlatButton themeButton;
@@ -61,10 +51,12 @@ public class TitlePanel extends JPanel {
         winFullWindowContentButtonsPlaceholder = new JPanel();
 
         //======== this ========
+        setOpaque(false);
         setLayout(new BorderLayout());
 
         //======== macFullWindowContentButtonsPlaceholder ========
         {
+            macFullWindowContentButtonsPlaceholder.setOpaque(false);
             macFullWindowContentButtonsPlaceholder.setLayout(new FlowLayout());
         }
         add(macFullWindowContentButtonsPlaceholder, BorderLayout.LINE_START);
@@ -73,6 +65,7 @@ public class TitlePanel extends JPanel {
         {
             toolBar.setFloatable(false);
             toolBar.setBorder(new EmptyBorder(0, 7, 0, 7));
+            toolBar.setOpaque(false);
 
             //---- titleLabel ----
             titleLabel.setText("Dillon-Swing");
@@ -82,6 +75,7 @@ public class TitlePanel extends JPanel {
 
         //======== winFullWindowContentButtonsPlaceholder ========
         {
+            winFullWindowContentButtonsPlaceholder.setOpaque(false);
             winFullWindowContentButtonsPlaceholder.setLayout(new FlowLayout());
         }
         add(winFullWindowContentButtonsPlaceholder, BorderLayout.LINE_END);
@@ -96,7 +90,7 @@ public class TitlePanel extends JPanel {
         themeButton.addActionListener(e -> showThemePopupMenu(e));
         toolBar.add(Box.createGlue());
         toolBar.add(themeButton);
-
+        titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
         noticeButton = new FlatButton();
         noticeButton.setIcon(new FlatSVGIcon("icons/bell.svg", 25, 25));
         noticeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
@@ -163,7 +157,7 @@ public class TitlePanel extends JPanel {
             try {
                 // 1. 切换 LookAndFeel
                 UIManager.setLookAndFeel(theme.createLaf());
-                AppPrefs.prefs().put(AppPrefs.KEY_UI_THEME+"_"+AppStore.getUserId(),theme.createLaf().getClass().getName());
+                AppPrefs.prefs().put(AppPrefs.KEY_UI_THEME + "_" + AppStore.getUserId(), theme.createLaf().getClass().getName());
 
             } catch (Exception ex) {
                 LoggingFacade.INSTANCE.logSevere(null, ex);

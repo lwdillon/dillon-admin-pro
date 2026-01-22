@@ -1,7 +1,7 @@
 package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.components.WCardPanel;
+import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
@@ -63,7 +63,7 @@ public class MainPane extends JPanel {
     // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
     private void initComponents() {
         // ... (JFormDesigner Generated Code remains unchanged for structure)
-        navBarPane = new WCardPanel();
+        navBarPane = new WPanel();
         navBarPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,0));
         navBarTreeTablePane = new JScrollPane();
         navBarTreeTablePane.setOpaque(false);
@@ -87,7 +87,22 @@ public class MainPane extends JPanel {
         }
         navBarTreeTablePane.setViewportView(navBarTreeTable);
         add(navBarPane, BorderLayout.WEST);
-        WCardPanel wPanel=     new WCardPanel();
+        JPanel wPanel=     new JPanel(){
+            @Override protected void paintComponent(Graphics g) {
+
+                Graphics2D g2=(Graphics2D)g.create();
+                g2.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON
+                );
+                g2.setColor(UIManager.getColor("App.baseBackground"));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
+                g2.fillRoundRect(5, 60, getWidth()-10, getHeight()-65, 20, 20);
+                g2.fillRect(5, 60, getWidth()-10, 20);
+                g2.dispose();
+            }
+        };
         wPanel.setLayout(new BorderLayout());
         wPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
         wPanel.add(tabbedPane);
@@ -176,9 +191,7 @@ public class MainPane extends JPanel {
         navBarTreeTable.setTableHeader(header);
         navBarTreeTable.setRowHeight(45);
 
-        navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
-                UIManager.getColor("App.hoverBackground"),
-                null));
+        navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null));
         // 设置树节点渲染器：用于显示菜单名称和图标 (Java 8 兼容)
         navBarTreeTable.setTreeCellRenderer(new DefaultTreeCellRenderer() {
             @Override
@@ -735,15 +748,6 @@ public class MainPane extends JPanel {
         return tabbedPane;
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-//        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setPaint(UIManager.getColor("App.background"));
-//        g2.setPaint(Color.RED);
-        g2.fillRect(0, 0, getWidth(), getHeight());
-        g2.dispose();
-    }
 
     @Subscribe
     private void onAddTab(AddMainTabEvent addMainTabEvent) {
@@ -767,9 +771,7 @@ public class MainPane extends JPanel {
         super.updateUI();
         if (navBarTreeTable != null) {
             // 添加鼠标悬停高亮
-            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
-                    UIManager.getColor("App.hoverBackground"),
-                    null));
+            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null));
         }
 
     }
