@@ -80,7 +80,7 @@ public class MainPane extends JPanel {
 
         //======== this ========
         setLayout(new BorderLayout(7,7));
-        setBorder(BorderFactory.createEmptyBorder(7,7,0,7));
+        setBorder(BorderFactory.createEmptyBorder(0,7,0,7));
         //======== navBarPane ========
         {
             navBarPane.setPreferredSize(new Dimension(320, 376));
@@ -112,6 +112,7 @@ public class MainPane extends JPanel {
         {
             statusPane.setFloatable(false);
         }
+        statusPane.setOpaque(false);
         add(statusPane, BorderLayout.SOUTH);
     }
     // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
