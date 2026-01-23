@@ -1,5 +1,7 @@
 package com.dillon.lw.components;
 
+import cn.hutool.core.convert.Convert;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -29,11 +31,12 @@ public class WPanel extends JPanel {
                 RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON
         );
+        int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
         g2.setColor(UIManager.getColor("App.baseBackground"));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
         if (isDrawBoder()) {
             g2.setColor(UIManager.getColor("App.borderColor"));
-            g2.fillRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 20, 20);
+            g2.fillRoundRect(1, 1, getWidth() - 2, getHeight() - 2, arc, arc);
 
         }
         g2.dispose();

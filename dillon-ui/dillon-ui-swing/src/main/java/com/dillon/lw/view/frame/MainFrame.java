@@ -15,6 +15,7 @@ import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import com.formdev.flatlaf.util.LoggingFacade;
 import com.formdev.flatlaf.util.SystemInfo;
+import com.formdev.flatlaf.util.UIScale;
 import com.google.common.eventbus.Subscribe;
 import com.jidesoft.swing.JideTabbedPane;
 
@@ -24,6 +25,7 @@ import java.awt.geom.Point2D;
 import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.config.AppPrefs.KEY_UI_THEME;
+import static com.dillon.lw.utils.ColorUtils.withAlpha;
 
 /**
  * 主窗口（应用全局唯一）
@@ -130,52 +132,81 @@ public class MainFrame extends JFrame {
         mainPane.setOpaque(false);
 
         JPanel mainContainer = new JPanel(new BorderLayout()) {
+
+            // ===== 缓存字段 =====
+            private RadialGradientPaint gradientPaint;
+            private int lastWidth = -1;
+            private int lastHeight = -1;
+            private Color lastAccent;
+
+            // 渐变分布（固定，不必每次 new）
+            private final float[] dist = {
+                    0.0f,
+                    0.35f,
+                    0.55f,
+                    0.75f,
+                    1.0f
+            };
+
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
 
                 Graphics2D g2 = (Graphics2D) g.create();
                 try {
-                    g2.setRenderingHint(
-                            RenderingHints.KEY_RENDERING,
-                            RenderingHints.VALUE_RENDER_QUALITY
-                    );
-                    g2.setRenderingHint(
-                            RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON
-                    );
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                            RenderingHints.VALUE_RENDER_QUALITY);
+
+                    // 背景色
                     g2.setPaint(UIManager.getColor("App.mainBackground"));
                     g2.fillRect(0, 0, getWidth(), getHeight());
 
-                    // 光源位置（左上角稍微偏移，效果更自然）
-                    Point2D center = new Point2D.Float(200, 40);
+                    // Accent 色（主题切换时会变）
+                    Color accent = UIManager.getColor("Islands.accent");
 
-                    float[] dist = {
-                            0.0f,
-                            0.35f,
-                            0.55f,
-                            0.75f,
-                            1.0f
-                    };
+                    // 尺寸或主题变化，才重建渐变
+                    if (gradientPaint == null
+                            || lastWidth != getWidth()
+                            || lastHeight != getHeight()
+                            || !accent.equals(lastAccent)) {
 
-                    Color[] colors = {
-                            new Color(0, 180, 120, 140), // 中心亮
-                            new Color(0, 180, 120, 90),  // 强过渡
-                            new Color(0, 180, 120, 70),  // 中过渡
-                            new Color(0, 180, 120, 40),  // 弱过渡
-                            new Color(0, 180, 120, 0)    // 消失
-                    };
+                        gradientPaint = createGradient(accent);
+                        lastWidth = getWidth();
+                        lastHeight = getHeight();
+                        lastAccent = accent;
+                    }
 
-
-                    RadialGradientPaint paint =
-                            new RadialGradientPaint(center, 300, dist, colors);
-
-                    g2.setPaint(paint);
+                    g2.setPaint(gradientPaint);
                     g2.fillRect(0, 0, getWidth(), getHeight());
 
                 } finally {
                     g2.dispose();
                 }
+            }
+
+            private RadialGradientPaint createGradient(Color base) {
+
+                // 光源位置：左上角偏外
+                Point2D center = new Point2D.Float(
+                        UIScale.scale(200),
+                        UIScale.scale(-200)
+                );
+
+                // 半径随窗口尺寸变化
+//                float radius = Math.max(getWidth(), getHeight()) * 0.4f;
+                float radius = 400f;
+
+                Color[] colors = {
+                        withAlpha(base, 140),
+                        withAlpha(base, 90),
+                        withAlpha(base, 70),
+                        withAlpha(base, 40),
+                        withAlpha(base, 0)
+                };
+
+                return new RadialGradientPaint(center, radius, dist, colors);
             }
         };
 
@@ -295,4 +326,6 @@ public class MainFrame extends JFrame {
         FlatUIDefaultsInspector.hide();
         super.dispose();
     }
+
+
 }

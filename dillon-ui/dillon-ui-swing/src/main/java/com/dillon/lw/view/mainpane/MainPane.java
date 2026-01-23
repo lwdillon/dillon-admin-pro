@@ -1,5 +1,6 @@
 package com.dillon.lw.view.mainpane;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.AuthApi;
@@ -86,11 +87,12 @@ public class MainPane extends JPanel {
                         RenderingHints.KEY_ANTIALIASING,
                         RenderingHints.VALUE_ANTIALIAS_ON
                 );
+                int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
                 g2.setColor(UIManager.getColor("App.baseBackground"));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
                 g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(5, 60, getWidth()-10, getHeight()-65, 20, 20);
-                g2.fillRect(5, 60, getWidth()-10, 20);
+                g2.fillRoundRect(5, 60, getWidth()-10, getHeight()-65, arc, arc);
+                g2.fillRect(5, 60, getWidth()-10, arc);
                 g2.dispose();
     }};
         statusPane = new JToolBar();
