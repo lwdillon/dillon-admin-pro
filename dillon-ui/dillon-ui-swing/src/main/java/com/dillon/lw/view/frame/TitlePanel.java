@@ -46,7 +46,7 @@ public class TitlePanel extends JPanel {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         // Generated using JFormDesigner non-commercial license
         macFullWindowContentButtonsPlaceholder = new JPanel();
-        toolBar = new JToolBar();
+        toolPanel = new JPanel();
         titleLabel = new JLabel();
         winFullWindowContentButtonsPlaceholder = new JPanel();
 
@@ -61,17 +61,16 @@ public class TitlePanel extends JPanel {
         }
         add(macFullWindowContentButtonsPlaceholder, BorderLayout.LINE_START);
 
-        //======== toolBar ========
+        //======== toolPanel ========
         {
-            toolBar.setFloatable(false);
-            toolBar.setBorder(new EmptyBorder(0, 7, 0, 7));
-            toolBar.setOpaque(false);
+            toolPanel.setBorder(new EmptyBorder(1, 10, 1, 1));
+            toolPanel.setLayout(new BorderLayout(5, 5));
 
             //---- titleLabel ----
             titleLabel.setText("Dillon-Swing");
-            toolBar.add(titleLabel);
+            toolPanel.add(titleLabel, BorderLayout.WEST);
         }
-        add(toolBar, BorderLayout.CENTER);
+        add(toolPanel, BorderLayout.CENTER);
 
         //======== winFullWindowContentButtonsPlaceholder ========
         {
@@ -88,6 +87,9 @@ public class TitlePanel extends JPanel {
         themeButton.setFocusable(false);
         themeButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
         themeButton.addActionListener(e -> showThemePopupMenu(e));
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+        toolBar.setOpaque(false);
         toolBar.add(Box.createGlue());
         toolBar.add(themeButton);
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
@@ -99,7 +101,6 @@ public class TitlePanel extends JPanel {
         noticeButton.setFocusable(false);
 
         toolBar.add(noticeButton);
-
         userButton = new FlatButton();
         userButton.setIcon(new FlatSVGIcon("icons/user.svg", 20, 20));
         userButton.setButtonType(FlatButton.ButtonType.toolBarButton);
@@ -108,6 +109,8 @@ public class TitlePanel extends JPanel {
         userButton.setFocusable(false);
         toolBar.add(userButton);
 
+        toolPanel.add(toolBar, BorderLayout.EAST);
+        toolPanel.setOpaque(false);
         titleLabel.setIcon(new FlatSVGIcon("icons/guanli.svg", 25, 25));
 
         titleLabel.setText(System.getProperty("app.name"));
@@ -217,7 +220,7 @@ public class TitlePanel extends JPanel {
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license
     private JPanel macFullWindowContentButtonsPlaceholder;
-    private JToolBar toolBar;
+    private JPanel toolPanel;
     private JLabel titleLabel;
     private JPanel winFullWindowContentButtonsPlaceholder;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
