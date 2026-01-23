@@ -1,9 +1,9 @@
 package com.dillon;
 
-import com.dillon.lw.ExceptionEventQueue;
+import com.dillon.lw.exception.ExceptionEventQueue;
 import com.dillon.lw.Resources;
-import com.dillon.lw.SwingExceptionHandler;
-import com.dillon.lw.http.forest.ForestConfig;
+import com.dillon.lw.exception.SwingExceptionHandler;
+import com.dillon.lw.http.ForestConfig;
 
 import javax.swing.*;
 import java.awt.*;

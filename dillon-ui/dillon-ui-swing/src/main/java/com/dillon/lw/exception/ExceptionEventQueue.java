@@ -1,4 +1,4 @@
-package com.dillon.lw;
+package com.dillon.lw.exception;
 
 import java.awt.*;
 

@@ -1,9 +1,9 @@
 package com.dillon.lw;
 
 
-import com.dillon.lw.config.AppPrefs;
-import com.dillon.lw.http.forest.ForestConfig;
-import com.dillon.lw.theme.DarkTheme;
+import com.dillon.lw.exception.ExceptionEventQueue;
+import com.dillon.lw.exception.SwingExceptionHandler;
+import com.dillon.lw.http.ForestConfig;
 import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.view.frame.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
-import static com.dillon.lw.config.AppPrefs.KEY_CURRENT_USER;
-import static com.dillon.lw.config.AppPrefs.KEY_UI_THEME;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DillonSwingUiApplication {

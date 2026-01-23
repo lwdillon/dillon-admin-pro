@@ -1,6 +1,6 @@
 package com.dillon.lw.store;
 
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
@@ -40,7 +40,7 @@ public class AppStore {
             try {
                 clazz = Class.forName(className);
                 container = (JComponent) clazz.newInstance();
-                container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                container.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
                 container.setOpaque(false);
             } catch (Exception e1) {
                 container = new JLabel("暂无投运", JLabel.CENTER);

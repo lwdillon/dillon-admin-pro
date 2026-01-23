@@ -1,4 +1,4 @@
-package com.dillon.lw.http.forest.interceptors;
+package com.dillon.lw.http.interceptors;
 
 import com.dillon.lw.store.AppStore;
 import com.dtflys.forest.http.ForestRequest;

@@ -5,7 +5,7 @@
 package com.dillon.lw.view.system.notice;
 
 import cn.hutool.core.convert.Convert;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.NotifyTemplateApi;
 import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;

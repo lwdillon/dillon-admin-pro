@@ -1,15 +1,13 @@
 package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.AuthApi;
-import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.MenuRefrestEvent;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
-import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
@@ -31,9 +29,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * 主应用界面面板 (MainPane) - 兼容 Java 8
@@ -211,7 +207,7 @@ public class MainPane extends JPanel {
                     } else if (StrUtil.contains(icon, ":")) {
                         icon = "icons/menu/" + icon.split(":")[1] + ".svg";
                     }
-                    FlatSVGIcon svgIcon = IconLoader.getSvgIcon(icon, 25, 25);
+                    FlatSVGIcon svgIcon = IconLoader.getSvgIcon(icon, 20, 20);
 
                     ((JLabel) component).setIcon(svgIcon);
                     ((JLabel) component).setIconTextGap(7);
@@ -439,7 +435,7 @@ public class MainPane extends JPanel {
                 resolvedIcon = iconPath;
             }
 
-            FlatSVGIcon icon = IconLoader.getSvgIcon(resolvedIcon, 25, 25);
+            FlatSVGIcon icon = IconLoader.getSvgIcon(resolvedIcon, 20, 20);
             tabbedPane.addTab(menuVO.getName(), icon, AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
         }
         tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(menuVO.getName()));

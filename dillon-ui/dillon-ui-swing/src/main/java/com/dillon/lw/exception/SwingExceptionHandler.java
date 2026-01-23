@@ -1,4 +1,4 @@
-package com.dillon.lw;
+package com.dillon.lw.exception;
 
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.framework.common.exception.ServiceException;

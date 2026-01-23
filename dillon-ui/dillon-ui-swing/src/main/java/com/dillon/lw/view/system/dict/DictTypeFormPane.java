@@ -5,7 +5,7 @@
 package com.dillon.lw.view.system.dict;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;

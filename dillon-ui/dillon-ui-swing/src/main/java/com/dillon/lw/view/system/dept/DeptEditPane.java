@@ -6,7 +6,7 @@ package com.dillon.lw.view.system.dept;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptRespVO;

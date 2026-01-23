@@ -7,7 +7,7 @@ package com.dillon.lw.view.intra.config;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.infra.ConfigApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;

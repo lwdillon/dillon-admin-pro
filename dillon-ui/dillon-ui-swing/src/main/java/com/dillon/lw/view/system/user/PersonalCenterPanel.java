@@ -1,7 +1,7 @@
 package com.dillon.lw.view.system.user;
 
 import cn.hutool.core.date.DateUtil;
-import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.notice.WMessage;

@@ -83,7 +83,7 @@ public class TitlePanel extends JPanel {
 
         //user
         themeButton = new FlatButton();
-        themeButton.setIcon(new FlatSVGIcon("icons/skin.svg", 25, 25));
+        themeButton.setIcon(new FlatSVGIcon("icons/skin.svg", 20, 20));
         themeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         themeButton.setFocusable(false);
         themeButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
@@ -92,7 +92,7 @@ public class TitlePanel extends JPanel {
         toolBar.add(themeButton);
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
         noticeButton = new FlatButton();
-        noticeButton.setIcon(new FlatSVGIcon("icons/bell.svg", 25, 25));
+        noticeButton.setIcon(new FlatSVGIcon("icons/bell.svg", 20, 20));
         noticeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         noticeButton.addActionListener(e1 -> EventBusCenter.get().post(new AddMainTabEvent("icons/bell.svg", "我的消息", new MyNotifyMessagePane())));
 
@@ -101,7 +101,7 @@ public class TitlePanel extends JPanel {
         toolBar.add(noticeButton);
 
         userButton = new FlatButton();
-        userButton.setIcon(new FlatSVGIcon("icons/user.svg", 25, 25));
+        userButton.setIcon(new FlatSVGIcon("icons/user.svg", 20, 20));
         userButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         userButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
         userButton.addActionListener(e -> showUserInfoPopupMenu(e));
