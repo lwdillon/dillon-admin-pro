@@ -32,17 +32,20 @@ public class OptButtonTableCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
-        Component component1 = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        panel.setBackground(component1.getBackground());
 
         if (component instanceof JXHyperlink) {
             ((JXHyperlink) component).setText(value + "");
         }
+
         if (hideCol != -1) {
             Object v = table.getValueAt(row, hideCol);
             this.component.setVisible(!ObjectUtil.equal(v, hideValue));
         }
-//        panel.setOpaque(isSelected);
+        if (isSelected) {
+            panel.setBackground(table.getSelectionBackground());
+        } else {
+            panel.setBackground(table.getBackground());
+        }
         return panel;
     }
 

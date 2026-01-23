@@ -14,6 +14,8 @@ import com.dillon.lw.components.WaitPane;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
+import com.dillon.lw.eventbus.EventBusCenter;
+import com.dillon.lw.eventbus.event.MenuRefrestEvent;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.store.AppStore;
@@ -151,7 +153,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
 
     private JToolBar creatBar() {
         JToolBar optBar = new JToolBar();
-        optBar.setOpaque(false);
+
         JButton edit = new JButton("修改");
         edit.setForeground(UIManager.getColor("App.accent.color"));
         edit.setIcon(new FlatSVGIcon("icons/xiugai.svg", 15, 15));
@@ -339,7 +341,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         }).thenAcceptAsync(unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "添加菜单成功");
             updateData();
-            AppStore.getMenuRefreshObservable().refresh();
+            EventBusCenter.get().post(new MenuRefrestEvent());
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {
             SwingUtilities.invokeLater(() -> {
                 SwingExceptionHandler.handle(throwable);
@@ -359,7 +361,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         }).thenAcceptAsync(unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "修改菜单成功");
             updateData();
-            AppStore.getMenuRefreshObservable().refresh();
+            EventBusCenter.get().post(new MenuRefrestEvent());
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {
             SwingUtilities.invokeLater(() -> {
                 SwingExceptionHandler.handle(throwable);
@@ -395,7 +397,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
         }).thenAcceptAsync(unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除菜单成功");
             updateData();
-            AppStore.getMenuRefreshObservable().refresh();
+            EventBusCenter.get().post(new MenuRefrestEvent());
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {
             SwingUtilities.invokeLater(() -> {
                 SwingExceptionHandler.handle(throwable);

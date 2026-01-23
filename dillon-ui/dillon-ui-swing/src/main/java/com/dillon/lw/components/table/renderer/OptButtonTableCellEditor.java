@@ -15,20 +15,25 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
 
     private int hideCol = -1;
     private Object hideValue;
-
-    public OptButtonTableCellEditor(JComponent editor) {
-        this(editor, -1, null);
+    private JPanel panel = new JPanel();
+    private JComponent component;
+    public OptButtonTableCellEditor(JComponent component) {
+        this(component, -1, null);
     }
 
-    public OptButtonTableCellEditor(JComponent editor, int hideCol, Object hideValue) {
-        super(editor);
+    public OptButtonTableCellEditor(JComponent component, int hideCol, Object hideValue) {
         this.hideCol = hideCol;
         this.hideValue = hideValue;
-        if (editor instanceof JButton) {
-            ((JButton) editor).addActionListener(this);
-        } else if (editor instanceof JCheckBox) {
-            ((JCheckBox) editor).addActionListener(this);
+        this.component = component;
+        this.component.setOpaque(false);
+        panel.setLayout(new BorderLayout());
+        panel.add(component);
+        if (component instanceof JButton) {
+            ((JButton) component).addActionListener(this);
+        } else if (component instanceof JCheckBox) {
+            ((JCheckBox) component).addActionListener(this);
         }
+
     }
 
     @Override
@@ -46,7 +51,7 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    ((JButton) editor).doClick();
+                    ((JButton) component).doClick();
                 }
             });
         }
@@ -55,19 +60,23 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value,
                                                  boolean isSelected, int row, int column) {
-        editor.setBackground(table.getSelectionBackground());
-        editor.setOpaque(true);
-        this.setBackground(table.getSelectionBackground());
+        panel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
         this.value = value;
-        if (editor instanceof JXHyperlink) {
-            ((JXHyperlink) editor).setText(value + "");
+        if (component instanceof JXHyperlink) {
+            ((JXHyperlink) component).setText(value + "");
         }
         if (hideCol != -1) {
             Object v = table.getValueAt(row, hideCol);
-            editor.setVisible(!ObjectUtil.equal(v, hideValue));
+            component.setVisible(!ObjectUtil.equal(v, hideValue));
+        }
+        if (isSelected) {
+            panel.setBackground(table.getSelectionBackground());
+        } else {
+            panel.setBackground(table.getBackground());
+
         }
 
-        return this;
+        return panel;
     }
 
 
@@ -76,8 +85,8 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
         // Button pressed - stop the edit
         stopCellEditing();
 
-        if (editor instanceof JCheckBox) {
-            this.value = ((JCheckBox) editor).isSelected();
+        if (component instanceof JCheckBox) {
+            this.value = ((JCheckBox) component).isSelected();
 
         }
 

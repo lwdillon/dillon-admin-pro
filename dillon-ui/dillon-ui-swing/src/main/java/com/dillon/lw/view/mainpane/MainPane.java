@@ -1,14 +1,20 @@
 package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.SwingExceptionHandler;
+import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
+import com.dillon.lw.eventbus.event.MenuRefrestEvent;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
+import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
+import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.google.common.eventbus.Subscribe;
 import com.jidesoft.swing.JideTabbedPane;
@@ -25,6 +31,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * 主应用界面面板 (MainPane) - 兼容 Java 8
@@ -74,22 +83,8 @@ public class MainPane extends JPanel {
         navBarTreeTable.setOpaque(false);
         navBarTreeTable.setBackground(new Color(0, 0, 0, 0));
 
-        tabbedPane = new JideTabbedPane();
-        tabbedPane.setOpaque(false);
-        statusPane = new JToolBar();
-
-        //======== this ========
-        setLayout(new BorderLayout(7,7));
-        setBorder(BorderFactory.createEmptyBorder(0,7,0,7));
-        //======== navBarPane ========
-        {
-            navBarPane.setPreferredSize(new Dimension(320, 376));
-        }
-        navBarTreeTablePane.setViewportView(navBarTreeTable);
-        add(navBarPane, BorderLayout.WEST);
-        JPanel wPanel=     new JPanel(){
+        tabbedPane = new JideTabbedPane(){
             @Override protected void paintComponent(Graphics g) {
-
                 Graphics2D g2=(Graphics2D)g.create();
                 g2.setRenderingHint(
                         RenderingHints.KEY_ANTIALIASING,
@@ -101,12 +96,20 @@ public class MainPane extends JPanel {
                 g2.fillRoundRect(5, 60, getWidth()-10, getHeight()-65, 20, 20);
                 g2.fillRect(5, 60, getWidth()-10, 20);
                 g2.dispose();
-            }
-        };
-        wPanel.setLayout(new BorderLayout());
-        wPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
-        wPanel.add(tabbedPane);
-        add(wPanel, BorderLayout.CENTER);
+    }};
+        statusPane = new JToolBar();
+
+        //======== this ========
+        setLayout(new BorderLayout(7,7));
+        setBorder(BorderFactory.createEmptyBorder(0,7,0,7));
+        //======== navBarPane ========
+        {
+            navBarPane.setPreferredSize(new Dimension(320, 376));
+        }
+        navBarTreeTablePane.setViewportView(navBarTreeTable);
+        add(navBarPane, BorderLayout.WEST);
+
+        add(tabbedPane, BorderLayout.CENTER);
 
         //======== statusPane ========
         {
@@ -567,6 +570,24 @@ public class MainPane extends JPanel {
         return titleLabel;
     }
 
+    public void updateNavBarData() {
+
+        CompletableFuture.supplyAsync(() -> {
+            return Forest.client(AuthApi.class).getPermissionInfo().getCheckedData();
+        }).thenAcceptAsync(result -> {
+            SwingUtilities.invokeLater(() -> {
+                AppStore.setAuthPermissionInfoRespVO(result);
+                updateTreeTableRoot();
+            });
+        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
+            SwingUtilities.invokeLater(() -> {
+                SwingExceptionHandler.handle(throwable);
+            });
+            return null;
+        });
+
+    }
+
     /**
      * 更新导航菜单的根节点数据，并在数据变更时刷新展开和折叠视图。
      */
@@ -597,6 +618,12 @@ public class MainPane extends JPanel {
             navBarPane.revalidate();
             navBarPane.repaint();
         }
+    }
+
+    @Subscribe
+    private void updateNavBarEvent(MenuRefrestEvent menuRefrestEvent) {
+
+        updateNavBarData();
     }
 
     /**

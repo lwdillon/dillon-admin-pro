@@ -5,7 +5,6 @@ import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
-import com.dillon.lw.subject.MenuRefrestObservable;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ public class AppStore {
 
     private static AuthLoginRespVO authLoginRespVO;
     private static AuthPermissionInfoRespVO authPermissionInfoRespVO;
-    private static final MenuRefrestObservable menuRefreshObservable = new MenuRefrestObservable();
 
     private static Map<String, List<DictDataSimpleRespVO>> dictDataListMap;
 
@@ -42,7 +40,7 @@ public class AppStore {
             try {
                 clazz = Class.forName(className);
                 container = (JComponent) clazz.newInstance();
-                container.setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
+                container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                 container.setOpaque(false);
             } catch (Exception e1) {
                 container = new JLabel("暂无投运", JLabel.CENTER);
@@ -201,7 +199,5 @@ public class AppStore {
 
     }
 
-    public static MenuRefrestObservable getMenuRefreshObservable() {
-        return menuRefreshObservable;
-    }
+
 }
