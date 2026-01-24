@@ -92,6 +92,7 @@ public class TitlePanel extends JPanel {
         toolBar.setOpaque(false);
         toolBar.add(Box.createGlue());
         toolBar.add(themeButton);
+        toolBar.setBorder(BorderFactory.createEmptyBorder(0,0,0,5));
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
         noticeButton = new FlatButton();
         noticeButton.setIcon(new FlatSVGIcon("icons/bell.svg", 20, 20));

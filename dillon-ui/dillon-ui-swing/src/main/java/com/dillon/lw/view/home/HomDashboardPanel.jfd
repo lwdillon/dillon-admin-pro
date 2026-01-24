@@ -6,9 +6,10 @@ new FormModel {
 		add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class net.miginfocom.swing.MigLayout ) {
 			"$layoutConstraints": "fill,insets 5,hidemode 3,gap 10 10"
 			"$columnConstraints": "[fill][fill][fill][fill]"
-			"$rowConstraints": "[140!,sizegroup 1][sizegroup 1][sizegroup 1][sizegroup 1][grow]"
+			"$rowConstraints": "[140!,sizegroup 1][sizegroup 1][sizegroup 1][sizegroup 1][400:n,grow]"
 		} ) {
 			name: "this"
+			"opaque": false
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
 				name: "panel1"
 				"opaque": false

@@ -5,9 +5,9 @@ import java.util.function.Supplier;
 
 public enum ThemeType {
 
-    LIGHT("白色", () -> new LightTheme()),
+    LIGHT("亮色", () -> new LightTheme()),
     DARK("深色", () -> new DarkTheme()),
-    GLAZZED("玻璃", () -> new GlazzedTheme());
+    GLAZZED("蓝色", () -> new GlazzedTheme());
 
     private final String text;
     private final Supplier<LookAndFeel> lafSupplier;

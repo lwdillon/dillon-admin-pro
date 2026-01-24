@@ -13,7 +13,7 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
-import com.dillon.lw.view.home.HomDashboardPanel;
+import com.dillon.lw.view.home.HomePanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -78,7 +78,7 @@ public class MainPane extends JPanel {
 
         // 1. 初始化左侧导航容器 (使用 CardLayout 实现展开/收起切换)
         navBarPane = new WPanel();
-        navBarPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
+        navBarPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         navBarPane.setPreferredSize(new Dimension(320, 376));
         navBarPane.setLayout(new CardLayout());
 
@@ -91,6 +91,8 @@ public class MainPane extends JPanel {
         treeScroll.setOpaque(false);
         treeScroll.getViewport().setOpaque(false);
         treeScroll.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        treeScroll.getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
+        treeScroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 0));
 
         expandedPanel.add(setupSearchBar(), BorderLayout.NORTH);
         expandedPanel.add(treeScroll, BorderLayout.CENTER);
@@ -211,20 +213,21 @@ public class MainPane extends JPanel {
                 g2.fillRoundRect(0, 0, getWidth(), 80, arc, arc);
 
                 g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(0, 54, getWidth(), getHeight() - 54, arc, arc);
-                g2.fillRect(0, 54, getWidth(), arc); // 衔接部分
+                g2.fillRoundRect(0, 50, getWidth(), getHeight() - 50, arc, arc);
+                g2.fillRect(0, 50, getWidth(), arc); // 衔接部分
                 g2.dispose();
             }
         };
 
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         tabbedPane.setShowCloseButton(true);
         tabbedPane.setShowCloseButtonOnTab(true);
         tabbedPane.setShowCloseButtonOnMouseOver(true);
         tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
-
+        tabbedPane.setTabInsets(new Insets(0,30,0,10));
+        tabbedPane.setTabAreaInsets(new Insets(0,0,0,0));
         // 默认主页
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), AppStore.getNavigatonPanel(HomDashboardPanel.class.getName()));
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), AppStore.getNavigatonPanel(HomePanel.class.getName()));
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签栏辅助组件
@@ -397,13 +400,13 @@ public class MainPane extends JPanel {
         // A. 服务器地址 (从配置或 Store 获取)
         copyrightLabel = new JLabel("© liwen");
 
-        JLabel versionLabel = new JLabel("V"+System.getProperty("app.version"));
+        JLabel versionLabel = new JLabel("V" + System.getProperty("app.version"));
 
         // B. 服务器时间
         timeLabel = new JLabel();
         timeLabel.setIcon(new FlatSVGIcon("icons/shijian.svg", 16, 16));
         // 放入状态栏
-        statusPane.add(new JButton("127.0.0.1:8080",new FlatSVGIcon("icons/server.svg", 16, 16)));
+        statusPane.add(new JButton("127.0.0.1:8080", new FlatSVGIcon("icons/server.svg", 16, 16)));
         statusPane.add(Box.createHorizontalGlue());
         statusPane.add(timeLabel);
         statusPane.add(Box.createHorizontalStrut(10));
@@ -464,9 +467,10 @@ public class MainPane extends JPanel {
         JToolBar bar = new JToolBar() {
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(super.getPreferredSize().width, 53);
+                return new Dimension(super.getPreferredSize().width, 50);
             }
         };
+        bar.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
         bar.setOpaque(false);
         menuToggleBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25));
         menuToggleBut.setSelected(true);

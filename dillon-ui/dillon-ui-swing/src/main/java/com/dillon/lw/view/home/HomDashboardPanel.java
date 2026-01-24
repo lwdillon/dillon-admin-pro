@@ -32,6 +32,7 @@ public class HomDashboardPanel extends JPanel {
         panel10 = new JPanel();
 
         //======== this ========
+        setOpaque(false);
         setLayout(new MigLayout(
             "fill,insets 5,hidemode 3,gap 10 10",
             // columns
@@ -44,7 +45,7 @@ public class HomDashboardPanel extends JPanel {
             "[sizegroup 1]" +
             "[sizegroup 1]" +
             "[sizegroup 1]" +
-            "[grow]"));
+            "[400:n,grow]"));
 
         //======== panel1 ========
         {
@@ -118,6 +119,7 @@ public class HomDashboardPanel extends JPanel {
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
 
         //user
+
         panel1.add(new RadialChartPanel());
         panel2.add(new TotalProfitPanel("Total profit", "$559.25k", "+16.24 %", new Color(45, 211, 126)));
         panel3.add(new TotalProfitPanel("Total profit", "$559.25k", "+16.24 %", new Color(45, 211, 126)));
