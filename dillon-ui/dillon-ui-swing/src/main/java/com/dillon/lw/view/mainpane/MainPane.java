@@ -2,18 +2,21 @@ package com.dillon.lw.view.mainpane;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
-import com.dillon.lw.exception.SwingExceptionHandler;
+import cn.hutool.extra.pinyin.PinyinUtil;
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.MenuRefrestEvent;
+import com.dillon.lw.eventbus.event.RefrestEvent;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
 import com.dtflys.forest.Forest;
+import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.google.common.eventbus.Subscribe;
 import com.jidesoft.swing.JideTabbedPane;
@@ -23,6 +26,8 @@ import org.jdesktop.swingx.decorator.HighlightPredicate;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -91,10 +96,11 @@ public class MainPane extends JPanel {
                 g2.setColor(UIManager.getColor("App.baseBackground"));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
                 g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(5, 60, getWidth()-10, getHeight()-65, arc, arc);
-                g2.fillRect(5, 60, getWidth()-10, arc);
+                g2.fillRoundRect(5, 50, getWidth()-10, getHeight()-50, arc, arc);
+                g2.fillRect(5, 50, getWidth()-10, arc);
                 g2.dispose();
     }};
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
         statusPane = new JToolBar();
 
         //======== this ========
@@ -124,14 +130,71 @@ public class MainPane extends JPanel {
      */
     private void initCustomComponents() {
 
+        JToolBar navToolBar = new JToolBar();
+        navToolBar.setFloatable(false);
+
+        JTextField searchMenuTextField = new JTextField();
+        searchMenuTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "搜索");
+        searchMenuTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/sousuo.svg", 18, 18));
+        searchMenuTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
+        searchMenuTextField.getDocument().addDocumentListener(new DocumentListener() {
+            void filter() {
+                String keyword = searchMenuTextField.getText().trim().toLowerCase();
+
+                if (keyword.isEmpty()) {
+                    navBarTreeTable.setRowFilter(null);
+                    navBarTreeTable.expandAll();
+                    return;
+                }
+
+                navBarTreeTable.setRowFilter(new RowFilter<Object, Integer>() {
+                    @Override
+                    public boolean include(Entry<?, ? extends Integer> entry) {
+                        Object value = entry.getValue(0); // 树列（一般是第 0 列）
+                        if (value == null) return false;
+
+                        String text = value.toString().toLowerCase();
+
+                        // 1. 中文直接包含
+                        if (text.contains(keyword)) return true;
+
+                        // 2. 拼音全拼
+                        String pinyin = PinyinUtil.getPinyin(text,"");
+                        if (pinyin.contains(keyword)) return true;
+
+                        // 3. 拼音首字母
+                        String firstLetters = PinyinUtil.getFirstLetter(text,"");
+                        return firstLetters.contains(keyword);
+                    }
+                });
+                navBarTreeTable.expandAll();
+            }
+
+            @Override public void insertUpdate(DocumentEvent e) { filter(); }
+            @Override public void removeUpdate(DocumentEvent e) { filter(); }
+            @Override public void changedUpdate(DocumentEvent e) { filter(); }
+        });
+
+        JButton expandBut = new JButton();
+        expandBut.setIcon(new FlatSVGIcon("icons/expand-up-down-line.svg", 18, 18));
+        expandBut.addActionListener(e -> navBarTreeTable.expandAll());
+        JButton collapseBut = new JButton();
+        collapseBut.setIcon(new FlatSVGIcon("icons/contract-up-down-line.svg", 18, 18));
+        collapseBut.addActionListener(e -> navBarTreeTable.collapseAll());
+        navToolBar.add(searchMenuTextField);
+        navToolBar.add(expandBut);
+        navToolBar.add(collapseBut);
+
+        JPanel narPane = new JPanel(new BorderLayout(10, 10));
+        narPane.add(navToolBar, BorderLayout.NORTH);
+        narPane.add(navBarTreeTablePane, BorderLayout.CENTER);
         // 记录导航栏展开时的宽度
         navBarExpandedWidth = navBarPane.getPreferredSize().width;
         // 1. 设置 navBarPane 使用 CardLayout 来切换视图
         navBarPane.setLayout(new CardLayout());
 
         // 2. 将展开菜单 (JTreeTable) 添加到 CardLayout
-//        navBarTreeTablePane.setBorder(new FlatScrollPaneBorder());
-        navBarPane.add(navBarTreeTablePane, "ExpandedMenu");
+        navBarPane.add(narPane, "ExpandedMenu");
 
         // 3. 初始化并添加折叠图标面板 (CollapsedMenu)
         initCollapsedIconPanel();
@@ -144,11 +207,10 @@ public class MainPane extends JPanel {
         tabbedPane.setShowCloseButton(true);
         tabbedPane.setShowCloseButtonOnTab(true);
         tabbedPane.setShowCloseButtonOnMouseOver(true);
-        tabbedPane.putClientProperty("TabbedPane.tabHeight", 60);
 
 
         // 添加默认主页标签
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 25, 25), new JPanel());
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new JPanel());
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签页两侧的工具栏
@@ -220,6 +282,9 @@ public class MainPane extends JPanel {
 
         // 设置表格列渲染器 
         navBarTreeTable.getColumnExt(0).setCellRenderer(new DefaultTableCellRenderer());
+
+        navBarTreeTable.setAutoCreateRowSorter(true);
+
     }
 
     /**
@@ -452,7 +517,7 @@ public class MainPane extends JPanel {
             tabLeadingBar = new JToolBar() {
                 @Override
                 public Dimension getPreferredSize() {
-                    return new Dimension(super.getPreferredSize().width, 60);
+                    return new Dimension(super.getPreferredSize().width, 50);
                 }
             };
             tabLeadingBar.setOpaque(false);
@@ -460,6 +525,7 @@ public class MainPane extends JPanel {
             // 菜单切换按钮
             tabLeadingBar.add(menuBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25)));
             tabLeadingBar.add(refreshBut = new JButton(new FlatSVGIcon("icons/refresh.svg", 25, 25)));
+            refreshBut.addActionListener(e -> EventBusCenter.get().post(new RefrestEvent()));
             menuBut.setSelected(true); // 初始为展开状态
 
             // 添加状态监听器来切换导航栏
@@ -476,7 +542,7 @@ public class MainPane extends JPanel {
             tabTrailingBar = new JToolBar() {
                 @Override
                 public Dimension getPreferredSize() {
-                    return new Dimension(super.getPreferredSize().width, 60);
+                    return new Dimension(super.getPreferredSize().width, 50);
                 }
             };
             tabTrailingBar.setOpaque(false);
@@ -598,6 +664,7 @@ public class MainPane extends JPanel {
         // 1. 更新展开状态的 TreeTable 数据模型
         MenuModel model = new MenuModel(rootNode);
         navBarTreeTable.setTreeTableModel(model);
+        navBarTreeTable.setAutoCreateRowSorter(true);
 
         // ******************** 核心修复 ********************
         // JXTreeTable 默认只显示根节点，必须展开才能看到子菜单。
