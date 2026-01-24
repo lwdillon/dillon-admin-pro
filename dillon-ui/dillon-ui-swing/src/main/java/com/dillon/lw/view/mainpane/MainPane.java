@@ -13,8 +13,6 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
-import com.dillon.lw.view.frame.MainFrame;
-import com.dillon.lw.view.system.user.PersonalCenterPanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -28,852 +26,514 @@ import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 主应用界面面板 (MainPane) - 兼容 Java 8
- * 负责整体布局、导航栏切换 (展开/折叠)、标签页管理、主题切换和用户操作处理。
+ * 主应用界面面板 (MainPane)
+ * 采用 BorderLayout 布局：
+ * - 西部 (WEST)：侧边导航栏（支持展开/折叠）
+ * - 中部 (CENTER)：多标签页容器 (JideTabbedPane)
+ * - 南部 (SOUTH)：状态栏
  */
 public class MainPane extends JPanel {
-    // JFormDesigner 自动生成的组件声明 (保留)
-    private JPanel navBarPane;
-    private JScrollPane navBarTreeTablePane;
-    private JXTreeTable navBarTreeTable;
-    private JideTabbedPane tabbedPane;
-    private JToolBar statusPane;
 
-    // 自定义组件和状态变量
-    private JToggleButton menuBut;
-    private JLabel titleLabel;
-    private JToolBar tabLeadingBar;
-    private JToolBar tabTrailingBar;
-    private JButton refreshBut;
+    // --- 核心 UI 组件 ---
+    private JPanel navBarPane;            // 侧边栏容器 (CardLayout)
+    private JXTreeTable navBarTreeTable;  // 导航树表
+    private JideTabbedPane tabbedPane;    // 标签页
+    private JToolBar statusPane;          // 底部状态栏
+    private JToggleButton menuToggleBut;  // 菜单切换按钮
+    private JPanel collapsedIconPanel;    // 折叠后的图标面板
 
+    // --- 配置属性 ---
+    private int navBarExpandedWidth = 300;
 
-    // 导航栏状态变量
-    private int navBarExpandedWidth; // 导航栏展开时的宽度 (320px)
-    private JPanel collapsedIconPanel; // 折叠状态下只显示图标的面板 (60px)
-
-    /**
-     * 构造函数。初始化组件和布局。
-     */
     public MainPane() {
         initComponents();
-        initCustomComponents();
         initListeners();
+        // 注册 EventBus 监听
         EventBusCenter.get().register(this);
     }
 
-    // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
-    private void initComponents() {
-        // ... (JFormDesigner Generated Code remains unchanged for structure)
-        navBarPane = new WPanel();
-        navBarPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,0));
-        navBarTreeTablePane = new JScrollPane();
-        navBarTreeTablePane.setOpaque(false);
-        navBarTreeTablePane.getViewport().setOpaque(false);
-        navBarTreeTablePane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-        navBarTreeTable = new JXTreeTable();
-// TreeTable 本身
-        navBarTreeTable.setOpaque(false);
-        navBarTreeTable.setBackground(new Color(0, 0, 0, 0));
-
-        tabbedPane = new JideTabbedPane(){
-            @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2=(Graphics2D)g.create();
-                g2.setRenderingHint(
-                        RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON
-                );
-                int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
-                g2.setColor(UIManager.getColor("App.baseBackground"));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
-                g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(5, 50, getWidth()-10, getHeight()-50, arc, arc);
-                g2.fillRect(5, 50, getWidth()-10, arc);
-                g2.dispose();
-    }};
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
-        statusPane = new JToolBar();
-
-        //======== this ========
-        setLayout(new BorderLayout(7,7));
-        setBorder(BorderFactory.createEmptyBorder(0,7,0,7));
-        //======== navBarPane ========
-        {
-            navBarPane.setPreferredSize(new Dimension(320, 376));
-        }
-        navBarTreeTablePane.setViewportView(navBarTreeTable);
-        add(navBarPane, BorderLayout.WEST);
-
-        add(tabbedPane, BorderLayout.CENTER);
-
-        //======== statusPane ========
-        {
-            statusPane.setFloatable(false);
-        }
-        statusPane.setOpaque(false);
-        add(statusPane, BorderLayout.SOUTH);
-    }
-    // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
-
     /**
-     * 初始化自定义组件和布局逻辑。
-     * 主要设置导航栏的 CardLayout 切换机制。
+     * 初始化界面组件结构
      */
-    private void initCustomComponents() {
+    private void initComponents() {
+        setLayout(new BorderLayout(7, 7));
+        setBorder(BorderFactory.createEmptyBorder(0, 7, 0, 7));
 
-        JToolBar navToolBar = new JToolBar();
-        navToolBar.setFloatable(false);
-
-        JTextField searchMenuTextField = new JTextField();
-        searchMenuTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "搜索");
-        searchMenuTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/sousuo.svg", 18, 18));
-        searchMenuTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
-        searchMenuTextField.getDocument().addDocumentListener(new DocumentListener() {
-            void filter() {
-                String keyword = searchMenuTextField.getText().trim().toLowerCase();
-
-                if (keyword.isEmpty()) {
-                    navBarTreeTable.setRowFilter(null);
-                    navBarTreeTable.expandAll();
-                    return;
-                }
-
-                navBarTreeTable.setRowFilter(new RowFilter<Object, Integer>() {
-                    @Override
-                    public boolean include(Entry<?, ? extends Integer> entry) {
-                        Object value = entry.getValue(0); // 树列（一般是第 0 列）
-                        if (value == null) return false;
-
-                        String text = value.toString().toLowerCase();
-
-                        // 1. 中文直接包含
-                        if (text.contains(keyword)) return true;
-
-                        // 2. 拼音全拼
-                        String pinyin = PinyinUtil.getPinyin(text,"");
-                        if (pinyin.contains(keyword)) return true;
-
-                        // 3. 拼音首字母
-                        String firstLetters = PinyinUtil.getFirstLetter(text,"");
-                        return firstLetters.contains(keyword);
-                    }
-                });
-                navBarTreeTable.expandAll();
-            }
-
-            @Override public void insertUpdate(DocumentEvent e) { filter(); }
-            @Override public void removeUpdate(DocumentEvent e) { filter(); }
-            @Override public void changedUpdate(DocumentEvent e) { filter(); }
-        });
-
-        JButton expandBut = new JButton();
-        expandBut.setIcon(new FlatSVGIcon("icons/expand-up-down-line.svg", 18, 18));
-        expandBut.addActionListener(e -> navBarTreeTable.expandAll());
-        JButton collapseBut = new JButton();
-        collapseBut.setIcon(new FlatSVGIcon("icons/contract-up-down-line.svg", 18, 18));
-        collapseBut.addActionListener(e -> navBarTreeTable.collapseAll());
-        navToolBar.add(searchMenuTextField);
-        navToolBar.add(expandBut);
-        navToolBar.add(collapseBut);
-
-        JPanel narPane = new JPanel(new BorderLayout(10, 10));
-        narPane.add(navToolBar, BorderLayout.NORTH);
-        narPane.add(navBarTreeTablePane, BorderLayout.CENTER);
-        // 记录导航栏展开时的宽度
-        navBarExpandedWidth = navBarPane.getPreferredSize().width;
-        // 1. 设置 navBarPane 使用 CardLayout 来切换视图
+        // 1. 初始化左侧导航容器 (使用 CardLayout 实现展开/收起切换)
+        navBarPane = new WPanel();
+        navBarPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
+        navBarPane.setPreferredSize(new Dimension(320, 376));
         navBarPane.setLayout(new CardLayout());
 
-        // 2. 将展开菜单 (JTreeTable) 添加到 CardLayout
-        navBarPane.add(narPane, "ExpandedMenu");
+        // --- 展开状态面板 ---
+        JPanel expandedPanel = new JPanel(new BorderLayout(10, 10));
+        expandedPanel.setOpaque(false);
+        setupTreeTable(); // 配置树表样式与模型
 
-        // 3. 初始化并添加折叠图标面板 (CollapsedMenu)
+        JScrollPane treeScroll = new JScrollPane(navBarTreeTable);
+        treeScroll.setOpaque(false);
+        treeScroll.getViewport().setOpaque(false);
+        treeScroll.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        expandedPanel.add(setupSearchBar(), BorderLayout.NORTH);
+        expandedPanel.add(treeScroll, BorderLayout.CENTER);
+
+        // --- 折叠状态面板 ---
         initCollapsedIconPanel();
+
+        navBarPane.add(expandedPanel, "ExpandedMenu");
         navBarPane.add(collapsedIconPanel, "CollapsedMenu");
+        navBarExpandedWidth = navBarPane.getPreferredSize().width;
 
-        // 确保初始显示展开菜单
+        // 2. 初始化中央标签页
+        setupTabbedPane();
+
+        // 3. 底部状态栏
+        statusPane = new JToolBar();
+        statusPane.setFloatable(false);
+        statusPane.setOpaque(false);
+
+        // 组装主框架
+        add(navBarPane, BorderLayout.WEST);
+        add(tabbedPane, BorderLayout.CENTER);
+        add(statusPane, BorderLayout.SOUTH);
+
+        // 默认显示展开状态
         ((CardLayout) navBarPane.getLayout()).show(navBarPane, "ExpandedMenu");
+    }
 
-        // 4. 配置 JideTabbedPane
-        tabbedPane.setShowCloseButton(true);
-        tabbedPane.setShowCloseButtonOnTab(true);
-        tabbedPane.setShowCloseButtonOnMouseOver(true);
+    // ===================================================================================
+    // UI 构建辅助方法
+    // ===================================================================================
 
+    /**
+     * 配置搜索工具栏
+     */
+    private JToolBar setupSearchBar() {
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+        toolBar.setOpaque(false);
 
-        // 添加默认主页标签
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new JPanel());
-        tabbedPane.setTabClosableAt(0, false);
+        JTextField searchField = new JTextField();
+        searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "搜索菜单...");
+        searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/sousuo.svg", 18, 18));
+        searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
-        // 设置标签页两侧的工具栏
-        tabbedPane.setTabLeadingComponent(getTabLeadingBar());
-        tabbedPane.setTabTrailingComponent(getTabTrailingBar());
-        // 使用 Lambda 表达式 (Java 8 兼容)
-        tabbedPane.addChangeListener(e -> tabForegroundChanged());
-
-        tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
-        tabForegroundChanged();
-
-        tabbedPane.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                super.mouseReleased(e);
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    showPopupMenu(e); // 标签页右键菜单
-                }
-            }
+        // 搜索框实时过滤监听
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) { filter(); }
+            public void insertUpdate(DocumentEvent e) { filter(); }
+            public void removeUpdate(DocumentEvent e) { filter(); }
+            private void filter() { applyTreeFilter(searchField.getText().trim()); }
         });
 
-        // 5. 配置 JXTreeTable 样式和渲染器
-        configureTreeTable();
+        toolBar.add(searchField);
+        toolBar.add(createToolbarButton("icons/expand-up-down-line.svg", e -> navBarTreeTable.expandAll()));
+        toolBar.add(createToolbarButton("icons/contract-up-down-line.svg", e -> navBarTreeTable.collapseAll()));
+        return toolBar;
     }
 
     /**
-     * 配置导航菜单树表 (JXTreeTable) 的样式和单元格渲染器。
+     * 配置导航树表样式
      */
-    private void configureTreeTable() {
-        navBarTreeTable.setTreeTableModel(new MenuModel());
-//        navBarTreeTable.setShowHorizontalLines(true);
+    private void setupTreeTable() {
+        navBarTreeTable = new JXTreeTable();
         navBarTreeTable.setOpaque(false);
-//        navBarTreeTable.setIntercellSpacing(new Dimension(1, 1));
-
-        // 设置表头高度
-        JTableHeader header = new JTableHeader() {
-            @Override
-            public Dimension getMaximumSize() {
-                return new Dimension(super.getMaximumSize().width, 30);
-            }
-        };
-        navBarTreeTable.setTableHeader(header);
+        navBarTreeTable.setBackground(new Color(0, 0, 0, 0));
         navBarTreeTable.setRowHeight(45);
+        // 设置鼠标悬停高亮
+        navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
+                UIManager.getColor("App.hoverBackground"), null));
 
-        navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null));
-        // 设置树节点渲染器：用于显示菜单名称和图标 (Java 8 兼容)
+        // 隐藏表格头
+        navBarTreeTable.setTableHeader(new JTableHeader() {
+            @Override public Dimension getPreferredSize() { return new Dimension(super.getPreferredSize().width, 0); }
+        });
+
+        // 自定义树节点渲染
         navBarTreeTable.setTreeCellRenderer(new DefaultTreeCellRenderer() {
             @Override
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-                Component component = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-                // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
-                if (component instanceof JLabel && value instanceof AuthPermissionInfoRespVO.MenuVO) {
-                    AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) value;
-                    ((JLabel) component).setText(menuVO.getName());
-                    String icon = menuVO.getIcon();
-                    if (StrUtil.isBlank(menuVO.getIcon())) {
-                        icon = "icons/item.svg";
-                    } else if (StrUtil.contains(icon, ":")) {
-                        icon = "icons/menu/" + icon.split(":")[1] + ".svg";
-                    }
-                    FlatSVGIcon svgIcon = IconLoader.getSvgIcon(icon, 20, 20);
-
-                    ((JLabel) component).setIcon(svgIcon);
-                    ((JLabel) component).setIconTextGap(7);
+                JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+                if (value instanceof AuthPermissionInfoRespVO.MenuVO) {
+                    AuthPermissionInfoRespVO.MenuVO menu = (AuthPermissionInfoRespVO.MenuVO) value;
+                    label.setText(menu.getName());
+                    label.setIcon(getMenuIcon(menu.getIcon(), 20));
+                    label.setIconTextGap(10);
                 }
-                return component;
+                return label;
             }
         });
-
-        // 设置表格列渲染器 
-        navBarTreeTable.getColumnExt(0).setCellRenderer(new DefaultTableCellRenderer());
-
-        navBarTreeTable.setAutoCreateRowSorter(true);
-
     }
 
     /**
-     * 初始化事件监听器。
+     * 配置中央标签页及 UI 装饰
      */
+    private void setupTabbedPane() {
+        tabbedPane = new JideTabbedPane() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // 自定义绘制：实现圆角背景和主内容区阴影感
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
+                g2.setColor(UIManager.getColor("App.baseBackground"));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
+
+                g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
+                g2.fillRoundRect(5, 50, getWidth() - 10, getHeight() - 50, arc, arc);
+                g2.fillRect(5, 50, getWidth() - 10, arc); // 衔接部分
+                g2.dispose();
+            }
+        };
+
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        tabbedPane.setShowCloseButton(true);
+        tabbedPane.setShowCloseButtonOnTab(true);
+        tabbedPane.setShowCloseButtonOnMouseOver(true);
+        tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
+
+        // 默认主页
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new JPanel());
+        tabbedPane.setTabClosableAt(0, false);
+
+        // 设置标签栏辅助组件
+        tabbedPane.setTabLeadingComponent(createTabLeadingBar());
+        tabbedPane.setTabTrailingComponent(new JToolBar() {{ setOpaque(false); }});
+
+        tabbedPane.addChangeListener(e -> updateTabStyles());
+    }
+
+    // ===================================================================================
+    // 业务逻辑与事件
+    // ===================================================================================
+
+    /**
+     * 树表搜索过滤核心逻辑
+     */
+    private void applyTreeFilter(String keyword) {
+        List<AuthPermissionInfoRespVO.MenuVO> allMenus = AppStore.getMenus();
+        if (StrUtil.isBlank(keyword)) {
+            updateTreeTableRoot(allMenus);
+            return;
+        }
+
+        // 递归过滤菜单
+        List<AuthPermissionInfoRespVO.MenuVO> filtered = filterMenuItems(allMenus, keyword.toLowerCase());
+        updateTreeTableRoot(filtered);
+        navBarTreeTable.expandAll();
+    }
+
+    private List<AuthPermissionInfoRespVO.MenuVO> filterMenuItems(List<AuthPermissionInfoRespVO.MenuVO> nodes, String query) {
+        List<AuthPermissionInfoRespVO.MenuVO> result = new ArrayList<>();
+        if (nodes == null) return result;
+
+        for (AuthPermissionInfoRespVO.MenuVO node : nodes) {
+            List<AuthPermissionInfoRespVO.MenuVO> filteredChildren = filterMenuItems(node.getChildren(), query);
+
+            // 匹配规则：名称包含、拼音包含、或子项有匹配
+            boolean matches = node.getName().toLowerCase().contains(query)
+                    || PinyinUtil.getPinyin(node.getName(), "").toLowerCase().contains(query);
+
+            if (matches || !filteredChildren.isEmpty()) {
+                AuthPermissionInfoRespVO.MenuVO newNode = new AuthPermissionInfoRespVO.MenuVO();
+                newNode.setName(node.getName());
+                newNode.setIcon(node.getIcon());
+                newNode.setComponentSwing(node.getComponentSwing());
+                newNode.setChildren(filteredChildren);
+                result.add(newNode);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 切换导航栏展开/折叠状态
+     */
+    private void toggleNavBarState(boolean isExpanded) {
+        CardLayout cl = (CardLayout) navBarPane.getLayout();
+        if (isExpanded) {
+            navBarPane.setPreferredSize(new Dimension(navBarExpandedWidth, navBarPane.getHeight()));
+            cl.show(navBarPane, "ExpandedMenu");
+        } else {
+            navBarPane.setPreferredSize(new Dimension(60, navBarPane.getHeight()));
+            cl.show(navBarPane, "CollapsedMenu");
+        }
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * 刷新菜单数据 (异步获取)
+     */
+    public void updateNavBarData() {
+        CompletableFuture.supplyAsync(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData())
+                .thenAccept(result -> SwingUtilities.invokeLater(() -> {
+                    AppStore.setAuthPermissionInfoRespVO(result);
+                    updateTreeTableRoot(AppStore.getMenus());
+                }))
+                .exceptionally(ex -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(ex));
+                    return null;
+                });
+    }
+
+    /**
+     * 更新树表显示的数据源
+     */
+    public void updateTreeTableRoot(List<AuthPermissionInfoRespVO.MenuVO> menuList) {
+        AuthPermissionInfoRespVO.MenuVO root = new AuthPermissionInfoRespVO.MenuVO();
+        root.setName("root");
+        root.setChildren(menuList);
+        navBarTreeTable.setTreeTableModel(new MenuModel(root));
+
+        // 同时刷新折叠后的图标面板
+        initCollapsedIconPanel();
+        collapsedIconPanel.revalidate();
+        collapsedIconPanel.repaint();
+    }
+
+    /**
+     * 打开新标签页逻辑
+     */
+    public void addTab(AuthPermissionInfoRespVO.MenuVO menuVO) {
+        int index = tabbedPane.indexOfTab(menuVO.getName());
+        if (index == -1) {
+            tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
+                    AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
+            index = tabbedPane.getTabCount() - 1;
+        }
+        tabbedPane.setSelectedIndex(index);
+    }
+
+    // ===================================================================================
+    // 内部组件与监听
+    // ===================================================================================
+
     private void initListeners() {
-        // 导航菜单点击事件
+        // 树表点击监听
         navBarTreeTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = navBarTreeTable.rowAtPoint(e.getPoint());
                 if (row < 0) return;
-
                 Object obj = navBarTreeTable.getPathForRow(row).getLastPathComponent();
-
-                // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
                 if (obj instanceof AuthPermissionInfoRespVO.MenuVO) {
-                    AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) obj;
-                    // 如果是叶子节点 (具有组件路径)，则打开标签页
-                    if (StrUtil.isNotBlank(menuVO.getComponentSwing())) {
-                        addTab(menuVO);
-                    }
+                    AuthPermissionInfoRespVO.MenuVO menu = (AuthPermissionInfoRespVO.MenuVO) obj;
+                    if (StrUtil.isNotBlank(menu.getComponentSwing())) addTab(menu);
                 }
+            }
+        });
+
+        // 标签页右键菜单
+        tabbedPane.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) showPopupMenu(e);
             }
         });
     }
 
     /**
-     * 切换导航栏的展开/折叠状态。
-     * 使用 FlatAnimatedLafChange 实现平滑过渡。
-     *
-     * @param isExpanded true 为展开 (宽度 navBarExpandedWidth)，false 为折叠 (宽度 60px)。
-     */
-    private void toggleNavBarState(boolean isExpanded) {
-        CardLayout cl = (CardLayout) navBarPane.getLayout();
-
-
-        if (isExpanded) {
-            // 展开状态
-            navBarPane.setPreferredSize(new Dimension(navBarExpandedWidth, navBarPane.getHeight()));
-            cl.show(navBarPane, "ExpandedMenu");
-            // 修复点：在切换到展开视图时，确保根节点展开
-            navBarTreeTable.expandAll();
-        } else {
-            // 折叠状态
-            navBarPane.setPreferredSize(new Dimension(60, navBarPane.getHeight()));
-            cl.show(navBarPane, "CollapsedMenu");
-        }
-
-        revalidate();
-        repaint();
-
-    }
-
-    /**
-     * 初始化或重新初始化折叠状态下只显示图标的面板。
-     * 创建一级菜单图标按钮，并为其添加鼠标悬停弹出菜单的逻辑。
+     * 初始化侧边栏折叠后的纯图标列
      */
     private void initCollapsedIconPanel() {
-        // 确保面板被创建和正确设置布局
         if (collapsedIconPanel == null) {
             collapsedIconPanel = new JPanel();
             collapsedIconPanel.setOpaque(false);
             collapsedIconPanel.setLayout(new BoxLayout(collapsedIconPanel, BoxLayout.Y_AXIS));
             collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
         } else {
-            // 清空旧组件，准备重新加载菜单图标
             collapsedIconPanel.removeAll();
         }
 
-        List<AuthPermissionInfoRespVO.MenuVO> topLevelMenus = AppStore.getMenus();
-
-        if (topLevelMenus != null) {
-            for (AuthPermissionInfoRespVO.MenuVO menu : topLevelMenus) {
-                JButton iconBut = createIconMenuButton(menu);
-                collapsedIconPanel.add(iconBut);
-                collapsedIconPanel.add(Box.createVerticalStrut(5)); // 添加垂直间距
-
-                // 添加鼠标悬停监听器：实现弹出浮动菜单
-                iconBut.addMouseListener(new MouseAdapter() {
-                    private JPopupMenu popupMenu = null;
-
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        // 仅在导航栏折叠时触发悬停弹出
-                        if (!menuBut.isSelected()) {
-                            // 检查是否有子菜单
-                            if (menu.getChildren() != null && !menu.getChildren().isEmpty()) {
-
-                                if (popupMenu == null) {
-                                    popupMenu = createFloatingMenu(menu.getChildren());
-                                }
-
-                                if (popupMenu != null) {
-                                    JButton source = (JButton) e.getSource();
-                                    // 在按钮右侧弹出菜单，稍微偏移，模拟 Web 效果
-                                    popupMenu.show(source, source.getWidth() - 5, 0);
-                                }
-                            }
-                            // 折叠状态下的叶子节点不添加悬停打开，避免误操作
-                        }
-                    }
-                });
+        List<AuthPermissionInfoRespVO.MenuVO> menus = AppStore.getMenus();
+        if (menus != null) {
+            for (AuthPermissionInfoRespVO.MenuVO menu : menus) {
+                JButton btn = createIconMenuButton(menu);
+                collapsedIconPanel.add(btn);
+                collapsedIconPanel.add(Box.createVerticalStrut(5));
             }
         }
     }
 
-    /**
-     * 创建折叠状态下显示的一级菜单图标按钮。
-     *
-     * @param menuVO 菜单数据对象。
-     * @return 配置好的 JButton。
-     */
-    private JButton createIconMenuButton(AuthPermissionInfoRespVO.MenuVO menuVO) {
-        String icon = menuVO.getIcon();
-        if (StrUtil.isBlank(menuVO.getIcon())) {
-            icon = "icons/item.svg";
-        } else if (StrUtil.contains(icon, ":")) {
-            icon = "icons/menu/" + icon.split(":")[1] + ".svg";
+    private JButton createIconMenuButton(AuthPermissionInfoRespVO.MenuVO menu) {
+        JButton btn = new JButton(getMenuIcon(menu.getIcon(), 25));
+        btn.setToolTipText(menu.getName());
+        btn.putClientProperty("JButton.buttonType", "toolBarButton");
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setPreferredSize(new Dimension(50, 45));
+        btn.setMaximumSize(new Dimension(50, 45));
+
+        // 折叠状态下，悬停显示子菜单
+        btn.addMouseListener(new MouseAdapter() {
+            private JPopupMenu popup;
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!menuToggleBut.isSelected() && menu.getChildren() != null && !menu.getChildren().isEmpty()) {
+                    if (popup == null) popup = createFloatingMenu(menu.getChildren());
+                    popup.show(btn, btn.getWidth(), 0);
+                }
+            }
+        });
+
+        if (StrUtil.isNotBlank(menu.getComponentSwing())) {
+            btn.addActionListener(e -> addTab(menu));
         }
-        FlatSVGIcon svgIcon = IconLoader.getSvgIcon(icon, 25, 25);
-
-        JButton but = new JButton(svgIcon);
-        but.setToolTipText(menuVO.getName()); // 悬停提示菜单名称
-        but.putClientProperty("JButton.buttonType", "toolBarButton");
-        but.setAlignmentX(Component.CENTER_ALIGNMENT);
-        but.setFocusable(false);
-
-        // 尺寸设置为 50x45，居中于 60px 的面板
-        but.setPreferredSize(new Dimension(50, 45));
-        but.setMinimumSize(new Dimension(50, 45));
-        but.setMaximumSize(new Dimension(50, 45));
-
-        // 点击行为：直接打开标签页
-        if (StrUtil.isNotBlank(menuVO.getComponentSwing())) {
-            but.addActionListener(e -> addTab(menuVO));
-        }
-
-        return but;
+        return btn;
     }
 
-    /**
-     * 递归创建浮动的 JPopupMenu，用于在导航栏折叠时显示菜单层级。
-     *
-     * @param children 当前菜单层级的子菜单列表。
-     * @return 包含子菜单项的 JPopupMenu。
-     */
+    public JideTabbedPane getTabbedPane() {
+        return tabbedPane;
+    }
+
     private JPopupMenu createFloatingMenu(List<AuthPermissionInfoRespVO.MenuVO> children) {
-        if (children == null || children.isEmpty()) {
-            return null;
-        }
-
         JPopupMenu popup = new JPopupMenu();
-        popup.setBorderPainted(true);
-        popup.setOpaque(true);
-
         for (AuthPermissionInfoRespVO.MenuVO menu : children) {
-
-            // 解析图标路径
-            String iconPath = menu.getIcon();
-            String resolvedIcon = "icons/item.svg";
-            if (StrUtil.contains(iconPath, ":")) {
-                resolvedIcon = "icons/menu/" + iconPath.split(":")[1] + ".svg";
-            } else if (StrUtil.isNotBlank(iconPath)) {
-                resolvedIcon = iconPath;
-            }
-
             if (menu.getChildren() != null && !menu.getChildren().isEmpty()) {
-                // 有子菜单：创建 JMenu
-                JMenu subMenu = new JMenu(menu.getName());
-                subMenu.setIcon(IconLoader.getSvgIcon(resolvedIcon, 25, 25));
-                subMenu.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-
-                // 递归创建子菜单的子项
+                JMenu sub = new JMenu(menu.getName());
+                sub.setIcon(getMenuIcon(menu.getIcon(), 20));
                 JPopupMenu subPopup = createFloatingMenu(menu.getChildren());
-                if (subPopup != null) {
-                    for (Component comp : subPopup.getComponents()) {
-                        if (comp instanceof JMenuItem) {
-                            JMenuItem menuItem = (JMenuItem) comp;
-                            menuItem.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-                            subMenu.add(menuItem);
-                        }
-                    }
-                }
-                popup.add(subMenu);
+                for (Component c : subPopup.getComponents()) sub.add(c);
+                popup.add(sub);
             } else {
-                // 无子菜单：创建 JMenuItem
-                JMenuItem item = new JMenuItem(menu.getName());
-                item.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
-                item.setIcon(IconLoader.getSvgIcon(resolvedIcon, 25, 25));
-
-                // 点击行为：打开新标签页
-                if (StrUtil.isNotBlank(menu.getComponentSwing())) {
-                    item.addActionListener(e -> addTab(menu));
-                }
+                JMenuItem item = new JMenuItem(menu.getName(), getMenuIcon(menu.getIcon(), 20));
+                item.addActionListener(e -> addTab(menu));
                 popup.add(item);
             }
         }
         return popup;
     }
 
-    /**
-     * 向标签页中添加一个新的面板。
-     * 如果标签页已存在，则选中它。
-     *
-     * @param menuVO 菜单数据对象，包含名称和组件路径。
-     */
-    public void addTab(AuthPermissionInfoRespVO.MenuVO menuVO) {
-        if (tabbedPane.indexOfTab(menuVO.getName()) == -1) {
-            String iconPath = menuVO.getIcon();
-            String resolvedIcon = "icons/item.svg";
-            if (StrUtil.contains(iconPath, ":")) {
-                resolvedIcon = "icons/menu/" + iconPath.split(":")[1] + ".svg";
-            } else if (StrUtil.isNotBlank(iconPath)) {
-                resolvedIcon = iconPath;
-            }
+    private JToolBar createTabLeadingBar() {
+        JToolBar bar = new JToolBar() {
+            @Override public Dimension getPreferredSize() { return new Dimension(super.getPreferredSize().width, 50); }
+        };
+        bar.setOpaque(false);
+        menuToggleBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25));
+        menuToggleBut.setSelected(true);
+        menuToggleBut.addItemListener(e -> toggleNavBarState(menuToggleBut.isSelected()));
 
-            FlatSVGIcon icon = IconLoader.getSvgIcon(resolvedIcon, 20, 20);
-            tabbedPane.addTab(menuVO.getName(), icon, AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
-        }
-        tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(menuVO.getName()));
-        tabForegroundChanged();
+        JButton refreshBut = createToolbarButton("icons/refresh.svg", e -> EventBusCenter.get().post(new RefrestEvent()));
+
+        bar.add(menuToggleBut);
+        bar.add(refreshBut);
+        return bar;
     }
 
-    /**
-     * 获取标签页前导工具栏（包含菜单切换按钮和刷新按钮）。
-     */
-    public JToolBar getTabLeadingBar() {
-        if (tabLeadingBar == null) {
-            tabLeadingBar = new JToolBar() {
-                @Override
-                public Dimension getPreferredSize() {
-                    return new Dimension(super.getPreferredSize().width, 50);
-                }
-            };
-            tabLeadingBar.setOpaque(false);
-
-            // 菜单切换按钮
-            tabLeadingBar.add(menuBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25)));
-            tabLeadingBar.add(refreshBut = new JButton(new FlatSVGIcon("icons/refresh.svg", 25, 25)));
-            refreshBut.addActionListener(e -> EventBusCenter.get().post(new RefrestEvent()));
-            menuBut.setSelected(true); // 初始为展开状态
-
-            // 添加状态监听器来切换导航栏
-            menuBut.addItemListener(e -> toggleNavBarState(menuBut.isSelected()));
-        }
-        return tabLeadingBar;
-    }
-
-    /**
-     * 获取标签页尾随工具栏（目前为空）。
-     */
-    public JToolBar getTabTrailingBar() {
-        if (tabTrailingBar == null) {
-            tabTrailingBar = new JToolBar() {
-                @Override
-                public Dimension getPreferredSize() {
-                    return new Dimension(super.getPreferredSize().width, 50);
-                }
-            };
-            tabTrailingBar.setOpaque(false);
-        }
-        return tabTrailingBar;
-    }
-
-
-    /**
-     * 根据当前选中的标签页，更新标签页的前景颜色和图标颜色。
-     */
-    private void tabForegroundChanged() {
-        int tabCount = tabbedPane.getTabCount();
-        int selectCount = tabbedPane.getSelectedIndex();
-        Color selectedColor = UIManager.getColor("TabbedPane.selectedForeground");
-        Color defaultColor = UIManager.getColor("Label.foreground");
-
-        for (int i = 0; i < tabCount; i++) {
-            FlatSVGIcon icon = (FlatSVGIcon) tabbedPane.getIconAt(i);
-            if (icon == null) continue;
-
-            Color color = (selectCount == i) ? selectedColor : defaultColor;
-
-            tabbedPane.setForegroundAt(i, color);
-            tabbedPane.setBackground(UIManager.getColor("TabbedPane.background"));
-
-            // 使用 ColorFilter 更新 SVG 图标的颜色
-//            Color finalColor = color;
-//            icon.setColorFilter(new FlatSVGIcon.ColorFilter(c -> finalColor));
-        }
-    }
-
-
-    /**
-     * 创建个人信息弹出菜单的内容。
-     */
-    private JPopupMenu createPersonalPopupMenu() {
-        JPopupMenu popupMenu = new JPopupMenu();
-
-        // 顶部用户信息面板
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(AppStore.getAuthPermissionInfoRespVO().getUser().getNickname(), JLabel.CENTER);
-        label.setIcon(new FlatSVGIcon("icons/user.svg", 80, 80));
-        label.setVerticalTextPosition(SwingConstants.BOTTOM);
-        label.setHorizontalTextPosition(SwingConstants.CENTER);
-        infoPanel.add(label, BorderLayout.CENTER);
-        infoPanel.add(new JLabel("系统管理员", JLabel.CENTER), BorderLayout.SOUTH);
-        label.setPreferredSize(new Dimension(240, 100));
-        popupMenu.add(infoPanel);
-        popupMenu.addSeparator();
-
-        // 个人信息项
-        JMenuItem personalInfoItem = new JMenuItem("个人信息");
-        personalInfoItem.setIcon(new FlatSVGIcon("icons/gerenxinxi.svg", 25, 25));
-        personalInfoItem.addActionListener(e -> {
-            int tabIndex = tabbedPane.indexOfTab("个人信息");
-            PersonalCenterPanel personalCenterPanel;
-            if (tabIndex == -1) {
-                personalCenterPanel = new PersonalCenterPanel();
-                tabbedPane.addTab("个人信息", personalCenterPanel);
-            } else {
-                personalCenterPanel = (PersonalCenterPanel) tabbedPane.getComponentAt(tabIndex);
-            }
-            tabbedPane.setSelectedIndex(tabbedPane.indexOfTab("个人信息"));
-            personalCenterPanel.updateData();
-        });
-        popupMenu.add(personalInfoItem);
-        popupMenu.addSeparator();
-
-        // 退出登录项
-        JMenuItem logoutItem = new JMenuItem("退出");
-        logoutItem.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
-        logoutItem.addActionListener(e -> MainFrame.getInstance().showLogin(false));
-        popupMenu.add(logoutItem);
-
-        return popupMenu;
-    }
-
-    /**
-     * 获取应用主标题标签。
-     */
-    public JLabel getTitleLabel() {
-        if (titleLabel == null) {
-            titleLabel = new JLabel("后台管理系统");
-            titleLabel.putClientProperty("FlatLaf.styleClass", "h1");
-            titleLabel.setIcon(new FlatSVGIcon("icons/guanli.svg", 45, 45));
-            titleLabel.setBorder(BorderFactory.createEmptyBorder(7, 3, 7, 7));
-        }
-        return titleLabel;
-    }
-
-    public void updateNavBarData() {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(AuthApi.class).getPermissionInfo().getCheckedData();
-        }).thenAcceptAsync(result -> {
-            SwingUtilities.invokeLater(() -> {
-                AppStore.setAuthPermissionInfoRespVO(result);
-                updateTreeTableRoot();
-            });
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
-
-    /**
-     * 更新导航菜单的根节点数据，并在数据变更时刷新展开和折叠视图。
-     */
-    public void updateTreeTableRoot() {
-        // 创建一个虚拟的根节点来包裹一级菜单
-        AuthPermissionInfoRespVO.MenuVO rootNode = new AuthPermissionInfoRespVO.MenuVO();
-        rootNode.setName("root");
-        rootNode.setChildren(AppStore.getMenus());
-
-        // 1. 更新展开状态的 TreeTable 数据模型
-        MenuModel model = new MenuModel(rootNode);
-        navBarTreeTable.setTreeTableModel(model);
-        navBarTreeTable.setAutoCreateRowSorter(true);
-
-        // ******************** 核心修复 ********************
-        // JXTreeTable 默认只显示根节点，必须展开才能看到子菜单。
-        navBarTreeTable.expandAll();
-        // *************************************************
-
-        // 2. 更新折叠状态的 Icon Panel 图标
-        if (collapsedIconPanel != null) {
-            initCollapsedIconPanel();
-            collapsedIconPanel.revalidate();
-            collapsedIconPanel.repaint();
-        }
-
-        // 如果当前处于折叠状态，强制刷新布局以确保图标显示正常
-        if (menuBut != null && !menuBut.isSelected()) {
-            navBarPane.revalidate();
-            navBarPane.repaint();
-        }
-    }
-
-    @Subscribe
-    private void updateNavBarEvent(MenuRefrestEvent menuRefrestEvent) {
-
-        updateNavBarData();
-    }
-
-    /**
-     * 显示标签页的右键菜单。
-     */
-    private void showPopupMenu(final MouseEvent event) {
-        final int index = tabbedPane.getUI().tabForCoordinate(tabbedPane, event.getX(), event.getY());
-        final int count = tabbedPane.getTabCount();
-
+    private void showPopupMenu(MouseEvent e) {
+        int index = tabbedPane.getUI().tabForCoordinate(tabbedPane, e.getX(), e.getY());
         if (index == -1) return;
 
-        JPopupMenu pop = new JPopupMenu();
-
-        // 菜单项配置
-        JMenuItem closeCurrent = createMenuItem("关闭当前", 140, () -> {
-            if (tabbedPane.isTabClosableAt(index)) tabbedPane.removeTabAt(index);
-        });
-
-        JMenuItem closeLeft = createMenuItem("关闭左侧标签", 140, () -> {
-            for (int j = (index - 1); j >= 0; j--) {
-                if (tabbedPane.isTabClosableAt(j)) tabbedPane.removeTabAt(j);
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createMenuItem("关闭当前", () -> { if (tabbedPane.isTabClosableAt(index)) tabbedPane.removeTabAt(index); }));
+        menu.addSeparator();
+        menu.add(createMenuItem("关闭其它", () -> {
+            String title = tabbedPane.getTitleAt(index);
+            for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
+                if (tabbedPane.isTabClosableAt(i) && !tabbedPane.getTitleAt(i).equals(title)) tabbedPane.removeTabAt(i);
             }
-        });
-
-        JMenuItem closeRight = createMenuItem("关闭右侧标签", 140, () -> {
-            for (int j = (count - 1); j > index; j--) {
-                if (tabbedPane.isTabClosableAt(j)) tabbedPane.removeTabAt(j);
+        }));
+        menu.add(createMenuItem("关闭所有", () -> {
+            for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
+                if (tabbedPane.isTabClosableAt(i)) tabbedPane.removeTabAt(i);
             }
-        });
-
-        JMenuItem other = createMenuItem("关闭其它标签", 140, () -> {
-            String currentTitle = tabbedPane.getTitleAt(index);
-            for (int k = tabbedPane.getTabCount() - 1; k >= 0; k--) {
-                if (!currentTitle.equals(tabbedPane.getTitleAt(k)) && tabbedPane.isTabClosableAt(k)) {
-                    tabbedPane.removeTabAt(k);
-                }
-            }
-        });
-
-        JMenuItem all = createMenuItem("关闭所有标签", 140, () -> {
-            for (int k = tabbedPane.getTabCount() - 1; k >= 0; k--) {
-                if (tabbedPane.isTabClosableAt(k)) tabbedPane.removeTabAt(k);
-            }
-        });
-
-        pop.add(closeCurrent);
-        pop.addSeparator();
-        pop.add(closeLeft);
-        pop.add(closeRight);
-        pop.add(other);
-        pop.addSeparator();
-        pop.add(all);
-
-        pop.show(event.getComponent(), event.getX(), event.getY());
+        }));
+        menu.show(e.getComponent(), e.getX(), e.getY());
     }
 
-    /**
-     * 辅助方法：创建 JMenuItem 并设置尺寸和操作。
-     */
-    private JMenuItem createMenuItem(String text, int width, Runnable action) {
+    // ===================================================================================
+    // 通用工具方法
+    // ===================================================================================
+
+    private JButton createToolbarButton(String iconPath, java.awt.event.ActionListener listener) {
+        JButton btn = new JButton(new FlatSVGIcon(iconPath, 22, 22));
+        btn.putClientProperty("JButton.buttonType", "toolBarButton");
+        btn.addActionListener(listener);
+        return btn;
+    }
+
+    private JMenuItem createMenuItem(String text, Runnable action) {
         JMenuItem item = new JMenuItem(text);
-        item.setPreferredSize(new Dimension(width, 30));
-        // 使用 Lambda 表达式 (Java 8 兼容)
         item.addActionListener(e -> action.run());
         return item;
     }
 
-
-    /**
-     * JXTreeTable 的数据模型。
-     */
-    class MenuModel extends AbstractTreeTableModel {
-
-        public MenuModel() {
+    private FlatSVGIcon getMenuIcon(String iconPath, int size) {
+        String path = "icons/item.svg";
+        if (StrUtil.isNotBlank(iconPath)) {
+            path = iconPath.contains(":") ? "icons/menu/" + iconPath.split(":")[1] + ".svg" : iconPath;
         }
+        return IconLoader.getSvgIcon(path, size, size);
+    }
 
-        public MenuModel(Object root) {
-            super(root);
-        }
-
-        @Override
-        public Object getChild(Object parent, int index) {
-            AuthPermissionInfoRespVO.MenuVO parentMenu = (AuthPermissionInfoRespVO.MenuVO) parent;
-            List<AuthPermissionInfoRespVO.MenuVO> children = parentMenu.getChildren();
-            return (children != null && index >= 0 && index < children.size()) ? children.get(index) : null;
-        }
-
-        @Override
-        public int getChildCount(Object parent) {
-            // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
-            if (parent instanceof AuthPermissionInfoRespVO.MenuVO) {
-                AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) parent;
-                List<AuthPermissionInfoRespVO.MenuVO> children = menuVO.getChildren();
-                return (children != null) ? children.size() : 0;
-            }
-            return 0;
-        }
-
-        @Override
-        public int getColumnCount() {
-            return 1; // 仅一列用于显示菜单名称和树结构
-        }
-
-        @Override
-        public String getColumnName(int column) {
-            return "菜单";
-        }
-
-        @Override
-        public Object getValueAt(Object node, int column) {
-            // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
-            if (node instanceof AuthPermissionInfoRespVO.MenuVO) {
-                AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) node;
-                if (column == 0) {
-                    return menuVO.getName();
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public boolean isLeaf(Object node) {
-            // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
-            if (node instanceof AuthPermissionInfoRespVO.MenuVO) {
-                AuthPermissionInfoRespVO.MenuVO menuVO = (AuthPermissionInfoRespVO.MenuVO) node;
-                return menuVO.getChildren() == null || menuVO.getChildren().isEmpty();
-            } else {
-                return true;
-            }
-        }
-
-        @Override
-        public int getIndexOfChild(Object parent, Object child) {
-            // 使用传统 instanceof 检查和强制转换 (Java 8 兼容)
-            if (parent instanceof AuthPermissionInfoRespVO.MenuVO && child instanceof AuthPermissionInfoRespVO.MenuVO) {
-                AuthPermissionInfoRespVO.MenuVO parentMenu = (AuthPermissionInfoRespVO.MenuVO) parent;
-                List<AuthPermissionInfoRespVO.MenuVO> files = parentMenu.getChildren();
-                return (files != null) ? files.indexOf(child) : -1;
-            }
-            return -1;
+    private void updateTabStyles() {
+        int selected = tabbedPane.getSelectedIndex();
+        Color selCol = UIManager.getColor("TabbedPane.selectedForeground");
+        Color defCol = UIManager.getColor("Label.foreground");
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            tabbedPane.setForegroundAt(i, (i == selected) ? selCol : defCol);
         }
     }
 
-    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
-    // ... (JFormDesigner Variables)
-    // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
-
-
-    public JideTabbedPane getTabbedPane() {
-        return tabbedPane;
-    }
-
+    // ===================================================================================
+    // EventBus 订阅处理
+    // ===================================================================================
 
     @Subscribe
-    private void onAddTab(AddMainTabEvent addMainTabEvent) {
+    private void onMenuRefresh(MenuRefrestEvent event) {
+        updateNavBarData();
+    }
 
+    @Subscribe
+    private void onAddTab(AddMainTabEvent event) {
         SwingUtilities.invokeLater(() -> {
-            String tabName = addMainTabEvent.getTabName();
-            String icon = addMainTabEvent.getIcon();
-            JComponent component = addMainTabEvent.getTabContent();
-            int tabIndex = tabbedPane.indexOfTab(tabName);
-            if (tabIndex == -1) {
-                tabbedPane.addTab(tabName, new FlatSVGIcon(icon, 25, 25), component);
-            }
-            tabbedPane.setSelectedIndex(tabbedPane.indexOfTab(tabName));
+            AuthPermissionInfoRespVO.MenuVO vo = new AuthPermissionInfoRespVO.MenuVO();
+            vo.setName(event.getTabName());
+            vo.setIcon(event.getIcon());
+            vo.setComponentSwing(event.getTabContent().getClass().getName());
+            addTab(vo);
         });
-
-
     }
 
-    @Override
-    public void updateUI() {
-        super.updateUI();
-        if (navBarTreeTable != null) {
-            // 添加鼠标悬停高亮
-            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null));
+    /**
+     * TreeTable 内部模型类
+     */
+    class MenuModel extends AbstractTreeTableModel {
+        public MenuModel(Object root) { super(root); }
+        @Override public int getColumnCount() { return 1; }
+        @Override public String getColumnName(int column) { return "导航菜单"; }
+        @Override public Object getValueAt(Object node, int column) {
+            return (node instanceof AuthPermissionInfoRespVO.MenuVO) ? ((AuthPermissionInfoRespVO.MenuVO) node).getName() : null;
         }
-
+        @Override public Object getChild(Object parent, int index) {
+            List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
+            return (children != null) ? children.get(index) : null;
+        }
+        @Override public int getChildCount(Object parent) {
+            List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
+            return (children != null) ? children.size() : 0;
+        }
+        @Override public int getIndexOfChild(Object parent, Object child) {
+            List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
+            return (children != null) ? children.indexOf(child) : -1;
+        }
+        @Override public boolean isLeaf(Object node) { return getChildCount(node) == 0; }
     }
-
 
     @Override
     public void removeNotify() {
         EventBusCenter.get().unregister(this);
         super.removeNotify();
-
     }
 }

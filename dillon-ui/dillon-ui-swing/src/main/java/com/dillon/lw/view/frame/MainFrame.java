@@ -255,7 +255,7 @@ public class MainFrame extends JFrame {
                 FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, true);
 
         cardLayout.show(cardPanel, CARD_MAIN);
-        mainPane.updateTreeTableRoot();
+        mainPane.updateTreeTableRoot(AppStore.getMenus());
 
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         setSize((int) (screen.width * 0.9), (int) (screen.height * 0.9));
