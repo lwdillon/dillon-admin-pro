@@ -5,8 +5,8 @@ import java.util.function.Supplier;
 
 public enum ThemeType {
 
-    DARK("深色", () -> new DarkTheme()),
     LIGHT("白色", () -> new LightTheme()),
+    DARK("深色", () -> new DarkTheme()),
     GLAZZED("玻璃", () -> new GlazzedTheme());
 
     private final String text;

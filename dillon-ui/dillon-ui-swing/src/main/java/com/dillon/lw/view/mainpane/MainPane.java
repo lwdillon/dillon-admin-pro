@@ -13,7 +13,7 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
-import com.dillon.lw.view.home.HomeDashboardPane;
+import com.dillon.lw.view.home.HomDashboardPanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -32,6 +32,8 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -53,6 +55,10 @@ public class MainPane extends JPanel {
     private JToggleButton menuToggleBut;  // 菜单切换按钮
     private JPanel collapsedIconPanel;    // 折叠后的图标面板
 
+    // 状态栏组件
+    private JLabel timeLabel;
+    private JLabel copyrightLabel;
+    private Timer timeTimer;
     // --- 配置属性 ---
     private int navBarExpandedWidth = 300;
 
@@ -67,7 +73,7 @@ public class MainPane extends JPanel {
      * 初始化界面组件结构
      */
     private void initComponents() {
-        setLayout(new BorderLayout(7, 7));
+        setLayout(new BorderLayout(7, 0));
         setBorder(BorderFactory.createEmptyBorder(0, 7, 0, 7));
 
         // 1. 初始化左侧导航容器 (使用 CardLayout 实现展开/收起切换)
@@ -103,6 +109,7 @@ public class MainPane extends JPanel {
         statusPane = new JToolBar();
         statusPane.setFloatable(false);
         statusPane.setOpaque(false);
+        setupStatusPane();
 
         // 组装主框架
         add(navBarPane, BorderLayout.WEST);
@@ -132,15 +139,26 @@ public class MainPane extends JPanel {
 
         // 搜索框实时过滤监听
         searchField.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) { filter(); }
-            public void insertUpdate(DocumentEvent e) { filter(); }
-            public void removeUpdate(DocumentEvent e) { filter(); }
-            private void filter() { applyTreeFilter(searchField.getText().trim()); }
+            public void changedUpdate(DocumentEvent e) {
+                filter();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                filter();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                filter();
+            }
+
+            private void filter() {
+                applyTreeFilter(searchField.getText().trim());
+            }
         });
 
         toolBar.add(searchField);
-        toolBar.add(createToolbarButton("icons/expand-up-down-line.svg","展开菜单",e -> navBarTreeTable.expandAll()));
-        toolBar.add(createToolbarButton("icons/contract-up-down-line.svg", "折叠菜单",e -> navBarTreeTable.collapseAll()));
+        toolBar.add(createToolbarButton("icons/expand-up-down-line.svg", "展开菜单", e -> navBarTreeTable.expandAll()));
+        toolBar.add(createToolbarButton("icons/contract-up-down-line.svg", "折叠菜单", e -> navBarTreeTable.collapseAll()));
         return toolBar;
     }
 
@@ -156,7 +174,10 @@ public class MainPane extends JPanel {
 
         // 隐藏表格头
         navBarTreeTable.setTableHeader(new JTableHeader() {
-            @Override public Dimension getPreferredSize() { return new Dimension(super.getPreferredSize().width, 0); }
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(super.getPreferredSize().width, 0);
+            }
         });
 
         // 自定义树节点渲染
@@ -187,28 +208,30 @@ public class MainPane extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
                 g2.setColor(UIManager.getColor("App.baseBackground"));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
+                g2.fillRoundRect(0, 0, getWidth(), 80, arc, arc);
 
                 g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(5, 50, getWidth() - 10, getHeight() - 50, arc, arc);
-                g2.fillRect(5, 50, getWidth() - 10, arc); // 衔接部分
+                g2.fillRoundRect(0, 54, getWidth(), getHeight() - 54, arc, arc);
+                g2.fillRect(0, 54, getWidth(), arc); // 衔接部分
                 g2.dispose();
             }
         };
 
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+        tabbedPane.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
         tabbedPane.setShowCloseButton(true);
         tabbedPane.setShowCloseButtonOnTab(true);
         tabbedPane.setShowCloseButtonOnMouseOver(true);
         tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
 
         // 默认主页
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new HomeDashboardPane());
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), AppStore.getNavigatonPanel(HomDashboardPanel.class.getName()));
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签栏辅助组件
         tabbedPane.setTabLeadingComponent(createTabLeadingBar());
-        tabbedPane.setTabTrailingComponent(new JToolBar() {{ setOpaque(false); }});
+        tabbedPane.setTabTrailingComponent(new JToolBar() {{
+            setOpaque(false);
+        }});
 
         tabbedPane.addChangeListener(e -> updateTabStyles());
     }
@@ -242,7 +265,8 @@ public class MainPane extends JPanel {
 
             // 匹配规则：名称包含、拼音包含、或子项有匹配
             boolean matches = node.getName().toLowerCase().contains(query)
-                    || PinyinUtil.getPinyin(node.getName(), "").toLowerCase().contains(query);
+                    || PinyinUtil.getPinyin(node.getName(), "").toLowerCase().contains(query)
+                    || PinyinUtil.getFirstLetter(node.getName(), "").toLowerCase().contains(query);
 
             if (matches || !filteredChildren.isEmpty()) {
                 AuthPermissionInfoRespVO.MenuVO newNode = new AuthPermissionInfoRespVO.MenuVO();
@@ -366,6 +390,29 @@ public class MainPane extends JPanel {
         }
     }
 
+    /**
+     * 配置状态栏内部组件
+     */
+    private void setupStatusPane() {
+        // A. 服务器地址 (从配置或 Store 获取)
+        copyrightLabel = new JLabel("© liwen");
+
+        JLabel versionLabel = new JLabel("V"+System.getProperty("app.version"));
+
+        // B. 服务器时间
+        timeLabel = new JLabel();
+        timeLabel.setIcon(new FlatSVGIcon("icons/shijian.svg", 16, 16));
+        // 放入状态栏
+        statusPane.add(new JButton("127.0.0.1:8080",new FlatSVGIcon("icons/server.svg", 16, 16)));
+        statusPane.add(Box.createHorizontalGlue());
+        statusPane.add(timeLabel);
+        statusPane.add(Box.createHorizontalStrut(10));
+        statusPane.add(versionLabel);
+        statusPane.add(Box.createHorizontalStrut(10));
+        statusPane.add(copyrightLabel);
+        initTimeTask();
+    }
+
     private JButton createIconMenuButton(AuthPermissionInfoRespVO.MenuVO menu) {
         JButton btn = new JButton(getMenuIcon(menu.getIcon(), 25));
         btn.setToolTipText(menu.getName());
@@ -415,18 +462,34 @@ public class MainPane extends JPanel {
 
     private JToolBar createTabLeadingBar() {
         JToolBar bar = new JToolBar() {
-            @Override public Dimension getPreferredSize() { return new Dimension(super.getPreferredSize().width, 50); }
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(super.getPreferredSize().width, 53);
+            }
         };
         bar.setOpaque(false);
         menuToggleBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25));
         menuToggleBut.setSelected(true);
         menuToggleBut.addItemListener(e -> toggleNavBarState(menuToggleBut.isSelected()));
 
-        JButton refreshBut = createToolbarButton("icons/refresh.svg","刷新" ,e -> EventBusCenter.get().post(new RefrestEvent()));
+        JButton refreshBut = createToolbarButton("icons/refresh.svg", "刷新", e -> EventBusCenter.get().post(new RefrestEvent()));
 
         bar.add(menuToggleBut);
         bar.add(refreshBut);
+
         return bar;
+    }
+
+    private void initTimeTask() {
+        if (timeTimer == null) {
+            // 创建定时器，每 1000 毫秒（1秒）触发一次
+            timeTimer = new Timer(1000, e -> {
+                // 更新标签文本
+                timeLabel.setText(" " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            });
+        }
+
+        timeTimer.start();
     }
 
     private void showPopupMenu(MouseEvent e) {
@@ -434,7 +497,9 @@ public class MainPane extends JPanel {
         if (index == -1) return;
 
         JPopupMenu menu = new JPopupMenu();
-        menu.add(createMenuItem("关闭当前", () -> { if (tabbedPane.isTabClosableAt(index)) tabbedPane.removeTabAt(index); }));
+        menu.add(createMenuItem("关闭当前", () -> {
+            if (tabbedPane.isTabClosableAt(index)) tabbedPane.removeTabAt(index);
+        }));
         menu.addSeparator();
         menu.add(createMenuItem("关闭其它", () -> {
             String title = tabbedPane.getTitleAt(index);
@@ -454,7 +519,7 @@ public class MainPane extends JPanel {
     // 通用工具方法
     // ===================================================================================
 
-    private JButton createToolbarButton(String iconPath, String toolTip,java.awt.event.ActionListener listener) {
+    private JButton createToolbarButton(String iconPath, String toolTip, java.awt.event.ActionListener listener) {
         JButton btn = new JButton(new FlatSVGIcon(iconPath, 22, 22));
         btn.putClientProperty("JButton.buttonType", "toolBarButton");
         btn.addActionListener(listener);
@@ -522,30 +587,55 @@ public class MainPane extends JPanel {
      * TreeTable 内部模型类
      */
     class MenuModel extends AbstractTreeTableModel {
-        public MenuModel(Object root) { super(root); }
-        @Override public int getColumnCount() { return 1; }
-        @Override public String getColumnName(int column) { return "导航菜单"; }
-        @Override public Object getValueAt(Object node, int column) {
+        public MenuModel(Object root) {
+            super(root);
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 1;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return "导航菜单";
+        }
+
+        @Override
+        public Object getValueAt(Object node, int column) {
             return (node instanceof AuthPermissionInfoRespVO.MenuVO) ? ((AuthPermissionInfoRespVO.MenuVO) node).getName() : null;
         }
-        @Override public Object getChild(Object parent, int index) {
+
+        @Override
+        public Object getChild(Object parent, int index) {
             List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
             return (children != null) ? children.get(index) : null;
         }
-        @Override public int getChildCount(Object parent) {
+
+        @Override
+        public int getChildCount(Object parent) {
             List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
             return (children != null) ? children.size() : 0;
         }
-        @Override public int getIndexOfChild(Object parent, Object child) {
+
+        @Override
+        public int getIndexOfChild(Object parent, Object child) {
             List<AuthPermissionInfoRespVO.MenuVO> children = ((AuthPermissionInfoRespVO.MenuVO) parent).getChildren();
             return (children != null) ? children.indexOf(child) : -1;
         }
-        @Override public boolean isLeaf(Object node) { return getChildCount(node) == 0; }
+
+        @Override
+        public boolean isLeaf(Object node) {
+            return getChildCount(node) == 0;
+        }
     }
 
     @Override
     public void removeNotify() {
         EventBusCenter.get().unregister(this);
+        if (timeTimer != null && timeTimer.isRunning()) {
+            timeTimer.stop(); // 停止定时器
+        }
         super.removeNotify();
     }
 }
