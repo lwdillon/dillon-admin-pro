@@ -1,6 +1,5 @@
 package com.dillon.lw;
 
-
 import com.dillon.lw.exception.ExceptionEventQueue;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.http.ForestConfig;
@@ -22,95 +21,119 @@ import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * 应用程序启动入口
+ */
 public class DillonSwingUiApplication {
+
+    /**
+     * 静态初始化块：配置全局动画定时源
+     */
     static {
         TimingSource ts = new SwingTimerTimingSource();
         Animator.setDefaultTimingSource(ts);
-
-    ts.init();
+        ts.init();
     }
-
-
-    private static void loadApplicationProperties() {
-        Properties properties = new Properties();
-        try (InputStreamReader in = new InputStreamReader(Resources.getResourceAsStream("/application.properties"),
-                UTF_8)) {
-            properties.load(in);
-            properties.forEach((key, value) -> System.setProperty(
-                    String.valueOf(key),
-                    String.valueOf(value)
-            ));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     public static void main(String[] args) {
-
-
-
+        // 1. 加载 application.properties 配置
         loadApplicationProperties();
-        if( SystemInfo.isMacOS ) {
-            // enable screen menu bar
-            // (moves menu bar from JFrame window to top of screen)
-            System.setProperty( "apple.laf.useScreenMenuBar", "true" );
 
-            // application name used in screen menu bar
-            // (in first menu after the "apple" menu)
-            String title= System.getProperty("app.name");
-            System.setProperty( "apple.awt.application.name", title);
+        // 2. 针对不同操作系统进行 UI 适配
+        setupPlatformEnvironment();
 
-            // appearance of window title bars
-            // possible values:
-            //   - "system": use current macOS appearance (light or dark)
-            //   - "NSAppearanceNameAqua": use light appearance
-            //   - "NSAppearanceNameDarkAqua": use dark appearance
-            // (must be set on main thread and before AWT/Swing is initialized;
-            //  setting it on AWT thread does not work)
-            System.setProperty( "apple.awt.application.appearance", "system" );
-        }
-        // Linux
-        if( SystemInfo.isLinux ) {
-            // enable custom window decorations
-            JFrame.setDefaultLookAndFeelDecorated( true );
-            JDialog.setDefaultLookAndFeelDecorated( true );
-        }
+        // 3. 全局异常捕捉机制
+        setupGlobalExceptionHandler();
 
-        // 1️⃣ EDT 异常统一兜底（Swing 核心）
-        Toolkit.getDefaultToolkit()
-                .getSystemEventQueue()
-                .push(new ExceptionEventQueue());
-
-        // 2️⃣ 后台线程异常兜底
-        Thread.setDefaultUncaughtExceptionHandler(
-                (t, e) -> SwingExceptionHandler.handle(e)
-        );
-
-
+        // 4. 初始化网络框架 (Forest)
         ForestConfig.init();
 
+        // 5. 在事件分发线程 (EDT) 中启动 UI
         SwingUtilities.invokeLater(() -> {
+            // 初始化主题
+            initLookAndFeel();
 
-            // set look and feel
-            try {
-                UIManager.setLookAndFeel(LightTheme.class.getName());
-            } catch (Exception e) {
-                // fallback
-                FlatLightLaf.setup();
-                throw new RuntimeException(e);
-            }
+            // 初始化图表库设置
+            initChartTheme();
 
-            StandardChartTheme chartTheme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
-            chartTheme.setExtraLargeFont(new Font("宋体", Font.BOLD, 20)); // 设置标题字体
-            chartTheme.setLargeFont(new Font("宋体", Font.BOLD, 15)); // 设置轴标签字体
-            chartTheme.setRegularFont(new Font("宋体", Font.PLAIN, 12)); // 设置图例字体
-            ChartFactory.setChartTheme(chartTheme);
-
-            // create frame
+            // 创建并显示主窗口
             MainFrame frame = MainFrame.getInstance();
             frame.showLogin(true);
             frame.setVisible(true);
         });
+    }
+
+    /**
+     * 加载资源文件中的配置到 System Properties
+     */
+    private static void loadApplicationProperties() {
+        Properties properties = new Properties();
+        try (InputStreamReader in = new InputStreamReader(
+                Resources.getResourceAsStream("/application.properties"), UTF_8)) {
+            properties.load(in);
+            properties.forEach((key, value) -> System.setProperty(String.valueOf(key), String.valueOf(value)));
+        } catch (IOException | NullPointerException e) {
+            System.err.println("警告：未能加载 application.properties 配置文件");
+        }
+    }
+
+    /**
+     * 针对 macOS 和 Linux 系统的 UI 渲染参数设置
+     */
+    private static void setupPlatformEnvironment() {
+        if (SystemInfo.isMacOS) {
+            // 将菜单栏移动到屏幕顶部
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+            // 设置屏幕菜单栏显示的应用名称
+            System.setProperty("apple.awt.application.name", System.getProperty("app.name", "DillonSwing"));
+            // 窗口标题栏外观跟随系统
+            System.setProperty("apple.awt.application.appearance", "system");
+        }
+
+        if (SystemInfo.isLinux) {
+            // Linux 下开启自定义窗口装饰（如圆角、深色标题栏等）
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            JDialog.setDefaultLookAndFeelDecorated(true);
+        }
+    }
+
+    /**
+     * 配置全局异常处理器
+     */
+    private static void setupGlobalExceptionHandler() {
+        // 1. EDT (事件分发线程) 异常兜底，防止 UI 线程因异常崩溃无响应
+        Toolkit.getDefaultToolkit()
+                .getSystemEventQueue()
+                .push(new ExceptionEventQueue());
+
+        // 2. 所有后台工作线程的未捕获异常统一由 SwingExceptionHandler 处理
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> SwingExceptionHandler.handle(e));
+    }
+
+    /**
+     * 初始化 LookAndFeel 主题样式
+     */
+    private static void initLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(LightTheme.class.getName());
+        } catch (Exception e) {
+            // 如果自定义主题加载失败，回退到 FlatLaf 基础明亮主题
+            FlatLightLaf.setup();
+            SwingExceptionHandler.handle(e);
+        }
+    }
+
+    /**
+     * 配置 JFreeChart 图表库的中文支持及字体样式
+     */
+    private static void initChartTheme() {
+        StandardChartTheme chartTheme = (StandardChartTheme) StandardChartTheme.createJFreeTheme();
+        Font baseFont = new Font("Microsoft YaHei", Font.PLAIN, 12); // 推荐使用微软雅黑
+
+        chartTheme.setExtraLargeFont(baseFont.deriveFont(Font.BOLD, 20f)); // 标题
+        chartTheme.setLargeFont(baseFont.deriveFont(Font.BOLD, 15f));      // 轴标签
+        chartTheme.setRegularFont(baseFont);                               // 图例/普通文字
+
+        ChartFactory.setChartTheme(chartTheme);
     }
 }

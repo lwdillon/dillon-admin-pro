@@ -13,6 +13,7 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
+import com.dillon.lw.view.home.HomeDashboardPane;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -138,8 +139,8 @@ public class MainPane extends JPanel {
         });
 
         toolBar.add(searchField);
-        toolBar.add(createToolbarButton("icons/expand-up-down-line.svg", e -> navBarTreeTable.expandAll()));
-        toolBar.add(createToolbarButton("icons/contract-up-down-line.svg", e -> navBarTreeTable.collapseAll()));
+        toolBar.add(createToolbarButton("icons/expand-up-down-line.svg","展开菜单",e -> navBarTreeTable.expandAll()));
+        toolBar.add(createToolbarButton("icons/contract-up-down-line.svg", "折叠菜单",e -> navBarTreeTable.collapseAll()));
         return toolBar;
     }
 
@@ -148,8 +149,6 @@ public class MainPane extends JPanel {
      */
     private void setupTreeTable() {
         navBarTreeTable = new JXTreeTable();
-        navBarTreeTable.setOpaque(false);
-        navBarTreeTable.setBackground(new Color(0, 0, 0, 0));
         navBarTreeTable.setRowHeight(45);
         // 设置鼠标悬停高亮
         navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
@@ -204,7 +203,7 @@ public class MainPane extends JPanel {
         tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
 
         // 默认主页
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new JPanel());
+        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), new HomeDashboardPane());
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签栏辅助组件
@@ -377,11 +376,10 @@ public class MainPane extends JPanel {
 
         // 折叠状态下，悬停显示子菜单
         btn.addMouseListener(new MouseAdapter() {
-            private JPopupMenu popup;
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (!menuToggleBut.isSelected() && menu.getChildren() != null && !menu.getChildren().isEmpty()) {
-                    if (popup == null) popup = createFloatingMenu(menu.getChildren());
+                    JPopupMenu popup = createFloatingMenu(menu.getChildren());
                     popup.show(btn, btn.getWidth(), 0);
                 }
             }
@@ -424,7 +422,7 @@ public class MainPane extends JPanel {
         menuToggleBut.setSelected(true);
         menuToggleBut.addItemListener(e -> toggleNavBarState(menuToggleBut.isSelected()));
 
-        JButton refreshBut = createToolbarButton("icons/refresh.svg", e -> EventBusCenter.get().post(new RefrestEvent()));
+        JButton refreshBut = createToolbarButton("icons/refresh.svg","刷新" ,e -> EventBusCenter.get().post(new RefrestEvent()));
 
         bar.add(menuToggleBut);
         bar.add(refreshBut);
@@ -456,10 +454,11 @@ public class MainPane extends JPanel {
     // 通用工具方法
     // ===================================================================================
 
-    private JButton createToolbarButton(String iconPath, java.awt.event.ActionListener listener) {
+    private JButton createToolbarButton(String iconPath, String toolTip,java.awt.event.ActionListener listener) {
         JButton btn = new JButton(new FlatSVGIcon(iconPath, 22, 22));
         btn.putClientProperty("JButton.buttonType", "toolBarButton");
         btn.addActionListener(listener);
+        btn.setToolTipText(toolTip);
         return btn;
     }
 
@@ -504,6 +503,19 @@ public class MainPane extends JPanel {
             vo.setComponentSwing(event.getTabContent().getClass().getName());
             addTab(vo);
         });
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+
+        if (navBarTreeTable != null) {
+            // 设置鼠标悬停高亮
+            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
+                    UIManager.getColor("App.hoverBackground"), null));
+
+        }
+
     }
 
     /**
