@@ -52,7 +52,7 @@ public class MainPane extends JPanel {
     private JXTreeTable navBarTreeTable;  // 导航树表
     private JideTabbedPane tabbedPane;    // 标签页
     private JToolBar statusPane;          // 底部状态栏
-    private JToggleButton menuToggleBut;  // 菜单切换按钮
+    private JButton menuToggleBut;  // 菜单切换按钮
     private JPanel collapsedIconPanel;    // 折叠后的图标面板
 
     // 状态栏组件
@@ -61,6 +61,8 @@ public class MainPane extends JPanel {
     private Timer timeTimer;
     // --- 配置属性 ---
     private int navBarExpandedWidth = 300;
+
+    private boolean isExpanded=true;
 
     public MainPane() {
         initComponents();
@@ -224,10 +226,10 @@ public class MainPane extends JPanel {
         tabbedPane.setShowCloseButtonOnTab(true);
         tabbedPane.setShowCloseButtonOnMouseOver(true);
         tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
-        tabbedPane.setTabInsets(new Insets(0,30,0,10));
-        tabbedPane.setTabAreaInsets(new Insets(0,0,0,0));
+        tabbedPane.setTabInsets(new Insets(0, 20, 0, 5));
+        tabbedPane.setTabAreaInsets(new Insets(0, 0, 0, 0));
         // 默认主页
-        tabbedPane.addTab("主页", new FlatSVGIcon("icons/home.svg", 20, 20), AppStore.getNavigatonPanel(HomePanel.class.getName()));
+        tabbedPane.addTab("主页", IconLoader.getSvgIcon("icons/menu/zhuye.svg", 20, 20), AppStore.getNavigatonPanel(HomePanel.class.getName()));
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签栏辅助组件
@@ -286,8 +288,9 @@ public class MainPane extends JPanel {
     /**
      * 切换导航栏展开/折叠状态
      */
-    private void toggleNavBarState(boolean isExpanded) {
+    private void toggleNavBarState() {
         CardLayout cl = (CardLayout) navBarPane.getLayout();
+        isExpanded = !isExpanded;
         if (isExpanded) {
             navBarPane.setPreferredSize(new Dimension(navBarExpandedWidth, navBarPane.getHeight()));
             cl.show(navBarPane, "ExpandedMenu");
@@ -378,7 +381,7 @@ public class MainPane extends JPanel {
             collapsedIconPanel = new JPanel();
             collapsedIconPanel.setOpaque(false);
             collapsedIconPanel.setLayout(new BoxLayout(collapsedIconPanel, BoxLayout.Y_AXIS));
-            collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+            collapsedIconPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         } else {
             collapsedIconPanel.removeAll();
         }
@@ -470,11 +473,9 @@ public class MainPane extends JPanel {
                 return new Dimension(super.getPreferredSize().width, 50);
             }
         };
-        bar.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
+        bar.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         bar.setOpaque(false);
-        menuToggleBut = new JToggleButton(new FlatSVGIcon("icons/bars.svg", 25, 25));
-        menuToggleBut.setSelected(true);
-        menuToggleBut.addItemListener(e -> toggleNavBarState(menuToggleBut.isSelected()));
+        menuToggleBut = createToolbarButton("icons/bars.svg","折叠/展开菜单栏",e -> toggleNavBarState());
 
         JButton refreshBut = createToolbarButton("icons/refresh.svg", "刷新", e -> EventBusCenter.get().post(new RefrestEvent()));
 
@@ -524,7 +525,7 @@ public class MainPane extends JPanel {
     // ===================================================================================
 
     private JButton createToolbarButton(String iconPath, String toolTip, java.awt.event.ActionListener listener) {
-        JButton btn = new JButton(new FlatSVGIcon(iconPath, 22, 22));
+        JButton btn = new JButton(IconLoader.getSvgIcon(iconPath, 22, 22));
         btn.putClientProperty("JButton.buttonType", "toolBarButton");
         btn.addActionListener(listener);
         btn.setToolTipText(toolTip);

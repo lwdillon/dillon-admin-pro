@@ -12,6 +12,7 @@ import com.dillon.lw.eventbus.event.LoginEvent;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.theme.ThemeType;
 import com.dillon.lw.utils.ExecuteUtils;
+import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
 import com.dtflys.forest.Forest;
@@ -82,7 +83,7 @@ public class TitlePanel extends JPanel {
 
         //user
         themeButton = new FlatButton();
-        themeButton.setIcon(new FlatSVGIcon("icons/skin.svg", 20, 20));
+        themeButton.setIcon(IconLoader.getSvgIcon("icons/skin.svg", 20, 20));
         themeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         themeButton.setFocusable(false);
         themeButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
@@ -95,7 +96,7 @@ public class TitlePanel extends JPanel {
         toolBar.setBorder(BorderFactory.createEmptyBorder(0,0,0,5));
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
         noticeButton = new FlatButton();
-        noticeButton.setIcon(new FlatSVGIcon("icons/bell.svg", 20, 20));
+        noticeButton.setIcon(IconLoader.getSvgIcon("icons/bell.svg", 20, 20));
         noticeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         noticeButton.addActionListener(e1 -> EventBusCenter.get().post(new AddMainTabEvent("icons/bell.svg", "我的消息", new MyNotifyMessagePane())));
 
@@ -103,7 +104,7 @@ public class TitlePanel extends JPanel {
 
         toolBar.add(noticeButton);
         userButton = new FlatButton();
-        userButton.setIcon(new FlatSVGIcon("icons/user.svg", 20, 20));
+        userButton.setIcon(IconLoader.getSvgIcon("icons/user.svg", 20, 20));
         userButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         userButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
         userButton.addActionListener(e -> showUserInfoPopupMenu(e));

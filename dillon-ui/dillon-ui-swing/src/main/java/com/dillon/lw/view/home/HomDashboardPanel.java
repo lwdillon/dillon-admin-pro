@@ -36,10 +36,10 @@ public class HomDashboardPanel extends JPanel {
         setLayout(new MigLayout(
             "fill,insets 5,hidemode 3,gap 10 10",
             // columns
-            "[fill]" +
-            "[fill]" +
-            "[fill]" +
-            "[fill]",
+            "[grow,sizegroup 1,fill]" +
+            "[grow,sizegroup 1,fill]" +
+            "[grow,sizegroup 1,fill]" +
+            "[grow,sizegroup 1,fill]",
             // rows
             "[140!,sizegroup 1]" +
             "[sizegroup 1]" +
@@ -133,6 +133,16 @@ public class HomDashboardPanel extends JPanel {
         panel8.add(new ProjectCardPanel("Active projects", "825", "Projects this month", dataPoints, themeGreen, "icons/project.svg")); // 此处替换为你的图标对象
         panel9.add(new ProjectCardPanel("Active projects", "825", "Projects this month", dataPoints, themeGreen, "icons/project.svg")); // 此处替换为你的图标对象
         panel10.add(new CryptoTablePanel());
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        Container parent = getParent();
+        if (parent instanceof JViewport) {
+            d.width = parent.getWidth();
+        }
+        return d;
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
