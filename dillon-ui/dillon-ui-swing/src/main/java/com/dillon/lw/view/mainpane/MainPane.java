@@ -14,6 +14,7 @@ import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRe
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.home.HomePanel;
+import com.dillon.lw.view.system.menu.MenuManagementPanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -338,8 +339,14 @@ public class MainPane extends JPanel {
     public void addTab(AuthPermissionInfoRespVO.MenuVO menuVO) {
         int index = tabbedPane.indexOfTab(menuVO.getName());
         if (index == -1) {
-            tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
-                    AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
+            if (StrUtil.equals(menuVO.getName(), "菜单管理")) {
+                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
+                        AppStore.getNavigatonPanel(MenuManagementPanel.class.getName()));
+            }else {
+                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
+                        AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
+            }
+
             index = tabbedPane.getTabCount() - 1;
         }
         tabbedPane.setSelectedIndex(index);

@@ -80,23 +80,23 @@ public class TotalProfitPanel extends WPanel {
 
 
     // 测试
-    public static void main(String[] args) {
-        JFrame f = new JFrame();
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.getContentPane().setBackground(new Color(12, 16, 22));
-        f.setLayout(new FlowLayout(FlowLayout.CENTER, 50, 50));
-
-        TotalProfitPanel panel = new TotalProfitPanel(
-            "Total profit", 
-            "$559.25k", 
-            "+16.24 %", 
-            new Color(45, 211, 126)
-        );
-        panel.setPreferredSize(new Dimension(400, 200));
-        
-        f.add(panel);
-        f.pack();
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-    }
+//    public static void main(String[] args) {
+//        JFrame f = new JFrame();
+//        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        f.getContentPane().setBackground(new Color(12, 16, 22));
+//        f.setLayout(new FlowLayout(FlowLayout.CENTER, 50, 50));
+//
+//        TotalProfitPanel panel = new TotalProfitPanel(
+//            "Total profit",
+//            "$559.25k",
+//            "+16.24 %",
+//            new Color(45, 211, 126)
+//        );
+//        panel.setPreferredSize(new Dimension(400, 200));
+//
+//        f.add(panel);
+//        f.pack();
+//        f.setLocationRelativeTo(null);
+//        f.setVisible(true);
+//    }
 }

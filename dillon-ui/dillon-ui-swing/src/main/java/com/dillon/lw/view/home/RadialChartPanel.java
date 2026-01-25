@@ -152,12 +152,12 @@ public class RadialChartPanel extends WPanel {
     }
 
     // --- 测试运行 ---
-    public static void main(String[] args) {
-        JFrame f = new JFrame();
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.add(new RadialChartPanel());
-        f.setSize(400, 600);
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-    }
+//    public static void main(String[] args) {
+//        JFrame f = new JFrame();
+//        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        f.add(new RadialChartPanel());
+//        f.setSize(400, 600);
+//        f.setLocationRelativeTo(null);
+//        f.setVisible(true);
+//    }
 }

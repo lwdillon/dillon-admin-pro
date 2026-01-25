@@ -117,30 +117,30 @@ public class ProjectCardPanel extends WPanel {
     }
 
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.getContentPane().setBackground(new Color(15, 18, 25));
-        frame.setLayout(new BorderLayout());
-
-        // 1. 模拟数据
-        float[] dataPoints = {15, 40, 30, 55, 45, 80, 70, 90, 85, 100, 60, 40, 20};
-        Color themeGreen = new Color(45, 211, 126);
-
-        // 2. 创建面板 (svgIcon 参数可以传入你的 FlatSVGIcon)
-        ProjectCardPanel card = new ProjectCardPanel(
-                "Active projects",
-                "825",
-                "Projects this month",
-                dataPoints,
-                themeGreen,
-                null // 此处替换为你的图标对象
-        );
-
-        card.setPreferredSize(new Dimension(450, 180));
-
-        frame.add(card);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
+//    public static void main(String[] args) {
+//        JFrame frame = new JFrame();
+//        frame.getContentPane().setBackground(new Color(15, 18, 25));
+//        frame.setLayout(new BorderLayout());
+//
+//        // 1. 模拟数据
+//        float[] dataPoints = {15, 40, 30, 55, 45, 80, 70, 90, 85, 100, 60, 40, 20};
+//        Color themeGreen = new Color(45, 211, 126);
+//
+//        // 2. 创建面板 (svgIcon 参数可以传入你的 FlatSVGIcon)
+//        ProjectCardPanel card = new ProjectCardPanel(
+//                "Active projects",
+//                "825",
+//                "Projects this month",
+//                dataPoints,
+//                themeGreen,
+//                null // 此处替换为你的图标对象
+//        );
+//
+//        card.setPreferredSize(new Dimension(450, 180));
+//
+//        frame.add(card);
+//        frame.pack();
+//        frame.setLocationRelativeTo(null);
+//        frame.setVisible(true);
+//    }
 }

@@ -34,18 +34,18 @@ public class HomDashboardPanel extends JPanel {
         //======== this ========
         setOpaque(false);
         setLayout(new MigLayout(
-            "fill,insets 5,hidemode 3,gap 10 10",
+            "fill,insets 5,hidemode 3,gap 15 15",
             // columns
-            "[grow,sizegroup 1,fill]" +
-            "[grow,sizegroup 1,fill]" +
-            "[grow,sizegroup 1,fill]" +
-            "[grow,sizegroup 1,fill]",
+            "[grow,fill]15" +
+            "[grow,fill]15" +
+            "[grow,fill]15" +
+            "[grow,fill]",
             // rows
-            "[140!,sizegroup 1]" +
-            "[sizegroup 1]" +
-            "[sizegroup 1]" +
-            "[sizegroup 1]" +
-            "[400:n,grow]"));
+            "[150!]15" +
+            "[150!]15" +
+            "[150!]15" +
+            "[150!]15" +
+            "[grow]"));
 
         //======== panel1 ========
         {
