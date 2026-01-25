@@ -172,8 +172,8 @@ public class RevenueDashboardPanel extends WPanel {
             int w = getWidth() - pL - pR, h = getHeight() - pT - pB;
 
             drawGrid(g2, pL, pT, w, h);
-            drawCurve(g2, orders, pL, pT, w, h, new Color(45, 211, 126), 0.65f);
-            drawCurve(g2, refunds, pL, pT, w, h, new Color(64, 158, 255), 0.6f);
+            drawCurve(g2, orders, pL, pT, w, h, new Color(45, 211, 126), 0.35f);
+            drawCurve(g2, refunds, pL, pT, w, h, new Color(64, 158, 255), 0.3f);
 
             if (opacity > 0.01f && selectedIndex >= 0 && selectedIndex < orders.length) {
                 drawInteraction(g2, pL, pT, w, h);
