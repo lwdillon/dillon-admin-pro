@@ -137,26 +137,27 @@ HTTP库：Retrofit结合rxjava3封装一下调用rest请求调用，用于与后
 
 ### Java Swing
 
-| 模块   | 浅色                                        | 深色1                               | 深色2                               |
-|------|-------------------------------------------|-----------------------------------|-----------------------------------|
-| 登录   | ![登录](/.image/swing/登录.png)               | -                                 | -                                 |
-| 用户管理 | ![用户管理](/.image/swing/用户管理1.png)          | ![用户管理](/.image/swing/用户管理2.png)  | ![用户管理](/.image/swing/用户管理3.png)  | 
-| 角色管理 | ![角色管理1](/.image/swing/角色管理1.png)         | ![角色管理2](/.image/swing/角色管理2.png) | ![用户管理3](/.image/swing/用户管理3.png) | 
-| 菜单管理 | ![菜单管理1](/.image/swing/菜单管理1.png)         | ![菜单管理2](/.image/swing/菜单管理2.png) | ![菜单管理3](/.image/swing/菜单管理3.png) | 
-| 部门管理 | ![部门管理](/.image/swing/部门管理1.png)          | ![部门管理](/.image/swing/部门管理2.png)  | ![部门管理](/.image/swing/部门管理3.png)  | 
-| 岗位管理 | ![岗位管理](/.image/swing/岗位管理1.png)          | ![岗位管理](/.image/swing/岗位管理2.png)  | ![岗位管理](/.image/swing/岗位管理3.png)  | 
-| 字典管理 | ![字典管理](/.image/swing/字典管理1.png)          | ![字典管理](/.image/swing/字典管理2.png)  | ![字典管理](/.image/swing/字典管理3.png)  | 
-| 字典数据 | ![字典数据](/.image/swing/字典数据1.png)          | ![字典数据](/.image/swing/字典数据2.png)  | ![字典数据](/.image/swing/字典数据3.png)  | 
-| 通知公告 | ![通知公告](/.image/swing/通知公告1.png)          | ![字典数据](/.image/swing/通知公告2.png)  | ![字典数据](/.image/swing/通知公告3.png)  | 
-| 消息模板 | ![消息模板](/.image/swing/消息模板1.png)          | ![消息模板](/.image/swing/消息模板2.png)  | ![消息模板](/.image/swing/消息模板3.png)  | 
-| 消息记录 | ![消息记录](/.image/swing/消息记录1.png)          | ![消息记录](/.image/swing/消息记录2.png)  | ![消息记录](/.image/swing/消息记录3.png)  | 
-| 我的消息 | ![我的消息](/.image/swing/我的消息1.png)          | ![我的消息](/.image/swing/我的消息2.png)  | ![我的消息](/.image/swing/我的消息3.png)  |
-| 操作日志 | ![操作日志](/.image/swing/操作日志1.png)          | ![操作日志](/.image/swing/操作日志2.png)  | ![操作日志](/.image/swing/操作日志3.png)  | 
-| 登录日志 | ![登录日志](/.image/swing/登录日志1.png)          | ![登录日志](/.image/swing/登录日志2.png)  | ![登录日志](/.image/swing/登录日志3.png)  | 
-| 文件配置 | ![文件配置](/.image/swing/文件配置1.png)          | ![文件配置](/.image/swing/文件配置2.png)  | ![文件配置](/.image/swing/文件配置3.png)  | 
-| 文件列表 | ![文件列表](/.image/swing/文件列表1.png)          | ![文件列表](/.image/swing/文件列表2.png)  | ![文件列表](/.image/swing/文件列表3.png)  | 
-| 定时任务 | ![定时任务](/.image/swing/定时任务1.png)          | ![定时任务](/.image/swing/定时任务2.png)  | ![定时任务](/.image/swing/定时任务3.png)  | 
-| 执行日志 | ![执行日志](/.image/swing/执行日志1.png)          | ![执行日志](/.image/swing/执行日志2.png)  | ![执行日志](/.image/swing/执行日志3.png)  | 
-| API-访问日志 | ![API-访问日志](/.image/swing/API-访问日志1.png)  | ![API-访问日志](/.image/swing/API-访问日志2.png) | ![API-访问日志](/.image/swing/API-访问日志3.png) | 
+| 模块       | 浅色                                       | 深色1                                      | 深色2                                      |
+|----------|------------------------------------------|------------------------------------------|------------------------------------------|
+| 登录       | ![登录](/.image/swing/登录.png)              | -                                        | -                                        |
+| 主页       | ![主页](/.image/swing/主页1.png)             | ![主页](/.image/swing/主页2.png)             | ![主页](/.image/swing/主页3.png)             | 
+| 用户管理     | ![用户管理](/.image/swing/用户管理1.png)         | ![用户管理](/.image/swing/用户管理2.png)         | ![用户管理](/.image/swing/用户管理3.png)         | 
+| 角色管理     | ![角色管理1](/.image/swing/角色管理1.png)        | ![角色管理2](/.image/swing/角色管理2.png)        | ![用户管理3](/.image/swing/用户管理3.png)        | 
+| 菜单管理     | ![菜单管理1](/.image/swing/菜单管理1.png)        | ![菜单管理2](/.image/swing/菜单管理2.png)        | ![菜单管理3](/.image/swing/菜单管理3.png)        | 
+| 部门管理     | ![部门管理](/.image/swing/部门管理1.png)         | ![部门管理](/.image/swing/部门管理2.png)         | ![部门管理](/.image/swing/部门管理3.png)         | 
+| 岗位管理     | ![岗位管理](/.image/swing/岗位管理1.png)         | ![岗位管理](/.image/swing/岗位管理2.png)         | ![岗位管理](/.image/swing/岗位管理3.png)         | 
+| 字典管理     | ![字典管理](/.image/swing/字典管理1.png)         | ![字典管理](/.image/swing/字典管理2.png)         | ![字典管理](/.image/swing/字典管理3.png)         | 
+| 字典数据     | ![字典数据](/.image/swing/字典数据1.png)         | ![字典数据](/.image/swing/字典数据2.png)         | ![字典数据](/.image/swing/字典数据3.png)         | 
+| 通知公告     | ![通知公告](/.image/swing/通知公告1.png)         | ![字典数据](/.image/swing/通知公告2.png)         | ![字典数据](/.image/swing/通知公告3.png)         | 
+| 消息模板     | ![消息模板](/.image/swing/消息模板1.png)         | ![消息模板](/.image/swing/消息模板2.png)         | ![消息模板](/.image/swing/消息模板3.png)         | 
+| 消息记录     | ![消息记录](/.image/swing/消息记录1.png)         | ![消息记录](/.image/swing/消息记录2.png)         | ![消息记录](/.image/swing/消息记录3.png)         | 
+| 我的消息     | ![我的消息](/.image/swing/我的消息1.png)         | ![我的消息](/.image/swing/我的消息2.png)         | ![我的消息](/.image/swing/我的消息3.png)         |
+| 操作日志     | ![操作日志](/.image/swing/操作日志1.png)         | ![操作日志](/.image/swing/操作日志2.png)         | ![操作日志](/.image/swing/操作日志3.png)         | 
+| 登录日志     | ![登录日志](/.image/swing/登录日志1.png)         | ![登录日志](/.image/swing/登录日志2.png)         | ![登录日志](/.image/swing/登录日志3.png)         | 
+| 文件配置     | ![文件配置](/.image/swing/文件配置1.png)         | ![文件配置](/.image/swing/文件配置2.png)         | ![文件配置](/.image/swing/文件配置3.png)         | 
+| 文件列表     | ![文件列表](/.image/swing/文件列表1.png)         | ![文件列表](/.image/swing/文件列表2.png)         | ![文件列表](/.image/swing/文件列表3.png)         | 
+| 定时任务     | ![定时任务](/.image/swing/定时任务1.png)         | ![定时任务](/.image/swing/定时任务2.png)         | ![定时任务](/.image/swing/定时任务3.png)         | 
+| 执行日志     | ![执行日志](/.image/swing/执行日志1.png)         | ![执行日志](/.image/swing/执行日志2.png)         | ![执行日志](/.image/swing/执行日志3.png)         | 
+| API-访问日志 | ![API-访问日志](/.image/swing/API-访问日志1.png) | ![API-访问日志](/.image/swing/API-访问日志2.png) | ![API-访问日志](/.image/swing/API-访问日志3.png) | 
 | API-错误日志 | ![API-错误日志](/.image/swing/API-错误日志1.png) | ![API-错误日志](/.image/swing/API-错误日志2.png) | ![API-错误日志](/.image/swing/API-错误日志3.png) | 
 | 配置管理     | ![配置管理](/.image/swing/配置管理1.png)         | ![配置管理](/.image/swing/配置管理2.png)         | ![配置管理](/.image/swing/配置管理3.png)         | 
