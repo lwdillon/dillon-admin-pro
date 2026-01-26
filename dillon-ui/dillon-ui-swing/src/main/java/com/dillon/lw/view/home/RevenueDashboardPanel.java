@@ -71,14 +71,35 @@ public class RevenueDashboardPanel extends WPanel {
 
     private void updateData(String filter) {
         chartArea.resetSelection();
+
         switch (filter) {
-            case "1M" ->
-                    chartArea.setData(new float[]{10.5f, 45.2f, 18.8f, 28.1f}, new float[]{5.2f, 12.0f, 34.5f, 8.9f});
-            case "6M" -> chartArea.setData(new float[]{5, 12, 18, 15, 25, 20}, new float[]{2, 8, 10, 5, 12, 15});
-            case "1Y" -> chartArea.setData(new float[]{5, 10, 8, 15, 12, 20, 18, 25, 22, 30, 28, 45},
-                    new float[]{2, 5, 4, 10, 8, 15, 14, 20, 18, 25, 22, 30});
-            default -> chartArea.setData(new float[]{0, 15, 42, 10, 29, 48, 10, 28},
-                    new float[]{0, 10, 16, 8, 21, 5, 2, 23});
+            case "1M":
+                chartArea.setData(
+                        new float[]{10.5f, 45.2f, 18.8f, 28.1f},
+                        new float[]{5.2f, 12.0f, 34.5f, 8.9f}
+                );
+                break;
+
+            case "6M":
+                chartArea.setData(
+                        new float[]{5, 12, 18, 15, 25, 20},
+                        new float[]{2, 8, 10, 5, 12, 15}
+                );
+                break;
+
+            case "1Y":
+                chartArea.setData(
+                        new float[]{5, 10, 8, 15, 12, 20, 18, 25, 22, 30, 28, 45},
+                        new float[]{2, 5, 4, 10, 8, 15, 14, 20, 18, 25, 22, 30}
+                );
+                break;
+
+            default:
+                chartArea.setData(
+                        new float[]{0, 15, 42, 10, 29, 48, 10, 28},
+                        new float[]{0, 10, 16, 8, 21, 5, 2, 23}
+                );
+                break;
         }
     }
 
