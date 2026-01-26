@@ -1,7 +1,5 @@
 package com.dillon.lw.config;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.prefs.Preferences;
 
 public final class AppPrefs {

@@ -10,7 +10,6 @@ import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
-import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;

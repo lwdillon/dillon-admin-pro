@@ -200,14 +200,14 @@
   import * as ${simpleClassName}Api
     from
         '@/api/';
+  import ImageUpload from '@/components/ImageUpload';
+  import FileUpload from '@/components/FileUpload';
+  import Editor from '@/components/Editor';
   import ${simpleClassName}
 
   Form
   from
   './';
-  import ImageUpload from '@/components/ImageUpload';
-  import FileUpload from '@/components/FileUpload';
-  import Editor from '@/components/Editor';
   import ${subSimpleClassName}
 
   List

@@ -3,7 +3,6 @@ package com.dillon.lw.fx.view.system.log.operatelog;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.OperateLogApi;
 import com.dillon.lw.api.system.UserApi;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -25,7 +24,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 

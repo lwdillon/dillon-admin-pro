@@ -317,12 +317,12 @@ public class RevenueDashboardPanel extends WPanel {
         }
     }
 
-    public static void main(String[] args) {
-        JFrame f = new JFrame("Revenue Dashboard");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.add(new RevenueDashboardPanel());
-        f.setSize(950, 500);
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-    }
+//    public static void main(String[] args) {
+//        JFrame f = new JFrame("Revenue Dashboard");
+//        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        f.add(new RevenueDashboardPanel());
+//        f.setSize(950, 500);
+//        f.setLocationRelativeTo(null);
+//        f.setVisible(true);
+//    }
 }

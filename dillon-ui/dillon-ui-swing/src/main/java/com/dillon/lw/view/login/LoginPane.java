@@ -5,7 +5,6 @@
 package com.dillon.lw.view.login;
 
 import com.dillon.lw.api.system.AuthApi;
-import com.dillon.lw.components.AlphaPanel;
 import com.dillon.lw.components.AutoCompleteField;
 import com.dillon.lw.config.UserHistory;
 import com.dillon.lw.config.UserHistoryService;

@@ -21,7 +21,6 @@ import com.dillon.lw.fx.view.infra.apilog.ApiErrorLogView;
 import com.dillon.lw.fx.view.infra.config.ConfigView;
 import com.dillon.lw.fx.view.infra.file.FileConfigView;
 import com.dillon.lw.fx.view.infra.file.FileListView;
-import com.dillon.lw.fx.view.infra.job.JobLogView;
 import com.dillon.lw.fx.view.infra.job.JobView;
 import com.dillon.lw.fx.view.layout.SearchDialog;
 import com.dillon.lw.fx.view.system.config.UserInfoView;

@@ -4,10 +4,10 @@
 
 package com.dillon.lw.view.home;
 
-import java.awt.*;
-import javax.swing.*;
+import net.miginfocom.swing.MigLayout;
 
-import net.miginfocom.swing.*;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author wenli

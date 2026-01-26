@@ -20,7 +20,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 

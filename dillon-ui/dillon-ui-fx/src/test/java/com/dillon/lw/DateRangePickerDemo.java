@@ -1,21 +1,16 @@
 package com.dillon.lw;
 
-import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import com.dillon.lw.fx.Resources;
 import com.dlsc.gemsfx.CalendarPicker;
-import com.dlsc.gemsfx.daterange.DateRange;
 import com.dlsc.gemsfx.daterange.DateRangePicker;
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.time.LocalDate;
 
 public class DateRangePickerDemo extends Application {
 

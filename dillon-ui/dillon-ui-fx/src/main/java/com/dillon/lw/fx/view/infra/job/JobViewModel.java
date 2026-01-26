@@ -2,7 +2,6 @@ package com.dillon.lw.fx.view.infra.job;
 
 import cn.hutool.core.convert.Convert;
 import com.dillon.lw.api.infra.JobApi;
-import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
@@ -23,7 +22,6 @@ import javafx.collections.ObservableList;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 

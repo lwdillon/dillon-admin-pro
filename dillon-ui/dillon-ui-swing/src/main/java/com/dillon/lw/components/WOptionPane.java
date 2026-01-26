@@ -1,7 +1,5 @@
 package com.dillon.lw.components;
 
-import com.formdev.flatlaf.FlatClientProperties;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;

@@ -14,7 +14,6 @@ import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
-import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
 import com.dtflys.forest.Forest;
 import javafx.application.Platform;
@@ -23,7 +22,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class UserFormViewModel extends BaseViewModel {

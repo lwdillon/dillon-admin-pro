@@ -1,7 +1,5 @@
 package com.dillon.lw.view.home;
 
-import com.dillon.lw.components.WScrollPane;
-
 import javax.swing.*;
 import java.awt.*;
 

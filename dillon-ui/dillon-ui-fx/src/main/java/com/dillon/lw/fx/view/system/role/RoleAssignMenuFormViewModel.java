@@ -20,7 +20,10 @@ import javafx.collections.ObservableSet;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class RoleAssignMenuFormViewModel extends BaseViewModel {

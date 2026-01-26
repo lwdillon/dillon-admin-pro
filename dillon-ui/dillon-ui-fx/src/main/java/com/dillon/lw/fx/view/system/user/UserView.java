@@ -12,7 +12,6 @@ import com.dillon.lw.fx.view.layout.TreeItemPredicate;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserUpdatePasswordReqVO;
-import com.dlsc.gemsfx.daterange.DateRange;
 import com.dlsc.gemsfx.daterange.DateRangePicker;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -30,7 +29,6 @@ import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
