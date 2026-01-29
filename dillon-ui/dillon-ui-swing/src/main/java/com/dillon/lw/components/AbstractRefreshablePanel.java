@@ -20,7 +20,9 @@ import java.awt.event.HierarchyEvent;
 public abstract class AbstractRefreshablePanel extends JPanel {
 
     private boolean dirty = false; // 标记是否需要刷新
-
+    /**
+     * 构造方法
+     */
     public AbstractRefreshablePanel() {
         // 1. 自动管理生命周期：当组件显示在屏幕上时注册，移除时注销
         addHierarchyListener(e -> {
@@ -34,6 +36,9 @@ public abstract class AbstractRefreshablePanel extends JPanel {
         });
     }
 
+    /**
+     * 当组件显示在屏幕上时调用
+     */
     private void onPanelShow() {
         EventBusCenter.get().register(this);
         // 如果在后台期间收到了刷新指令，切换回来时立即刷新
@@ -42,10 +47,18 @@ public abstract class AbstractRefreshablePanel extends JPanel {
         }
     }
 
+    /**
+     * 当组件从屏幕移除时调用
+     */
     private void onPanelHide() {
         EventBusCenter.get().unregister(this);
     }
 
+    /**
+     * 刷新数据事件处理方法
+     *
+     * @param event 刷新数据事件
+     */
     @Subscribe
     public final void onRefreshEvent(RefreshDataEvent event) {
         // 2. 性能优化：如果当前 Tab 不可见，先标记，不执行耗时刷新
@@ -56,6 +69,9 @@ public abstract class AbstractRefreshablePanel extends JPanel {
         refreshWithCheck();
     }
 
+    /**
+     * 刷新数据方法，检查是否需要刷新
+     */
     private void refreshWithCheck() {
         dirty = false;
         // 3. 线程安全：强制切换到 EDT
