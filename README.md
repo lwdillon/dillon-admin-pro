@@ -28,7 +28,9 @@ HTTP库：Retrofit结合rxjava3封装一下调用rest请求调用，用于与后
     * http客户端库 [Forest](https://forest.kim/)
     * javaSwing主题 [FlatLaf](https://https://www.formdev.com/flatlaf/) 
 
-
+欢迎加qq群交流！
+* qq1群: 114697782
+* qq2群: 808309284
 
 ## 启动说明
 
