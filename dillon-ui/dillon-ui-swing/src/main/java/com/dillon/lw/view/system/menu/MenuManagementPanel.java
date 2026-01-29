@@ -7,6 +7,7 @@ import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.MenuApi;
+import com.dillon.lw.components.AbstractRefreshablePanel;
 import com.dillon.lw.components.WButton;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.WaitPane;
@@ -15,6 +16,7 @@ import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.MenuRefrestEvent;
+import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
@@ -23,6 +25,7 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.google.common.eventbus.Subscribe;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -33,8 +36,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
@@ -45,7 +46,7 @@ import static javax.swing.JOptionPane.*;
  * @author liwen
  * @date 2022/07/17
  */
-public class MenuManagementPanel extends JPanel implements Observer {
+public class MenuManagementPanel extends AbstractRefreshablePanel {
     private final static String[] COLUMN_ID = {"菜单名称", "图标", "排序", "权限标识", "组件路径", "组件名称", "状态", "操作"};
 
     private JXTreeTable treeTable;
@@ -62,6 +63,11 @@ public class MenuManagementPanel extends JPanel implements Observer {
     public MenuManagementPanel() {
 
         initComponents();
+        updateData();
+    }
+
+    @Override
+    protected void doRefresh() {
         updateData();
     }
 
@@ -408,12 +414,7 @@ public class MenuManagementPanel extends JPanel implements Observer {
     }
 
 
-    @Override
-    public void update(Observable o, Object arg) {
-        if (this.isDisplayable()) {
-            updateData();
-        }
-    }
+
 
     class MenuTreeTableModel extends AbstractTreeTableModel {
 

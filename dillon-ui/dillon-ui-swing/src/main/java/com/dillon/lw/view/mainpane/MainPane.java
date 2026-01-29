@@ -8,7 +8,7 @@ import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.MenuRefrestEvent;
-import com.dillon.lw.eventbus.event.RefrestEvent;
+import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
@@ -484,7 +484,7 @@ public class MainPane extends JPanel {
         bar.setOpaque(false);
         menuToggleBut = createToolbarButton("icons/bars.svg","折叠/展开菜单栏",e -> toggleNavBarState());
 
-        JButton refreshBut = createToolbarButton("icons/refresh.svg", "刷新", e -> EventBusCenter.get().post(new RefrestEvent()));
+        JButton refreshBut = createToolbarButton("icons/refresh.svg", "刷新", e -> EventBusCenter.get().post(new RefreshDataEvent()));
 
         bar.add(menuToggleBut);
         bar.add(refreshBut);

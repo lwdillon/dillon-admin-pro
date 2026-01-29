@@ -10,6 +10,7 @@ import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
+import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
@@ -17,6 +18,7 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.google.common.eventbus.Subscribe;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -27,8 +29,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.CompletableFuture;
 
 import static javax.swing.JOptionPane.*;
@@ -39,7 +39,7 @@ import static javax.swing.JOptionPane.*;
  * @author liwen
  * @date 2022/07/17
  */
-public class DeptManagementPanel extends JPanel implements Observer {
+public class DeptManagementPanel extends AbstractRefreshablePanel {
     private final static String[] COLUMN_ID = {"部门名称", "负责人", "排序", "状态", "创建时间", "操作"};
 
     private JXTreeTable treeTable;
@@ -56,6 +56,11 @@ public class DeptManagementPanel extends JPanel implements Observer {
     public DeptManagementPanel() {
 
         initComponents();
+        updateData();
+    }
+
+    @Override
+    protected void doRefresh() {
         updateData();
     }
 
@@ -373,12 +378,7 @@ public class DeptManagementPanel extends JPanel implements Observer {
     }
 
 
-    @Override
-    public void update(Observable o, Object arg) {
-        if (this.isDisplayable()) {
-            updateData();
-        }
-    }
+
 
     class DeptTreeTableModel extends AbstractTreeTableModel {
 

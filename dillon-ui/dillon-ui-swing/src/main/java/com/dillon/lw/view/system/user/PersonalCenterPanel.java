@@ -2,8 +2,10 @@ package com.dillon.lw.view.system.user;
 
 import cn.hutool.core.date.DateUtil;
 import com.dillon.lw.api.system.UserProfileApi;
+import com.dillon.lw.components.AbstractRefreshablePanel;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.notice.WMessage;
+import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
@@ -11,13 +13,12 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.google.common.eventbus.Subscribe;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.CompletableFuture;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
@@ -28,7 +29,7 @@ import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMP
  * @author liwen
  * @date 2022/07/08
  */
-public class PersonalCenterPanel extends JPanel implements Observer {
+public class PersonalCenterPanel extends AbstractRefreshablePanel {
 
     /**
      * 人小组
@@ -126,6 +127,11 @@ public class PersonalCenterPanel extends JPanel implements Observer {
     public PersonalCenterPanel() {
 
         initComponents();
+    }
+
+    @Override
+    protected void doRefresh() {
+        updateData();
     }
 
     /**
@@ -346,10 +352,5 @@ public class PersonalCenterPanel extends JPanel implements Observer {
         return valid;
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        if (this.isDisplayable()) {
-            updateData();
-        }
-    }
+
 }
