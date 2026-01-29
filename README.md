@@ -22,10 +22,11 @@ HTTP库：Retrofit结合rxjava3封装一下调用rest请求调用，用于与后
 * 界面基于 [芋道源码/yudao-ui-admin-vue3](https://github.com/yudaocode/yudao-ui-admin-vue3/)
 * 后端采用[芋道源码/ruoyi-vue-pro](https://github.com/YunaiV/ruoyi-vue-pro)
 * 前端技术栈:
-    * 主题 [atlantafx](https://github.com/mkpaz/atlantafx) ([文档](https://mkpaz.github.io/atlantafx/))
-    * 图标库 [ikonli](https://github.com/kordamp/ikonli) ([文档](https://kordamp.org/ikonli/))
-    * 动画库 [AnimateFX](https://github.com/Typhon0/AnimateFX) ([文档](https://github.com/Typhon0/AnimateFX/wiki))
-    * http库 [OpenFeign](https://github.com/OpenFeign/feign)
+    * javafx主题 [atlantafx](https://github.com/mkpaz/atlantafx) ([文档](https://mkpaz.github.io/atlantafx/))
+    * javafx图标库 [ikonli](https://github.com/kordamp/ikonli) ([文档](https://kordamp.org/ikonli/))
+    * jafafx动画库 [AnimateFX](https://github.com/Typhon0/AnimateFX) ([文档](https://github.com/Typhon0/AnimateFX/wiki))
+    * http客户端库 [Forest](https://forest.kim/)
+    * javaSwing主题 [FlatLaf](https://https://www.formdev.com/flatlaf/) 
 
 
 
