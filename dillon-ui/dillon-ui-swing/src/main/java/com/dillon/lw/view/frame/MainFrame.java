@@ -138,6 +138,7 @@ public class MainFrame extends JFrame {
         configureWindowTitleBar(false); // 隐藏缩放按钮
         setResizable(false);
 
+        mainPane.closeAllTab();
         cardLayout.show(cardPanel, CARD_LOGIN);
         loginPane.startLogoInfo();
         loginPane.initData();

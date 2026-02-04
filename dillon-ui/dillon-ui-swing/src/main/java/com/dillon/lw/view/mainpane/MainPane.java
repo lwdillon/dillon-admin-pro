@@ -520,11 +520,15 @@ public class MainPane extends JPanel {
             }
         }));
         menu.add(createMenuItem("关闭所有", () -> {
-            for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
-                if (tabbedPane.isTabClosableAt(i)) tabbedPane.removeTabAt(i);
-            }
+            closeAllTab();
         }));
         menu.show(e.getComponent(), e.getX(), e.getY());
+    }
+
+    public void closeAllTab() {
+        for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
+            if (tabbedPane.isTabClosableAt(i)) tabbedPane.removeTabAt(i);
+        }
     }
 
     // ===================================================================================
