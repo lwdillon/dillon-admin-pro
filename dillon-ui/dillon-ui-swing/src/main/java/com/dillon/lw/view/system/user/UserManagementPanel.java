@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.system.user;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -271,7 +272,7 @@ public class UserManagementPanel extends JPanel {
     private void showAddDialog(Long id) {
         UserEditPane userEditPane = new UserEditPane();
         userEditPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, userEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, userEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(userEditPane.getValue());
         }
@@ -288,7 +289,7 @@ public class UserManagementPanel extends JPanel {
 
         UserEditPane userEditPane = new UserEditPane();
         userEditPane.updateData(userId);
-        int opt = WOptionPane.showOptionDialog(null, userEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, userEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(userEditPane.getValue());
         }
@@ -311,7 +312,7 @@ public class UserManagementPanel extends JPanel {
 
         AssignRolesPane assignRolesPane = new AssignRolesPane();
         assignRolesPane.updateData(Convert.toStr(table.getValueAt(selRow, 1)), Convert.toStr(table.getValueAt(selRow, 2)), userId);
-        int opt = WOptionPane.showOptionDialog(null, assignRolesPane, "分配角色", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, assignRolesPane, "分配角色", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             permissionAssignUserRole(assignRolesPane.getValue());
         }
@@ -358,7 +359,7 @@ public class UserManagementPanel extends JPanel {
             userName = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -382,7 +383,7 @@ public class UserManagementPanel extends JPanel {
      */
     private void resetPwd() {
         Long id = Convert.toLong(table.getValueAt(table.getSelectedRow(), 0));
-        String pwd = WOptionPane.showInputDialog(this, "请输入【" + table.getValueAt(table.getSelectedRow(), 2) + "】的密码", "重置密码", INFORMATION_MESSAGE);
+        String pwd = JOptionPane.showInputDialog(this, "请输入【" + table.getValueAt(table.getSelectedRow(), 2) + "】的密码", "重置密码", INFORMATION_MESSAGE);
         if (StringUtils.isBlank(pwd)) {
             return;
         }
@@ -484,10 +485,9 @@ public class UserManagementPanel extends JPanel {
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? 0 : 1));
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         // 过滤掉 null 值

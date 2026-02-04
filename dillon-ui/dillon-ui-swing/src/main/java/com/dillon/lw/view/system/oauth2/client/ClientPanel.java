@@ -192,7 +192,7 @@ public class ClientPanel extends JPanel {
     private void showAddDialog(Long id) {
         ClientFormPane clientFormPane = new ClientFormPane();
         clientFormPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, clientFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, clientFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(clientFormPane.getValue());
         }
@@ -213,7 +213,7 @@ public class ClientPanel extends JPanel {
 
         ClientFormPane clientFormPane = new ClientFormPane();
         clientFormPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, clientFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, clientFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(clientFormPane.getValue());
         }
@@ -265,7 +265,7 @@ public class ClientPanel extends JPanel {
             name = auth2ClientRespVO.getName();
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

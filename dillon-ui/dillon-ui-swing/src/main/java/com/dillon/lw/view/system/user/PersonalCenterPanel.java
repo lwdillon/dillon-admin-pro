@@ -7,6 +7,8 @@ import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
+import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdatePasswordReqVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileUpdateReqVO;
 import com.dillon.lw.view.frame.MainFrame;
@@ -19,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
 
@@ -256,8 +261,27 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
             phoneNumberLabel.setText(userProfileRespVO.getMobile());
             emailLabel.setText(userProfileRespVO.getEmail());
             deptLabel.setText(userProfileRespVO.getDept().getName());
-            postLabel.setText(userProfileRespVO.getPosts() + "");
-            roleLabel.setText(userProfileRespVO.getRoles() + "");
+            List<PostSimpleRespVO> posts = userProfileRespVO.getPosts();
+            String postInfo = posts == null || posts.isEmpty()
+                    ? "-"
+                    : posts.stream()
+                    .map(PostSimpleRespVO::getName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(", "));
+
+            postLabel.setText(postInfo);
+
+            List<RoleSimpleRespVO> roles = userProfileRespVO.getRoles();
+            String roleInfo = roles == null || roles.isEmpty()
+                    ? "-"
+                    : roles.stream()
+                    .map(RoleSimpleRespVO::getName)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(", "));
+
+            roleLabel.setText(roleInfo);
+
+
             createTimeLabel.setText(DateUtil.format(userProfileRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
 
             nickNameTextField.setText(userProfileRespVO.getNickname());

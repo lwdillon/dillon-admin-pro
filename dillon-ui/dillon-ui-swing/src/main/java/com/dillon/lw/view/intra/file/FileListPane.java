@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.intra.file;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -243,7 +244,7 @@ public class FileListPane extends JPanel {
             userName = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -312,10 +313,9 @@ public class FileListPane extends JPanel {
         queryMap.put("type", type);
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);

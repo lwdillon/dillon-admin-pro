@@ -217,7 +217,7 @@ public class JobPane extends JPanel {
 
         JobFormPane roleEditPane = new JobFormPane();
         roleEditPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(roleEditPane.getValue());
         }
@@ -228,7 +228,7 @@ public class JobPane extends JPanel {
         if (id != null) {
             formPane.updateData(id);
         }
-        int opt = WOptionPane.showOptionDialog(null, formPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, formPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(formPane.getValue());
         }
@@ -284,7 +284,7 @@ public class JobPane extends JPanel {
             jobRespVO = (JobRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否要执行[" + jobRespVO.getHandlerName() + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否要执行[" + jobRespVO.getHandlerName() + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -315,7 +315,7 @@ public class JobPane extends JPanel {
         }
         String text = (jobRespVO.getStatus() == 2) ? "开启" : "暂停";
 
-        int opt = WOptionPane.showOptionDialog(this, "是否" + text + "[" + jobRespVO.getName() + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否" + text + "[" + jobRespVO.getName() + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -347,7 +347,7 @@ public class JobPane extends JPanel {
             userName = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -479,7 +479,7 @@ public class JobPane extends JPanel {
             addMessageInfo("监控超时时间", finalRespVO.getMonitorTimeout(), panel, 8);
             panel.add(new JLabel("后续执行时间"), "cell 0 9");
             panel.add(list, "cell 1 9,growy 0");
-            WOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+            JOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
 
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {

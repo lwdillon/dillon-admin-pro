@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.system.notice;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -260,7 +261,7 @@ public class NotifyMessagePane extends JPanel {
         addMessageInfo("是否已读", INFRA_BOOLEAN_STRING, noticeRespVO.getReadStatus(), panel, 9);
         addMessageInfo("阅读时间", DateUtil.format(noticeRespVO.getReadTime(), "yyyy-MM-dd HH:mm:ss"), panel, 10);
         addMessageInfo("创建时间", DateUtil.format(noticeRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 11);
-        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 
@@ -319,10 +320,9 @@ public class NotifyMessagePane extends JPanel {
 
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd= DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed= DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);

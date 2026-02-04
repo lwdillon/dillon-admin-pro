@@ -197,7 +197,7 @@ public class TokenPane extends JPanel {
             accessToken = Convert.toStr(table.getValueAt(selRow, 0));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否要强制退出用户？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否要强制退出用户？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

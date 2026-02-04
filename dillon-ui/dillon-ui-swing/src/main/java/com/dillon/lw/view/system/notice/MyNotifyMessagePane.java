@@ -4,10 +4,12 @@
 
 package com.dillon.lw.view.system.notice;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.NotifyMessageApi;
+import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.CheckHeaderCellRenderer;
@@ -28,6 +30,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -35,8 +38,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_NOTIFY_TEMPLATE_TYPE;
-import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.*;
 
 /**
  * @author wenli
@@ -68,9 +70,17 @@ public class MyNotifyMessagePane extends JPanel {
                 return super.getColumnClass(columnIndex);
             }
         };
+        table.setEditable(false);
+        tableModel.setColumnIdentifiers(COLUMN_ID);
+
+        // 开启排序
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
+
+        // 禁止第一列排序
+        sorter.setSortable(0, false);
         toolPane = new WPanel();
         label7 = new JLabel();
-        readStatusComboBox = new JComboBox();
         label10 = new JLabel();
         startDateTextField = new WLocalDateCombo();
         label11 = new JLabel();
@@ -79,7 +89,6 @@ public class MyNotifyMessagePane extends JPanel {
         reseBut = new JButton();
         readingBut = new JButton();
         readingAllBut = new JButton();
-
         //======== this ========
         setOpaque(false);
         setLayout(new BorderLayout(10, 10));
@@ -92,7 +101,6 @@ public class MyNotifyMessagePane extends JPanel {
 
             //======== scrollPane2 ========
             {
-                tableModel.setColumnIdentifiers(COLUMN_ID);
                 scrollPane2.setViewportView(table);
             }
 
@@ -119,13 +127,6 @@ public class MyNotifyMessagePane extends JPanel {
                         // rows
                         "[]"));
                 toolPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-                //---- label7 ----
-                label7.setText("是否已读");
-                toolPane.add(label7, "cell 0 0");
-
-                //---- userNameTextField ----
-                toolPane.add(readStatusComboBox, "cell 0 0");
-
 
                 //---- label10 ----
                 label10.setText("创建时间");
@@ -187,14 +188,8 @@ public class MyNotifyMessagePane extends JPanel {
 
         viewBut.setIcon(new FlatSVGIcon("icons/chakan.svg", 15, 15));
         viewBut.addActionListener(e -> showDetailsDialog());
-
-        JButton del = new JButton("删除");
-        del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
-        del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("App.danger.color"));
         optBar.add(Box.createGlue());
         optBar.add(viewBut);
-        optBar.add(del);
         optBar.add(Box.createGlue());
         return optBar;
 
@@ -206,6 +201,7 @@ public class MyNotifyMessagePane extends JPanel {
         searchBut.addActionListener(e -> updateData());
         readingBut.addActionListener(e -> updateNotifyMessageRead());
         readingAllBut.addActionListener(e -> updateAllNotifyMessageRead());
+
     }
 
     private void showDetailsDialog() {
@@ -231,7 +227,7 @@ public class MyNotifyMessagePane extends JPanel {
         addMessageInfo("是否已读", INFRA_BOOLEAN_STRING, noticeRespVO.getReadStatus(), panel, 3);
         addMessageInfo("阅读时间", DateUtil.format(noticeRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 4);
         addMessageInfo("内容", noticeRespVO.getTemplateContent(), panel, 5);
-        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 
@@ -256,7 +252,6 @@ public class MyNotifyMessagePane extends JPanel {
     }
 
     private void reset() {
-        readStatusComboBox.setSelectedItem(null);
         startDateTextField.setValue(null);
         endDateTextField.setValue(null);
     }
@@ -276,7 +271,7 @@ public class MyNotifyMessagePane extends JPanel {
         }
 
         if (ids.isEmpty()) {
-            WMessage.showMessageWarning(MainFrame.getInstance(), "请选择要删除的数据！");
+            WMessage.showMessageWarning(MainFrame.getInstance(), "请选择要已读的数据！");
             return;
         }
 
@@ -314,30 +309,16 @@ public class MyNotifyMessagePane extends JPanel {
     }
 
 
-    private void del() {
-
-
-    }
-
-
     public void updateData() {
 
         Map<String, Object> queryMap = new HashMap<>();
         queryMap.put("pageNo", paginationPane.getPageIndex());
         queryMap.put("pageSize", paginationPane.getPageSize());
 
-
-        if (readStatusComboBox.getSelectedItem() != null) {
-            DictDataSimpleRespVO simpleRespVO = (DictDataSimpleRespVO) readStatusComboBox.getSelectedItem();
-            queryMap.put("readStatus", simpleRespVO.getValue());
-        }
-
-
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);
@@ -399,8 +380,6 @@ public class MyNotifyMessagePane extends JPanel {
         });
 
 
-
-
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
@@ -409,10 +388,9 @@ public class MyNotifyMessagePane extends JPanel {
     private JScrollPane scrollPane1;
     private JPanel centerPane;
     private JScrollPane scrollPane2;
-    private JTable table;
+    private JXTable table;
     private JPanel toolPane;
     private JLabel label7;
-    private JComboBox readStatusComboBox;
     private JLabel label10;
     private WLocalDateCombo startDateTextField;
     private JLabel label11;

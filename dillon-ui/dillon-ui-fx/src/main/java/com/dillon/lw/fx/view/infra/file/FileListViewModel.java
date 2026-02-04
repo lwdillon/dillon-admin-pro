@@ -1,5 +1,6 @@
 package com.dillon.lw.fx.view.infra.file;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.FileApi;
 import com.dillon.lw.fx.DefaultExceptionHandler;
@@ -53,7 +54,7 @@ public class FileListViewModel extends BaseViewModel {
         if (ObjectUtil.isAllNotEmpty(getBeginDate(), getEndDate())) {
             String sd = getBeginDate().atTime(0, 0, 0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String ed = getEndDate().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            queryMap.put("createTime", new String[]{sd, ed});
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
         queryMap.values().removeAll(Collections.singleton(null));
 

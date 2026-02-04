@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.system.role;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -230,7 +231,7 @@ public class RoleManagementPanel extends JPanel {
     private void showAddDialog(Long id) {
         RoleEditPane roleEditPane = new RoleEditPane();
         roleEditPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, roleEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(roleEditPane.getValue());
         }
@@ -247,7 +248,7 @@ public class RoleManagementPanel extends JPanel {
 
         RoleEditPane roleEditPane = new RoleEditPane();
         roleEditPane.updateData(userId);
-        int opt = WOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(roleEditPane.getValue());
         }
@@ -262,7 +263,7 @@ public class RoleManagementPanel extends JPanel {
 
         DataPermissionPane dataPermissionPane = new DataPermissionPane();
         dataPermissionPane.updateData(roleRespVO);
-        int opt = WOptionPane.showOptionDialog(null, dataPermissionPane, "数据权限", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, dataPermissionPane, "数据权限", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             assignRoleDataScope(dataPermissionPane.getValue());
         }
@@ -277,7 +278,7 @@ public class RoleManagementPanel extends JPanel {
 
         RoleAssignMenuPane roleAssignMenuPane = new RoleAssignMenuPane();
         roleAssignMenuPane.updateData(roleRespVO);
-        int opt = WOptionPane.showOptionDialog(null, roleAssignMenuPane, "菜单权限", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, roleAssignMenuPane, "菜单权限", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             assignRoleMenu(roleAssignMenuPane.getValue());
         }
@@ -333,7 +334,7 @@ public class RoleManagementPanel extends JPanel {
             userName = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -400,10 +401,9 @@ public class RoleManagementPanel extends JPanel {
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? 0 : 1));
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
         queryMap.values().removeIf(Objects::isNull);
 

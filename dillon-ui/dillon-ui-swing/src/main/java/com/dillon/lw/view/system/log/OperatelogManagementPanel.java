@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.system.log;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -247,7 +248,7 @@ public class OperatelogManagementPanel extends JPanel {
         addMessageInfo("请求 URL", logRespVO.getRequestMethod() + " " + logRespVO.getRequestUrl(), panel, 10);
         addMessageInfo("操作时间", DateUtil.format(logRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"), panel, 11);
         addMessageInfo("业务编号", logRespVO.getBizId(), panel, 12);
-        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 
@@ -284,7 +285,7 @@ public class OperatelogManagementPanel extends JPanel {
 
     private void clear() {
 
-        int opt = WOptionPane.showOptionDialog(this, "确定要清空所有操作日志吗？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "确定要清空所有操作日志吗？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
         if (opt != 0) {
             return;
         }
@@ -313,7 +314,7 @@ public class OperatelogManagementPanel extends JPanel {
             userName = Convert.toStr(table.getValueAt(selRow, 3));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
@@ -357,10 +358,9 @@ public class OperatelogManagementPanel extends JPanel {
         }
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            String[] dateTimes = new String[2];
-            dateTimes[0] = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            dateTimes[1] = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
-            queryMap.put("createTime", dateTimes);
+            java.lang.String sd= DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);

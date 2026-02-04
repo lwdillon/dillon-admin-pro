@@ -1,6 +1,7 @@
 package com.dillon.lw.view.system.dept;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
@@ -186,7 +187,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
     private void showDeptAddDialog(Long id) {
         deptEditPane = new DeptEditPane();
         deptEditPane.updateData(id, true);
-        int opt = WOptionPane.showOptionDialog(null, deptEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, deptEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             addDept();
         }
@@ -206,7 +207,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
         }
         deptEditPane = new DeptEditPane();
         deptEditPane.updateData(deptId, false);
-        int opt = WOptionPane.showOptionDialog(null, deptEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, deptEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             editDept();
         }
@@ -238,8 +239,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
                 if (object.getLeaderUserId() != null) {
                     treeNode.putExtra("leaderUserId", object.getLeaderUserId());
                 }
-
-                treeNode.putExtra("createTime", object.getCreateTime());
+                treeNode.putExtra("createTime",DateUtil.format(object.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
             }));
             updateTreeTableRoot(treeList);
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {
@@ -356,7 +356,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
             }
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + deptName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + deptName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

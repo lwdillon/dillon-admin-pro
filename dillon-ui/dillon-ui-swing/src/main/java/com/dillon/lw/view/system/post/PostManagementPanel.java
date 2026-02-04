@@ -179,7 +179,7 @@ public class PostManagementPanel extends JPanel {
 
         reseBut.addActionListener(e -> reset());
         searchBut.addActionListener(e -> updateData());
-        newBut.addActionListener(e -> showAddDialog(null));
+        newBut.addActionListener(e -> showAddDialog());
     }
 
     private void reset() {
@@ -188,10 +188,10 @@ public class PostManagementPanel extends JPanel {
         stautsComboBox.setSelectedIndex(0);
     }
 
-    private void showAddDialog(Long id) {
+    private void showAddDialog() {
         PostFormPane postFormPane = new PostFormPane();
-        postFormPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, postFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+//        postFormPane.updateData(id);
+        int opt = JOptionPane.showOptionDialog(null, postFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(postFormPane.getValue());
         }
@@ -208,7 +208,7 @@ public class PostManagementPanel extends JPanel {
 
         PostFormPane postFormPane = new PostFormPane();
         postFormPane.updateData(postId);
-        int opt = WOptionPane.showOptionDialog(null, postFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, postFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(postFormPane.getValue());
         }
@@ -258,7 +258,7 @@ public class PostManagementPanel extends JPanel {
             postName = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + postName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + postName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

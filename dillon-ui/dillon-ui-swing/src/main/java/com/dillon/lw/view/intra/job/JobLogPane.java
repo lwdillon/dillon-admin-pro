@@ -213,7 +213,7 @@ public class JobLogPane extends JPanel {
         addMessageInfo("执行时长", finalRespVO.getDuration() + " 毫秒", panel, 6);
         addMessageInfo("任务状态", INFRA_JOB_LOG_STATUS, finalRespVO.getStatus(), panel, 7);
         addMessageInfo("执行结果", finalRespVO.getResult(), panel, 8);
-        WOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 

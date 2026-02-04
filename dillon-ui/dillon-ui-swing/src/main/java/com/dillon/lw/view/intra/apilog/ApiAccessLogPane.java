@@ -249,7 +249,7 @@ public class ApiAccessLogPane extends JPanel {
         addMessageInfo("操作名类型", INFRA_OPERATE_TYPE, respVO.getOperateType(), panel, 14);
 
 
-        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 

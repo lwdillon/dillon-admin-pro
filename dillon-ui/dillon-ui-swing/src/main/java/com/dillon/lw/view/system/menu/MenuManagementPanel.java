@@ -130,8 +130,9 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         JScrollPane tsp = new JScrollPane(treeTable);
         tsp.setBorder(BorderFactory.createEmptyBorder());
 
-        JPanel cantenPane = new WPanel(new BorderLayout(0, 10));
+        JPanel cantenPane = new JPanel(new BorderLayout(0, 10));
 //        cantenPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        cantenPane.setOpaque(false);
         cantenPane.add(toolBar, BorderLayout.NORTH);
         cantenPane.add(tsp, BorderLayout.CENTER);
         waitPane = new WaitPane(cantenPane);

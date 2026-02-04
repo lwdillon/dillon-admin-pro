@@ -210,7 +210,7 @@ public class DictDataManagementPanel extends JPanel {
         DictDataFormPane dictDataFormPane = new DictDataFormPane();
         dictDataFormPane.setDictType(dictType);
         dictDataFormPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, dictDataFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, dictDataFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             add(dictDataFormPane.getValue());
         }
@@ -227,7 +227,7 @@ public class DictDataManagementPanel extends JPanel {
 
         DictDataFormPane dictDataFormPane = new DictDataFormPane();
         dictDataFormPane.updateData(id);
-        int opt = WOptionPane.showOptionDialog(null, dictDataFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        int opt = JOptionPane.showOptionDialog(null, dictDataFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(dictDataFormPane.getValue());
         }
@@ -275,7 +275,7 @@ public class DictDataManagementPanel extends JPanel {
             name = Convert.toStr(table.getValueAt(selRow, 1));
         }
 
-        int opt = WOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;

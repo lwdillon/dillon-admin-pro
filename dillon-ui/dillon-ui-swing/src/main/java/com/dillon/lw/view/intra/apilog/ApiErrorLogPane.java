@@ -257,7 +257,7 @@ public class ApiErrorLogPane extends JPanel {
         addMessageInfo("处理时间", DateUtil.format(respVO.getProcessTime(), "yyyy-MM-dd HH:mm:ss"), panel, 13);
 
 
-        WOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+        JOptionPane.showOptionDialog(null, panel, "详情", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
 
     }
 
