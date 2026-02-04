@@ -23,6 +23,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ItemEvent;
@@ -268,7 +269,8 @@ public class DataPermissionPane extends JPanel {
             for (DeptSimpleRespVO simpleRespVO : deptResult) {
                 DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
                 nodeMap.put(simpleRespVO.getId(), node);
-                if (roleRespVO.getDataScopeDeptIds().contains(simpleRespVO.getId())) {
+                Set<Long> deptIds = roleRespVO.getDataScopeDeptIds();
+                if (deptIds != null && deptIds.contains(simpleRespVO.getId())) {
                     selNodes.add(node);
                 }
             }
@@ -280,6 +282,9 @@ public class DataPermissionPane extends JPanel {
                     parentNode.add(childNode);
                 }
             });
+
+            deptTree.setModel(new DefaultTreeModel(deptRoot));
+
             if (selNodes != null) {
                 for (DefaultMutableTreeNode node : selNodes) {
                     if (node.isLeaf()) {
@@ -288,7 +293,6 @@ public class DataPermissionPane extends JPanel {
 
                 }
             }
-            TreeUtils.expandAll(deptTree);
             TreeUtils.expandAll(deptTree);
 
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {

@@ -69,8 +69,14 @@ public class MyNotifyMessagePane extends JPanel {
                 }
                 return super.getColumnClass(columnIndex);
             }
+
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return "操作".equals(getColumnName(column));
+            }
+
         };
-        table.setEditable(false);
         tableModel.setColumnIdentifiers(COLUMN_ID);
 
         // 开启排序

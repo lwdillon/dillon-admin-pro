@@ -56,7 +56,12 @@ public class DictTypeManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel());
+        table = new JXTable(tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return "操作".equals(getColumnName(column));
+            }
+        });
         toolPane = new WPanel();
         label7 = new JLabel();
         nameTextField = new JTextField();

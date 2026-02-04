@@ -54,7 +54,13 @@ public class NotifyMessagePane extends JPanel {
     private void initComponents() {
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel());
+        table = new JXTable(tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return "操作".equals(getColumnName(column));
+            }
+        });
+       
         toolPane = new WPanel();
         label7 = new JLabel();
         userIdTextField = new JTextField(10);
@@ -406,7 +412,7 @@ public class NotifyMessagePane extends JPanel {
     // Generated using JFormDesigner non-commercial license
     private JPanel centerPane;
     private JScrollPane scrollPane2;
-    private JTable table;
+    private JXTable table;
     private JPanel toolPane;
     private JLabel label7;
     private JTextField userIdTextField;

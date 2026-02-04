@@ -57,7 +57,13 @@ public class NotifyTemplatePane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel());
+        table = new JXTable(tableModel = new DefaultTableModel(){
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return "操作".equals(getColumnName(column));
+            }
+        });
+       
         toolPane = new WPanel();
         label7 = new JLabel();
         label8 = new JLabel();
@@ -398,7 +404,7 @@ public class NotifyTemplatePane extends JPanel {
     private JScrollPane scrollPane1;
     private JPanel centerPane;
     private JScrollPane scrollPane2;
-    private JTable table;
+    private JXTable table;
     private JPanel toolPane;
     private JLabel label7;
     private JLabel label8;
