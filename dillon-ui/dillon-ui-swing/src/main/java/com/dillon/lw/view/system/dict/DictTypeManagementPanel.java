@@ -333,7 +333,7 @@ public class DictTypeManagementPanel extends JPanel {
             queryMap.put("name", nameTextField.getText());
         }
         if (StrUtil.isNotBlank(codeTextField.getText())) {
-            queryMap.put("code", codeTextField.getText());
+            queryMap.put("type", codeTextField.getText());
         }
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? 0 : 1));
 

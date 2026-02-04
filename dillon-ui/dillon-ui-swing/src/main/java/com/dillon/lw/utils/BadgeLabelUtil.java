@@ -10,6 +10,9 @@ public class BadgeLabelUtil {
 
     public static JLabel getBadgeLabel(DictTypeEnum dictType, Object dictDataValue) {
         DictDataSimpleRespVO dict = AppStore.getDictDataValueMap(dictType).get(dictDataValue + "");
+        if(dict == null) {
+            return new JLabel(dictDataValue + "");
+        }
         JLabel redBadge = new JLabel(dict.getLabel());
         switch (dict.getColorType()) {
             case "primary":

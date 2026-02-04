@@ -188,6 +188,20 @@ public class WMonthView extends JPanel {
                 }
             }
         });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                if (row >= 0) {
+                    // 每次点击都触发
+                    if (selectionTimer.isRunning()) {
+                        selectionTimer.restart();
+                    } else {
+                        selectionTimer.start();
+                    }
+                }
+            }
+        });
         setTableSelection();
 
         changeTableAction(KeyEvent.VK_LEFT, ae -> {
@@ -422,7 +436,14 @@ public class WMonthView extends JPanel {
         public String getColumnName(int column) {
             String week = DayOfWeek.of((column + 6) % 7 + 1)
                     .getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault());
-            return week.substring(2);
+            // 处理不同语言环境下星期字符串长度不一致的问题
+            if (week != null && week.length() >= 3) {
+                return week.substring(2);
+            } else if (week != null && !week.isEmpty()) {
+                return week;  // 如果字符串较短，直接返回完整字符串
+            } else {
+                return "";  // 最坏情况下返回空字符串
+            }
         }
 
         @Override

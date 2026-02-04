@@ -16,6 +16,7 @@ import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeRespVO;
 import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
+import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -30,6 +31,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_NOTICE_TYPE;
+import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.*;
 
 /**
@@ -335,6 +338,23 @@ public class NoticeManagementPanel extends JPanel {
                     return panel;
                 }
             });
+
+            table.getColumn("公告类型").setCellRenderer(new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_NOTICE_TYPE, value);
+
+                    panel.add(label);
+                    panel.setBackground(component.getBackground());
+                    panel.setOpaque(isSelected);
+                    return panel;
+                }
+            });
+
+
+
 
             paginationPane.setTotal(result.getTotal());
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {

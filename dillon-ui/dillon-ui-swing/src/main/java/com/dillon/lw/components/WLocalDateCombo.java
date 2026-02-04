@@ -26,7 +26,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
     private final DefaultComboBoxModel<LocalDate> comboModel = new DefaultComboBoxModel<>();
     private LocalDate min;
     private LocalDate max;
-    private final WMonthView WMonthView;
+    private final WMonthView wMonthView;
     private final JPopupMenu popupMenu = new JPopupMenu();
 
     /**
@@ -111,7 +111,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
         longNameDate = longNameDate.plusDays(4 - longNameDate.getDayOfWeek().getValue());
         setPrototypeDisplayValue(longNameDate);
 
-        WMonthView = new WMonthView(value, minDate, maxDate, true);
+        wMonthView = new WMonthView(value, minDate, maxDate, true);
         comboModel.addElement(value);
         setModel(comboModel);
         setRenderer(new DefaultListCellRenderer() {
@@ -128,7 +128,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
 
         min = minDate;
         max = maxDate;
-        popupMenu.add(WMonthView);
+        popupMenu.add(wMonthView);
 
         addPopupMenuListener(new PopupMenuListener() {
 
@@ -140,7 +140,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
                     if (popupShown) {
                         popupMenu.setVisible(false);
                     } else {
-                        WMonthView.setValue(getValue());
+                        wMonthView.setValue(getValue());
                         popupMenu.show(WLocalDateCombo.this, 0, getHeight());
                     }
                 });
@@ -155,10 +155,10 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
             }
         });
 
-        WMonthView.addPropertyChangeListener("Confirm", pce -> {
+        wMonthView.addPropertyChangeListener("Confirm", pce -> {
             popupMenu.setVisible(false);
         });
-        WMonthView.addPropertyChangeListener("Value", pce -> {
+        wMonthView.addPropertyChangeListener("Value", pce -> {
             setValue((LocalDate) pce.getNewValue());
             firePropertyChange("Value", pce.getOldValue(), pce.getNewValue());
         });
@@ -193,9 +193,9 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
         }
         comboModel.removeAllElements();
         comboModel.addElement(value);
-        if (WMonthView.getValue() != null) {
-            if (!WMonthView.getValue().equals(value)) {
-                WMonthView.setValue(value);
+        if (wMonthView.getValue() != null) {
+            if (!wMonthView.getValue().equals(value)) {
+                wMonthView.setValue(value);
             }
         }
 
@@ -221,7 +221,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
      */
     public void setMin(LocalDate min) {
         this.min = min;
-        WMonthView.setMin(min);
+        wMonthView.setMin(min);
     }
 
     /**
@@ -244,7 +244,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
      */
     public void setMax(LocalDate max) {
         this.max = max;
-        WMonthView.setMax(max);
+        wMonthView.setMax(max);
     }
 
     @Override

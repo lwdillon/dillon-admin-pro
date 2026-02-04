@@ -4,6 +4,7 @@
 
 package com.dillon.lw.view.system.notice;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.NoticeApi;
@@ -117,7 +118,17 @@ public class NoticeFormPane extends JPanel {
         titleTextFiled.setText(respVO.getTitle());
         contentTextPane.setText(respVO.getContent());
         statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(respVO.getStatus(), 0));
-        typeComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(respVO.getType(), 0));
+        Integer type = respVO.getType();
+        if (type != null) {
+            ComboBoxModel<DictDataSimpleRespVO> model = typeComboBox.getModel();
+            for (int i = 0; i < model.getSize(); i++) {
+                DictDataSimpleRespVO item = model.getElementAt(i);
+                if (ObjectUtil.equals(item.getValue(), type)) {
+                    typeComboBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
         remarkTextArea.setText(respVO.getRemark());
 
     }
@@ -126,7 +137,10 @@ public class NoticeFormPane extends JPanel {
         NoticeSaveReqVO reqVO = new NoticeSaveReqVO();
         reqVO.setId(id);
         reqVO.setTitle(titleTextFiled.getText());
-        reqVO.setType(typeComboBox.getSelectedIndex());
+        DictDataSimpleRespVO selected = (DictDataSimpleRespVO) typeComboBox.getSelectedItem();
+        if (selected != null) {
+            reqVO.setType(Convert.toInt(selected.getValue(),1));
+        }
         reqVO.setContent(contentTextPane.getText());
         reqVO.setStatus(statusComboBox.getSelectedIndex());
         return reqVO;

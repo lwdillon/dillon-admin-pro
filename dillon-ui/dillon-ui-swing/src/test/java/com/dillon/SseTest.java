@@ -1,6 +1,8 @@
 package com.dillon;
 
 import com.dillon.lw.Resources;
+import com.dillon.lw.components.WLocalDateCombo;
+import com.dillon.lw.components.WMonthView;
 import com.dillon.lw.exception.ExceptionEventQueue;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.http.ForestConfig;
@@ -34,7 +36,7 @@ public class SseTest {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(new Dimension(700,300));
         SsePanel testPane = new SsePanel();
-        frame.setContentPane(testPane);
+        frame.setContentPane(new WLocalDateCombo());
         frame.setVisible(true);
 
     }
