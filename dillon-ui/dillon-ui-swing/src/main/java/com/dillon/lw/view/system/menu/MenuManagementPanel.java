@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.components.AbstractRefreshablePanel;
 import com.dillon.lw.components.WButton;
+import com.dillon.lw.components.WFormDialog;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.WaitPane;
 import com.dillon.lw.components.notice.WMessage;
@@ -21,6 +22,7 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.utils.ExecuteUtils;
+import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
@@ -197,17 +199,29 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
 
     private void showMenuAddDialog(Long id) {
-        menuEditPane = new MenuEditPane();
-        menuEditPane.updateData(id, true);
-        int opt = JOptionPane.showOptionDialog(null, menuEditPane, "添加菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            addMenu();
-        }
+        MenuEditPane formPane = new MenuEditPane();
+        formPane.updateData(id, true);
+
+        WFormDialog<MenuSaveVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加菜单", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getMenuRespVO,
+                data -> {
+                    Forest.client(MenuApi.class).createMenu(data).getCheckedData();
+                    return true;
+                },
+                () -> {
+                    updateData();
+                    EventBusCenter.get().post(new MenuRefrestEvent());
+                },
+                "添加菜单成功"
+        );
     }
 
 
     private void showMenuEditDialog() {
-
         int selRow = treeTable.getSelectedRow();
         Long menuId = null;
         if (selRow != -1) {
@@ -217,12 +231,26 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 menuId = (Long) tree.get("id");
             }
         }
-        menuEditPane = new MenuEditPane();
-        menuEditPane.updateData(menuId, false);
-        int opt = JOptionPane.showOptionDialog(null, menuEditPane, "修改菜单", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            editMenu();
-        }
+
+        MenuEditPane formPane = new MenuEditPane();
+        formPane.updateData(menuId, false);
+
+        WFormDialog<MenuSaveVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改菜单", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getMenuRespVO,
+                data -> {
+                    Forest.client(MenuApi.class).updateMenu(data).getCheckedData();
+                    return true;
+                },
+                () -> {
+                    updateData();
+                    EventBusCenter.get().post(new MenuRefrestEvent());
+                },
+                "修改菜单成功"
+        );
     }
 
     private void updateData() {
@@ -278,11 +306,21 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 JLabel label = new JLabel("", JLabel.CENTER);
 
                 String icon = (String) value;
+
                 if (StrUtil.contains(icon, ":")) {
-                    icon = "icons/menu/" + icon.split(":")[1] + ".svg";
-                    label.setIcon(new FlatSVGIcon(icon, 25, 25));
+                    String iconPath = "icons/menu/" + icon.split(":")[1] + ".svg";
+
+                    if (StrUtil.isBlank(iconPath)||  IconLoader.class.getResourceAsStream("/"+iconPath) == null) {
+                        label.setIcon(null);
+                        label.setText("");
+                    }else {
+                        label.setIcon(new FlatSVGIcon(iconPath, 25, 25));
+                        label.setText("");
+                    }
+
                 } else {
-                    label.setText(value.toString());
+                    label.setIcon(null);
+                    label.setText(String.valueOf(value));
                 }
 
                 label.setHorizontalTextPosition(CENTER);
@@ -334,48 +372,6 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         return textField;
     }
 
-
-    /**
-     * 添加菜单
-     */
-    private void addMenu() {
-
-        MenuSaveVO menuSaveVO = menuEditPane.getMenuRespVO();
-
-        CompletableFuture.runAsync(() -> {
-            Forest.client(MenuApi.class).createMenu(menuSaveVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加菜单成功");
-            updateData();
-            EventBusCenter.get().post(new MenuRefrestEvent());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-
-    }
-
-    private void editMenu() {
-
-        MenuSaveVO menuSaveVO = menuEditPane.getMenuRespVO();
-
-        CompletableFuture.runAsync(() -> {
-            Forest.client(MenuApi.class).updateMenu(menuSaveVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改菜单成功");
-            updateData();
-            EventBusCenter.get().post(new MenuRefrestEvent());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
 
     private void delMenu() {
         Long menuId = null;

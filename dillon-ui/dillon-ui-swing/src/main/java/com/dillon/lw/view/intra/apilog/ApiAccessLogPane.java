@@ -183,6 +183,26 @@ public class ApiAccessLogPane extends JPanel {
         });
 
         userTypeComboBox.setSelectedItem(null);
+
+
+        DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (value instanceof DictDataSimpleRespVO) {
+                    label.setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+
+                return label;
+
+            }
+        };
+        userTypeComboBox.setRenderer(defaultListCellRenderer);
     }
 
     @Override

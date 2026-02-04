@@ -5,6 +5,7 @@
 package com.dillon.lw.view.intra.job;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.infra.JobApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
@@ -117,6 +118,23 @@ public class JobFormPane extends JPanel {
         reqVO.setRetryInterval(Convert.toInt(retryIntervalFiled.getText(),0));
         reqVO.setMonitorTimeout(Convert.toInt(monitorTimeoutField.getText(),0));
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameField.getText())) {
+            return "请输入任务名称";
+        }
+        if (StrUtil.isBlank(handlerNameField.getText())) {
+            return "请输入处理器的名字";
+        }
+        if (StrUtil.isBlank(cronExpressionField.getText())) {
+            return "请输入CRON表达式";
+        }
+        return null;
     }
 
 

@@ -6,6 +6,7 @@ package com.dillon.lw.view.system.menu;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.MenuApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
@@ -306,6 +307,18 @@ public class MenuEditPane extends JPanel {
         menuSaveVO.setSort(Convert.toInt(sortSpinner.getValue(), 0));
         menuSaveVO.setType(typeDirRadioButton.isSelected() ? 1 : (typeMenuRadioButton.isSelected() ? 2 : 3));
         return menuSaveVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameTextField.getText())) {
+            return "请输入菜单名称";
+        }
+
+        return null;
     }
 
     public void setMenuRespVO(MenuRespVO menuRespVO) {

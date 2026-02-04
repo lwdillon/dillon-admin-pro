@@ -153,6 +153,25 @@ public class JobPane extends JPanel {
             statusComboBox.addItem(dictDataSimpleRespVO);
         });
         statusComboBox.setSelectedItem(null);
+
+        DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (value instanceof DictDataSimpleRespVO) {
+                    label.setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+
+                return label;
+
+            }
+        };
+        statusComboBox.setRenderer(defaultListCellRenderer);
     }
 
     private JToolBar creatBar() {
@@ -207,20 +226,25 @@ public class JobPane extends JPanel {
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long id = null;
         if (selRow != -1) {
             id = Convert.toLong(table.getValueAt(selRow, 0));
         }
 
-        JobFormPane roleEditPane = new JobFormPane();
-        roleEditPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(roleEditPane.getValue());
-        }
+        JobFormPane formPane = new JobFormPane();
+        formPane.updateData(id);
+
+        WFormDialog<JobSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(JobApi.class).updateJob(data).getCheckedData(),
+                this::loadTableData,
+                "修改成功！"
+        );
     }
 
     private void showAddDialog(Long id) {
@@ -228,10 +252,17 @@ public class JobPane extends JPanel {
         if (id != null) {
             formPane.updateData(id);
         }
-        int opt = JOptionPane.showOptionDialog(null, formPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(formPane.getValue());
-        }
+
+        WFormDialog<JobSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(JobApi.class).createJob(data).getCheckedData(),
+                this::loadTableData,
+                "添加成功！"
+        );
     }
 
     @Override
@@ -241,38 +272,6 @@ public class JobPane extends JPanel {
             table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
         }
     }
-
-    /**
-     * 添加
-     */
-    private void add(JobSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).createJob(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
-    private void edit(JobSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).updateJob(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
 
     private void triggerJob() {
         Long id = null;

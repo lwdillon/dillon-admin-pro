@@ -5,6 +5,7 @@
 package com.dillon.lw.view.system.dict;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.DictTypeApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeRespVO;
@@ -95,6 +96,20 @@ public class DictTypeFormPane extends JPanel {
         reqVO.setRemark(remarkTextArea.getText());
         reqVO.setStatus(statusComboBox.getSelectedIndex());
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameTextField.getText())) {
+            return "请输入字典名称";
+        }
+        if (StrUtil.isBlank(typeTextField.getText())) {
+            return "请输入字典类型";
+        }
+        return null;
     }
 
 

@@ -6,6 +6,7 @@ package com.dillon.lw.view.system.post;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
@@ -109,6 +110,20 @@ public class PostFormPane extends JPanel {
         reqVO.setSort(Convert.toInt(sortSpinner.getValue()));
         reqVO.setStatus(statusComboBox.getSelectedIndex());
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameTextField.getText())) {
+            return "请输入岗位标题";
+        }
+        if (StrUtil.isBlank(codeTextField.getText())) {
+            return "请输入岗位编码";
+        }
+        return null;
     }
 
 

@@ -7,6 +7,7 @@ package com.dillon.lw.view.system.dict.data;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.components.WFormDialog;
 import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataRespVO;
@@ -166,6 +167,20 @@ public class DictDataFormPane extends JPanel {
         reqVO.setColorType(colorTypeComboBox.getSelectedItem() instanceof ColorTypeOptions ? ((ColorTypeOptions) colorTypeComboBox.getSelectedItem()).getValue() : null);
         reqVO.setCssClass(cssClassTextField.getText());
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(labelTextField.getText())) {
+            return "请输入数据标签";
+        }
+        if (StrUtil.isBlank(valueTextField.getText())) {
+            return "请输入数据键值";
+        }
+        return null;
     }
 
 

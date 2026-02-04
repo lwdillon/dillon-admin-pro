@@ -8,6 +8,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.components.WFormDialog;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.PostApi;
 import com.dillon.lw.api.system.UserApi;
@@ -408,6 +410,25 @@ public class UserEditPane extends JPanel {
         reqVO.setPostIds(selPostId);
 
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nicknameTextField.getText())) {
+            return "请输入用户昵称";
+        }
+        if (id == null) {
+            if (StrUtil.isBlank(usernameTextField.getText())) {
+                return "请输入用户名称";
+            }
+            if (StrUtil.isBlank(passwordField.getText())) {
+                return "请输入用户密码";
+            }
+        }
+        return null;
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

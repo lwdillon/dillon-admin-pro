@@ -153,6 +153,25 @@ public class ConfigPane extends JPanel {
             typeComboBox.addItem(dictDataSimpleRespVO);
         });
         typeComboBox.setSelectedItem(null);
+
+        DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (value instanceof DictDataSimpleRespVO) {
+                    label.setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+
+                return label;
+
+            }
+        };
+        typeComboBox.setRenderer(defaultListCellRenderer);
     }
 
     private JToolBar creatBar() {
@@ -192,17 +211,22 @@ public class ConfigPane extends JPanel {
     }
 
     private void showAddDialog(Long id) {
-        ConfigFormPane postFormPane = new ConfigFormPane();
-        postFormPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, postFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(postFormPane.getValue());
-        }
+        ConfigFormPane formPane = new ConfigFormPane();
+        formPane.updateData(id);
+
+        WFormDialog<ConfigSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(ConfigApi.class).createConfig(data).getCheckedData(),
+                this::updateData,
+                "添加成功！"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long postId = null;
         if (selRow != -1) {
@@ -211,42 +235,17 @@ public class ConfigPane extends JPanel {
 
         ConfigFormPane formPane = new ConfigFormPane();
         formPane.updateData(postId);
-        int opt = JOptionPane.showOptionDialog(null, formPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(formPane.getValue());
-        }
-    }
 
+        WFormDialog<ConfigSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
 
-    /**
-     * 添加
-     */
-    private void add(ConfigSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ConfigApi.class).createConfig(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
-    private void edit(ConfigSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ConfigApi.class).updateConfig(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(ConfigApi.class).updateConfig(data).getCheckedData(),
+                this::updateData,
+                "修改成功！"
+        );
     }
 
     private void delMenu() {

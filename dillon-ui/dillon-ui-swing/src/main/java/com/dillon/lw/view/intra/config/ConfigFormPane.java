@@ -5,6 +5,7 @@
 package com.dillon.lw.view.intra.config;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.infra.ConfigApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigRespVO;
@@ -122,6 +123,26 @@ public class ConfigFormPane extends JPanel {
         reqVO.setRemark(remarkTextArea.getText());
         reqVO.setVisible(Convert.toBool(((DictDataSimpleRespVO) visibleComboBox.getSelectedItem()).getValue()));
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(categoryField.getText())) {
+            return "请输入参数分类";
+        }
+        if (StrUtil.isBlank(nameField.getText())) {
+            return "请输入参数名称";
+        }
+        if (StrUtil.isBlank(keyField.getText())) {
+            return "请输入参数键名";
+        }
+        if (StrUtil.isBlank(valueField.getText())) {
+            return "请输入参数键值";
+        }
+        return null;
     }
 
 

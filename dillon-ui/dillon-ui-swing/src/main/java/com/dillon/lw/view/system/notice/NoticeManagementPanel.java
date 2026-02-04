@@ -184,7 +184,7 @@ public class NoticeManagementPanel extends JPanel {
 
         reseBut.addActionListener(e -> reset());
         searchBut.addActionListener(e -> updateData());
-        newBut.addActionListener(e -> showAddDialog(null));
+        newBut.addActionListener(e -> showAddDialog());
     }
 
     private void reset() {
@@ -192,63 +192,42 @@ public class NoticeManagementPanel extends JPanel {
         stautsComboBox.setSelectedIndex(0);
     }
 
-    private void showAddDialog(Long id) {
-        NoticeFormPane noticeFormPane = new NoticeFormPane();
-        noticeFormPane.updateData(new NoticeRespVO());
-        int opt = JOptionPane.showOptionDialog(null, noticeFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(noticeFormPane.getValue());
-        }
+    private void showAddDialog() {
+        NoticeFormPane formPane = new NoticeFormPane();
+//        formPane.updateData(new NoticeRespVO());
+
+        WFormDialog<NoticeSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(NoticeApi.class).createNotice(data).getCheckedData(),
+                this::updateData,
+                "添加成功！"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         NoticeRespVO noticeRespVO = null;
         if (selRow != -1) {
             noticeRespVO = (NoticeRespVO) table.getValueAt(selRow, 5);
         }
 
-        NoticeFormPane noticeFormPane = new NoticeFormPane();
-        noticeFormPane.updateData(noticeRespVO);
-        int opt = JOptionPane.showOptionDialog(null, noticeFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(noticeFormPane.getValue());
-        }
-    }
+        NoticeFormPane formPane = new NoticeFormPane();
+        formPane.updateData(noticeRespVO);
 
+        WFormDialog<NoticeSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
 
-    /**
-     * 添加
-     */
-    private void add(NoticeSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).createNotice(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
-
-    private void edit(NoticeSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).updateNotice(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(NoticeApi.class).updateNotice(data).getCheckedData(),
+                this::updateData,
+                "修改成功！"
+        );
     }
 
     private void del() {

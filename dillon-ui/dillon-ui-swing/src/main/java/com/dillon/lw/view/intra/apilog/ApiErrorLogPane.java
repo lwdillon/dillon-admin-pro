@@ -169,7 +169,25 @@ public class ApiErrorLogPane extends JPanel {
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
 
         table.setRowHeight(40);
+        DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (value instanceof DictDataSimpleRespVO) {
+                    label.setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+
+                return label;
+
+            }
+        };
+        userTypeComboBox.setRenderer(defaultListCellRenderer);
+        processStatusComboBox.setRenderer(defaultListCellRenderer);
 
         startDateTextField.setValue(null);
         endDateTextField.setValue(null);
@@ -183,6 +201,8 @@ public class ApiErrorLogPane extends JPanel {
         });
         userTypeComboBox.setSelectedItem(null);
         processStatusComboBox.setSelectedItem(null);
+
+
     }
 
     @Override

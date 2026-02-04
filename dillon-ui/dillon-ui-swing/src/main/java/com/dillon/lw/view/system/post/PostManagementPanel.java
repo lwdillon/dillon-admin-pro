@@ -189,63 +189,40 @@ public class PostManagementPanel extends JPanel {
     }
 
     private void showAddDialog() {
-        PostFormPane postFormPane = new PostFormPane();
-//        postFormPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, postFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(postFormPane.getValue());
-        }
+        PostFormPane formPane = new PostFormPane();
+
+        WFormDialog<PostSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(PostApi.class).createPost(data).getCheckedData(),
+                this::updateData,
+                "添加成功！"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long postId = null;
         if (selRow != -1) {
             postId = Convert.toLong(table.getValueAt(selRow, 0));
         }
 
-        PostFormPane postFormPane = new PostFormPane();
-        postFormPane.updateData(postId);
-        int opt = JOptionPane.showOptionDialog(null, postFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(postFormPane.getValue());
-        }
-    }
+        PostFormPane formPane = new PostFormPane();
+        formPane.updateData(postId);
 
+        WFormDialog<PostSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
 
-    private void add(PostSaveReqVO saveReqVO) {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).createPost(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
-
-    private void edit(PostSaveReqVO saveReqVO) {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).updatePost(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(PostApi.class).updatePost(data).getCheckedData(),
+                this::updateData,
+                "修改成功！"
+        );
     }
 
     private void delMenu() {

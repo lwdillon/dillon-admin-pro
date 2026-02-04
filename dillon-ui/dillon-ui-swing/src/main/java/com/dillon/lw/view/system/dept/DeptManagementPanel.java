@@ -185,17 +185,23 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
 
     private void showDeptAddDialog(Long id) {
-        deptEditPane = new DeptEditPane();
-        deptEditPane.updateData(id, true);
-        int opt = JOptionPane.showOptionDialog(null, deptEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            addDept();
-        }
+        DeptEditPane formPane = new DeptEditPane();
+        formPane.updateData(id, true);
+
+        WFormDialog<DeptSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(DeptApi.class).createDept(data).getCheckedData(),
+                this::updateData,
+                "添加成功！"
+        );
     }
 
 
     private void showDeptEditDialog() {
-
         int selRow = treeTable.getSelectedRow();
         Long deptId = null;
         if (selRow != -1) {
@@ -205,12 +211,20 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
                 deptId = (Long) tree.get("id");
             }
         }
-        deptEditPane = new DeptEditPane();
-        deptEditPane.updateData(deptId, false);
-        int opt = JOptionPane.showOptionDialog(null, deptEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            editDept();
-        }
+
+        DeptEditPane formPane = new DeptEditPane();
+        formPane.updateData(deptId, false);
+
+        WFormDialog<DeptSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(DeptApi.class).updateDept(data).getCheckedData(),
+                this::updateData,
+                "修改成功！"
+        );
     }
 
     private void updateData() {
@@ -301,46 +315,6 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
         return textField;
     }
 
-
-    /**
-     * 添加菜单
-     */
-    private void addDept() {
-
-        DeptSaveReqVO saveVO = deptEditPane.getValue();
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).createDept(saveVO).getCheckedData();
-        }).thenAcceptAsync(aLong -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
-
-    private void editDept() {
-
-        DeptSaveReqVO saveReqVO = deptEditPane.getValue();
-
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).updateDept(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(aBoolean -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-    }
 
     private void del() {
         Long deptId = null;

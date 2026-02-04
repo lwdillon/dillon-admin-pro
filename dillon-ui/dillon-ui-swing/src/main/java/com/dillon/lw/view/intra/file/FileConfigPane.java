@@ -168,7 +168,24 @@ public class FileConfigPane extends JPanel {
 
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
 
+        DefaultListCellRenderer defaultListCellRenderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (value instanceof DictDataSimpleRespVO) {
+                    label.setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+
+                return label;
+
+            }
+        };
+        storageComboBox.setRenderer(defaultListCellRenderer);
     }
 
     private JToolBar creatBar() {

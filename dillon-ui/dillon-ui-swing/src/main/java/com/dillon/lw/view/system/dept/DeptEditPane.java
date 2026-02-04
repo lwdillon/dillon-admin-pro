@@ -6,6 +6,7 @@ package com.dillon.lw.view.system.dept;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.DeptApi;
 import com.dillon.lw.api.system.UserApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
@@ -190,6 +191,17 @@ public class DeptEditPane extends JPanel {
         saveVO.setPhone(phoneTextField.getText());
 
         return saveVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameTextField.getText())) {
+            return "请输入部门名称";
+        }
+        return null;
     }
 
     private void setDeptRespVO(DeptRespVO deptRespVO) {

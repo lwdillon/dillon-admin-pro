@@ -6,6 +6,7 @@ package com.dillon.lw.view.system.role;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.RoleApi;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
@@ -160,6 +161,20 @@ public class RoleEditPane extends JPanel {
         reqVO.setStatus(statusComboBox.getSelectedIndex());
         reqVO.setType(typeComboBox.getSelectedIndex() + 1);
         return reqVO;
+    }
+
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(nameTextField.getText())) {
+            return "请输入角色名称";
+        }
+        if (StrUtil.isBlank(codeTextField.getText())) {
+            return "请输入角色标识";
+        }
+        return null;
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

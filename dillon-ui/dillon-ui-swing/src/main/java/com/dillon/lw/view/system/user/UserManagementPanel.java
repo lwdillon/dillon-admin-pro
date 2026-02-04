@@ -270,29 +270,47 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void showAddDialog(Long id) {
-        UserEditPane userEditPane = new UserEditPane();
-        userEditPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, userEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(userEditPane.getValue());
-        }
+        UserEditPane formPane = new UserEditPane();
+        formPane.updateData(id);
+
+        WFormDialog<UserSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> {
+                    Forest.client(UserApi.class).createUser(data).getCheckedData();
+                    return true;
+                },
+                this::loadTableData,
+                "添加用户成功"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long userId = null;
         if (selRow != -1) {
             userId = Convert.toLong(table.getValueAt(selRow, 0));
         }
 
-        UserEditPane userEditPane = new UserEditPane();
-        userEditPane.updateData(userId);
-        int opt = JOptionPane.showOptionDialog(null, userEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(userEditPane.getValue());
-        }
+        UserEditPane formPane = new UserEditPane();
+        formPane.updateData(userId);
+
+        WFormDialog<UserSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> {
+                    Forest.client(UserApi.class).updateUser(data).getCheckedData();
+                    return true;
+                },
+                this::loadTableData,
+                "修改用户成功"
+        );
     }
 
     @Override

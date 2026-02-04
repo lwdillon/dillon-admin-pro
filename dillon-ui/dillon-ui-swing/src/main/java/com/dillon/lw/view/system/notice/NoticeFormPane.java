@@ -132,6 +132,20 @@ public class NoticeFormPane extends JPanel {
         return reqVO;
     }
 
+    /**
+     * 验证表单
+     * @return 验证失败的错误消息，null表示验证通过
+     */
+    public String validates() {
+        if (StrUtil.isBlank(titleTextFiled.getText())) {
+            return "请输入公告标题";
+        }
+        if (StrUtil.isBlank(contentTextPane.getText())) {
+            return "请输入公告内容";
+        }
+        return null;
+    }
+
 
     public void updateData(NoticeRespVO respVO) {
         this.id = respVO.getId();

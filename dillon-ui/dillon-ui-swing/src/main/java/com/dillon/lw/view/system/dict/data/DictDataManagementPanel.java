@@ -207,62 +207,42 @@ public class DictDataManagementPanel extends JPanel {
     }
 
     private void showAddDialog(Long id) {
-        DictDataFormPane dictDataFormPane = new DictDataFormPane();
-        dictDataFormPane.setDictType(dictType);
-        dictDataFormPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, dictDataFormPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(dictDataFormPane.getValue());
-        }
+        DictDataFormPane formPane = new DictDataFormPane();
+        formPane.setDictType(dictType);
+        formPane.updateData(id);
+
+        WFormDialog<DictDataSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(DictDataApi.class).createDictData(data).getCheckedData(),
+                this::updateData,
+                "添加成功！"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long id = null;
         if (selRow != -1) {
             id = Convert.toLong(table.getValueAt(selRow, 0));
         }
 
-        DictDataFormPane dictDataFormPane = new DictDataFormPane();
-        dictDataFormPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, dictDataFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(dictDataFormPane.getValue());
-        }
-    }
+        DictDataFormPane formPane = new DictDataFormPane();
+        formPane.updateData(id);
 
+        WFormDialog<DictDataSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
 
-    /**
-     * 添加
-     */
-    private void add(DictDataSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).createDictData(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(aLong -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
-    private void edit(DictDataSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).updateDictData(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(aBoolean -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(DictDataApi.class).updateDictData(data).getCheckedData(),
+                this::updateData,
+                "修改成功！"
+        );
     }
 
     private void delMenu() {

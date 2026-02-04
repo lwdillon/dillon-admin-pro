@@ -229,29 +229,41 @@ public class RoleManagementPanel extends JPanel {
     }
 
     private void showAddDialog(Long id) {
-        RoleEditPane roleEditPane = new RoleEditPane();
-        roleEditPane.updateData(id);
-        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "添加", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            add(roleEditPane.getValue());
-        }
+        RoleEditPane formPane = new RoleEditPane();
+        formPane.updateData(id);
+
+        WFormDialog<RoleSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "添加", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(RoleApi.class).createRole(data).getCheckedData(),
+                this::loadTableData,
+                "添加成功！"
+        );
     }
 
     private void showEditDialog() {
-
-
         int selRow = table.getSelectedRow();
         Long userId = null;
         if (selRow != -1) {
             userId = Convert.toLong(table.getValueAt(selRow, 0));
         }
 
-        RoleEditPane roleEditPane = new RoleEditPane();
-        roleEditPane.updateData(userId);
-        int opt = JOptionPane.showOptionDialog(null, roleEditPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-        if (opt == 0) {
-            edit(roleEditPane.getValue());
-        }
+        RoleEditPane formPane = new RoleEditPane();
+        formPane.updateData(userId);
+
+        WFormDialog<RoleSaveReqVO> dialog = new WFormDialog<>(
+                MainFrame.getInstance(), "修改", formPane);
+
+        dialog.showDialogWithAsyncSubmit(
+                formPane::validates,
+                formPane::getValue,
+                data -> Forest.client(RoleApi.class).updateRole(data).getCheckedData(),
+                this::loadTableData,
+                "修改成功！"
+        );
     }
 
     private void showDataPermissionPaneDialog() {
@@ -292,37 +304,6 @@ public class RoleManagementPanel extends JPanel {
         }
     }
 
-
-    /**
-     * 添加
-     */
-    private void add(RoleSaveReqVO roleSaveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).createRole(roleSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
-
-    private void edit(RoleSaveReqVO roleSaveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).updateRole(roleSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-    }
 
     private void del() {
         Long id = null;
