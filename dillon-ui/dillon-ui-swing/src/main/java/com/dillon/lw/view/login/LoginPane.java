@@ -6,6 +6,8 @@ package com.dillon.lw.view.login;
 
 import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.components.AutoCompleteField;
+import com.dillon.lw.components.notice.WMessage;
+import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.config.UserHistory;
 import com.dillon.lw.config.UserHistoryService;
 import com.dillon.lw.eventbus.EventBusCenter;
@@ -15,6 +17,7 @@ import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.ExecuteUtils;
+import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
@@ -24,6 +27,8 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,8 +185,40 @@ public class LoginPane extends JPanel {
 
 
     public void initData() {
+        List<UserHistory> users = UserHistoryService.loadUsers();
+        userNameField.setDataList(users);
 
-        userNameField.setDataList(UserHistoryService.loadUsers());
+        String currentUserId = AppPrefs.prefs().get(AppPrefs.KEY_CURRENT_USER, "");
+        if (currentUserId.isEmpty()) {
+            userNameField.setText("");
+            passwordField.setText("");
+            rememberCheckBox.setSelected(false);
+            return;
+        }
+
+        UserHistory current = null;
+        for (UserHistory user : users) {
+            if (currentUserId.equals(user.getUserId())) {
+                current = user;
+                break;
+            }
+        }
+
+        if (current == null) {
+            userNameField.setText("");
+            passwordField.setText("");
+            rememberCheckBox.setSelected(false);
+            return;
+        }
+
+        userNameField.setText(current.getUsername());
+        if (AppPrefs.prefs().getBoolean(AppPrefs.KEY_LAST_LOGIN_OK, false)) {
+            passwordField.setText(current.getPasswrod());
+            rememberCheckBox.setSelected(true);
+        } else {
+            passwordField.setText("");
+            rememberCheckBox.setSelected(false);
+        }
     }
 
 
@@ -200,11 +237,13 @@ public class LoginPane extends JPanel {
         this.setBackground(new Color(0x32BAF6));
         progressBar.setVisible(false);
         userNameField.setFont(UIManager.getFont("h3.font"));
+        userNameField.setText("");
         userNameField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "用户名");
         userNameField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/icon_username.svg", 35, 35));
         userNameField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         passwordField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "用户密码");
+        passwordField.setText("");
         passwordField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/mima.svg", 35, 35));
         passwordField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         passwordField.setFont(UIManager.getFont("h3.font"));
@@ -243,6 +282,17 @@ public class LoginPane extends JPanel {
 
     private void intListeners() {
         loginButton.addActionListener(e -> login());
+        KeyAdapter submitOnEnter = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER && loginButton.isEnabled()) {
+                    loginButton.doClick();
+                }
+            }
+        };
+        userNameField.addKeyListener(submitOnEnter);
+        passwordField.addKeyListener(submitOnEnter);
+
         timer = new Timer(3000, e -> {
             CardLayout cardLayout = (CardLayout) infoPane.getLayout();
             cardLayout.next(infoPane);
@@ -270,10 +320,16 @@ public class LoginPane extends JPanel {
     }
 
     private void login() {
+        if (!validateCredentials()) {
+            return;
+        }
+
+        String username = userNameField.getText().trim();
+        String password = new String(passwordField.getPassword());
 
         AuthLoginReqVO authLoginReqVO = new AuthLoginReqVO();
-        authLoginReqVO.setUsername(userNameField.getText());
-        authLoginReqVO.setPassword(new String(passwordField.getPassword()));
+        authLoginReqVO.setUsername(username);
+        authLoginReqVO.setPassword(password);
 
         updateUiBeforeRequest();
         // 2. 使用封装的 ExecuteUtils 发起异步请求
@@ -297,6 +353,8 @@ public class LoginPane extends JPanel {
                                 new UserHistory(authPermissionInfo.getUser().getId()+"", authPermissionInfo.getUser().getUsername(), authLoginReqVO.getPassword()),
                                 true
                         );
+                    } else {
+                        UserHistoryService.removeUser(authPermissionInfo.getUser().getId() + "");
                     }
 
                 },
@@ -306,6 +364,23 @@ public class LoginPane extends JPanel {
                 }
         );
 
+    }
+
+    private boolean validateCredentials() {
+        String username = userNameField.getText() == null ? "" : userNameField.getText().trim();
+        String password = new String(passwordField.getPassword()).trim();
+
+        if (username.isEmpty()) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), "请输入用户名");
+            userNameField.requestFocusInWindow();
+            return false;
+        }
+        if (password.isEmpty()) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), "请输入密码");
+            passwordField.requestFocusInWindow();
+            return false;
+        }
+        return true;
     }
 
     private void updateUiBeforeRequest() {
@@ -333,7 +408,9 @@ public class LoginPane extends JPanel {
     }
 
     public void startLogoInfo(){
-        timer.start();
+        if (!timer.isRunning()) {
+            timer.start();
+        }
     }
 
 

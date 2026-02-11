@@ -123,8 +123,11 @@ public class AutoCompleteField<T> extends JTextField {
             list.setSelectedIndex(0);
 
             // 展示弹出层
-            popupMenu.show(this, 0, getHeight());
-            popupMenu.setPopupSize(getWidth(), Math.min(matches.size() * 40 + 5, 200));
+            if (this.isShowing()) {
+                popupMenu.show(this, 0, getHeight());
+                popupMenu.setPopupSize(getWidth(), Math.min(matches.size() * 40 + 5, 200));
+            }
+
             this.requestFocusInWindow();
         } else {
             popupMenu.setVisible(false);

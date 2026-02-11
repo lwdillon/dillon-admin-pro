@@ -149,6 +149,15 @@ public class AppStore {
         return dictDataListMap;
     }
 
+    /**
+     * 清理当前会话缓存（用于退出登录或会话失效）
+     */
+    public static void clearSession() {
+        authLoginRespVO = null;
+        authPermissionInfoRespVO = null;
+        dictDataListMap = null;
+    }
+
 
     public static void setDictDataListMap(Map<String, List<DictDataSimpleRespVO>> dictDataListMap) {
         AppStore.dictDataListMap = dictDataListMap;

@@ -133,6 +133,7 @@ public class MainFrame extends JFrame {
      * @param isInit 是否为应用启动时的第一次展示
      */
     public void showLogin(boolean isInit) {
+        AppStore.clearSession();
         if (!isInit) initTheme(LightTheme.class.getName());
 
         configureWindowTitleBar(false); // 隐藏缩放按钮

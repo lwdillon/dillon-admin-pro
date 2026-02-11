@@ -1,6 +1,6 @@
 # Dillon-Admin-Pro
 
-java权限管理系统桌面客户端
+Java 权限管理系统桌面客户端（JavaFX + Swing）
 
 ## 简介
 
@@ -26,11 +26,30 @@ HTTP库：Retrofit结合rxjava3封装一下调用rest请求调用，用于与后
     * javafx图标库 [ikonli](https://github.com/kordamp/ikonli) ([文档](https://kordamp.org/ikonli/))
     * jafafx动画库 [AnimateFX](https://github.com/Typhon0/AnimateFX) ([文档](https://github.com/Typhon0/AnimateFX/wiki))
     * http客户端库 [Forest](https://forest.kim/)
-    * javaSwing主题 [FlatLaf](https://https://www.formdev.com/flatlaf/) 
+    * javaSwing主题 [FlatLaf](https://www.formdev.com/flatlaf/)
 
 欢迎加qq群交流！
 * qq1群: 114697782
 * qq2群: 808309284
+
+## 许可证
+
+本项目基于 `LICENSE` 文件开源发布。
+
+## 环境要求
+
+* JDK javafx模块17+，其它模块jdk8
+* Maven 3.9+
+* Redis 6+
+* MySQL 8+（由后端项目使用）
+
+## 项目结构
+
+* `dillon-server`：后端启动模块
+* `dillon-module-system`：系统管理核心业务（用户、角色、菜单、日志等）
+* `dillon-ui/dillon-ui-fx`：JavaFX 客户端
+* `dillon-ui/dillon-ui-swing`：Swing 客户端
+* `dillon-ui/dillon-ui-common`：UI 公共 API 与通用 VO
 
 ## 启动说明
 
@@ -80,9 +99,63 @@ HTTP库：Retrofit结合rxjava3封装一下调用rest请求调用，用于与后
     1 运行主类com.dillon.lw.DillonSwingUiApplication即可
 ```
 
+### 客户端配置说明
+
+客户端默认读取以下配置：
+
+* `/dillon-ui/dillon-ui-swing/src/main/resources/application.properties`
+* `/dillon-ui/dillon-ui-fx/src/main/resources/application.properties`
+
+```agsl
+#主机ip
+app.server.master.ip=127.0.0.1
+#备机ip
+app.server.slave.ip=127.0.0.1
+#服务端口号
+app.server.port=48080
+#服务上下文路径
+app.server.basePath=admin-api
+#服务协议
+app.server.scheme=http
+```
+
+请根据本地后端地址修改 `base-url` 等参数。
+
+### 登录与退出行为（Swing）
+
+当前版本已补齐以下行为：
+
+* 登录前用户名/密码非空校验
+* 登录按钮防重复点击
+* 回车键可直接触发登录
+* 退出时先本地清理会话，再回到登录页
+* 服务端退出失败时，仍保证客户端本地可退出
+
+说明：客户端“记住密码”仅用于本地调试体验，不建议在生产环境启用或保存敏感口令。
+
 > 友情提示：本项目基于 芋道源码/ruoyi-vue-pro <https://gitee.com/zhijiantianya/ruoyi-vue-pro> 修改
 >
 > * 后端只修改了system_menu表，增加了component_swing和component_fx两个字段，分别对应javaSwing和javaFx的界面类
+
+## 开源协作
+
+欢迎提交 Issue / PR。建议流程：
+
+* Fork 项目并创建分支：`codex/feature-xxx` 或 `codex/fix-xxx`
+* 提交前确保构建通过，必要时补充测试
+* PR 描述包含：改动背景、方案说明、影响范围、验证步骤
+
+推荐提交信息格式：
+
+* `feat(swing): 优化登录交互`
+* `fix(auth): 修复退出后会话残留`
+* `docs(readme): 补充开源协作说明`
+
+## 安全说明
+
+* 不要在仓库提交生产环境账号、密码、token 或私钥。
+* 建议通过环境变量或本地未跟踪配置覆盖敏感配置。
+* 如发现安全问题，请优先通过私下渠道反馈维护者，不要直接公开漏洞细节。
 
 ## 🐶 新手必读
 

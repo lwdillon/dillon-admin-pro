@@ -5,6 +5,7 @@
 package com.dillon.lw.view.frame;
 
 import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
@@ -185,7 +186,8 @@ public class TitlePanel extends JPanel {
 
         // 顶部用户信息面板
         JPanel infoPanel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(AppStore.getAuthPermissionInfoRespVO().getUser().getNickname(), JLabel.CENTER);
+        String nickName = AppStore.getUserVO() != null ? AppStore.getUserVO().getNickname() : "未登录";
+        JLabel label = new JLabel(nickName, JLabel.CENTER);
         label.setIcon(new FlatSVGIcon("icons/user.svg", 80, 80));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -206,16 +208,38 @@ public class TitlePanel extends JPanel {
         JMenuItem logoutItem = new JMenuItem("退出");
         logoutItem.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
         logoutItem.addActionListener(e1 -> {
-            ExecuteUtils.execute(() -> Forest.client(AuthApi.class).logout(), result -> {
-                if (result.isSuccess()) {
-                    EventBusCenter.get().post(new LoginEvent(1));
-                }
-            });
+            int option = JOptionPane.showConfirmDialog(
+                    MainFrame.getInstance(),
+                    "确认退出当前账号吗？",
+                    "退出登录",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            logoutItem.setEnabled(false);
+            ExecuteUtils.execute(
+                    () -> Forest.client(AuthApi.class).logout(),
+                    result -> {
+                        if (result == null || !result.isSuccess()) {
+                            WMessage.showMessageWarning(MainFrame.getInstance(), "服务端退出失败，已本地退出");
+                        }
+                        doLocalLogout();
+                    },
+                    () -> logoutItem.setEnabled(true)
+            );
         });
 //        logoutItem.addActionListener(e -> MainFrame.getInstance().showLogin());
         popupMenu.add(logoutItem);
 
         popupMenu.show(invoker, 0, invoker.getHeight());
+    }
+
+    private void doLocalLogout() {
+        AppStore.clearSession();
+        EventBusCenter.get().post(new LoginEvent(1));
     }
 
 
