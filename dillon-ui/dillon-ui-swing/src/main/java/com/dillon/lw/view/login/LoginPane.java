@@ -31,12 +31,29 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * @author wenli
+ * 登录页面板（Swing 版本）。
+ * <p>
+ * 注意：本类同时包含 JFormDesigner 生成代码和手写逻辑：
+ * 1. `GEN-BEGIN/GEN-END` 之间由设计器维护，不要手改；
+ * 2. 业务行为、监听器、接口调用放在生成区之外。
+ * </p>
  */
 public class LoginPane extends JPanel {
-    private List<FunctionType> functions = new ArrayList<>();
+    private static final int FEATURE_SWITCH_INTERVAL_MS = 3000;
+    private static final String LOGIN_BUTTON_TEXT = "登录";
+    private static final String LOGIN_LOADING_TEXT = "正在请求登录...";
+
+    /**
+     * 左侧轮播展示的功能介绍。
+     */
+    private final List<FunctionType> functions = new ArrayList<>();
+
+    /**
+     * 左侧功能卡片轮播定时器。
+     */
     private Timer timer;
 
     public LoginPane() {
@@ -150,13 +167,66 @@ public class LoginPane extends JPanel {
         }
         add(contentPane, "cell 1 0,growy");
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
-// 2. 设置自定义渲染器 (示例：让文字变蓝色)
+        // JFormDesigner 之外的逻辑统一放在这里，避免影响 .jfd 维护。
+        configureAutoCompleteField();
+        configureButtons();
+        loadSvg();
+        initCustomComponents();
+        initListeners();
+    }
+
+    /**
+     * 刷新历史账号并回填最近一次成功登录账号。
+     */
+    public void initData() {
+        List<UserHistory> users = UserHistoryService.loadUsers();
+        userNameField.setDataList(users);
+
+        String currentUserId = AppPrefs.prefs().get(AppPrefs.KEY_CURRENT_USER, "");
+        if (currentUserId.isEmpty()) {
+            clearLoginForm();
+            return;
+        }
+
+        UserHistory current = findUserById(users, currentUserId);
+        if (current == null) {
+            clearLoginForm();
+            return;
+        }
+
+        userNameField.setText(current.getUsername());
+        boolean canFillPassword = AppPrefs.prefs().getBoolean(AppPrefs.KEY_LAST_LOGIN_OK, false);
+        passwordField.setText(canFillPassword ? current.getPasswrod() : "");
+        rememberCheckBox.setSelected(canFillPassword);
+    }
+
+    private UserHistory findUserById(List<UserHistory> users, String userId) {
+        for (UserHistory user : users) {
+            if (Objects.equals(user.getUserId(), userId)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    private void clearLoginForm() {
+        userNameField.setText("");
+        passwordField.setText("");
+        rememberCheckBox.setSelected(false);
+    }
+
+    private void configureButtons() {
         delButton.setButtonType(FlatButton.ButtonType.toolBarButton);
         delButton.setFocusable(false);
         delButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
-        userNameField.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.toString());
+    }
 
+    /**
+     * 配置账号历史下拉行为（展示文本、搜索字段、选中回填密码）。
+     */
+    private void configureAutoCompleteField() {
+        userNameField.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
+            JLabel label = new JLabel(value == null ? "" : value.toString());
             if (value instanceof UserHistory) {
                 label.setText(value.getUsername());
             }
@@ -170,57 +240,9 @@ public class LoginPane extends JPanel {
             }
             return label;
         });
-        // 配置：告诉组件通过 User 的 name 属性搜索
-        userNameField.setMapper(user -> user.getUsername());
+        userNameField.setMapper(UserHistory::getUsername);
         userNameField.getList().setFixedCellHeight(40);
-        userNameField.getList().addListSelectionListener(e -> {
-
-        });
-        // 添加功能
-        loadSvg();
-
-        initCustomComponents();
-        intListeners();
     }
-
-
-    public void initData() {
-        List<UserHistory> users = UserHistoryService.loadUsers();
-        userNameField.setDataList(users);
-
-        String currentUserId = AppPrefs.prefs().get(AppPrefs.KEY_CURRENT_USER, "");
-        if (currentUserId.isEmpty()) {
-            userNameField.setText("");
-            passwordField.setText("");
-            rememberCheckBox.setSelected(false);
-            return;
-        }
-
-        UserHistory current = null;
-        for (UserHistory user : users) {
-            if (currentUserId.equals(user.getUserId())) {
-                current = user;
-                break;
-            }
-        }
-
-        if (current == null) {
-            userNameField.setText("");
-            passwordField.setText("");
-            rememberCheckBox.setSelected(false);
-            return;
-        }
-
-        userNameField.setText(current.getUsername());
-        if (AppPrefs.prefs().getBoolean(AppPrefs.KEY_LAST_LOGIN_OK, false)) {
-            passwordField.setText(current.getPasswrod());
-            rememberCheckBox.setSelected(true);
-        } else {
-            passwordField.setText("");
-            rememberCheckBox.setSelected(false);
-        }
-    }
-
 
     private void loadSvg() {
         functions.add(new FunctionType("用户管理", "用户管理功能允许管理员轻松管理系统中的用户", "icons/user-manage.svg"));
@@ -237,13 +259,12 @@ public class LoginPane extends JPanel {
         this.setBackground(new Color(0x32BAF6));
         progressBar.setVisible(false);
         userNameField.setFont(UIManager.getFont("h3.font"));
-        userNameField.setText("");
+        clearLoginForm();
         userNameField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "用户名");
         userNameField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/icon_username.svg", 35, 35));
         userNameField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         passwordField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "用户密码");
-        passwordField.setText("");
         passwordField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("icons/mima.svg", 35, 35));
         passwordField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         passwordField.setFont(UIManager.getFont("h3.font"));
@@ -280,8 +301,38 @@ public class LoginPane extends JPanel {
 
     }
 
-    private void intListeners() {
+    /**
+     * 统一注册交互监听器，便于后续维护。
+     */
+    private void initListeners() {
         loginButton.addActionListener(e -> login());
+        installEnterSubmitShortcut();
+        timer = new Timer(FEATURE_SWITCH_INTERVAL_MS, e -> {
+            CardLayout cardLayout = (CardLayout) infoPane.getLayout();
+            cardLayout.next(infoPane);
+        });
+
+        userNameField.getList().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+
+            UserHistory selectedUser = userNameField.getSelectedValue();
+            if (selectedUser == null) return;
+
+            // 仅用于 UI 预览，不代表最终提交密码。
+            passwordField.setText(selectedUser.getPasswrod());
+        });
+
+        delButton.addActionListener(e -> {
+            UserHistory selectedUser = userNameField.getSelectedValue();
+            if (selectedUser != null) {
+                UserHistoryService.removeUser(selectedUser.getUserId());
+                clearLoginForm();
+                userNameField.setDataList(UserHistoryService.loadUsers());
+            }
+        });
+    }
+
+    private void installEnterSubmitShortcut() {
         KeyAdapter submitOnEnter = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -292,78 +343,55 @@ public class LoginPane extends JPanel {
         };
         userNameField.addKeyListener(submitOnEnter);
         passwordField.addKeyListener(submitOnEnter);
-
-        timer = new Timer(3000, e -> {
-            CardLayout cardLayout = (CardLayout) infoPane.getLayout();
-            cardLayout.next(infoPane);
-        });
-
-
-        userNameField.getList().addListSelectionListener(e -> {
-            if (e.getValueIsAdjusting()) return;
-
-            UserHistory u = userNameField.getSelectedValue();
-            if (u == null) return;
-
-            // 仅用于 UI 预览，不要提交
-            passwordField.setText(u.getPasswrod());
-        });
-
-        delButton.addActionListener(e -> {
-            if (userNameField.getSelectedValue() != null) {
-                UserHistoryService.removeUser(userNameField.getSelectedValue().getUserId() + "");
-                userNameField.setText("");
-                passwordField.setText("");
-                userNameField.setDataList(UserHistoryService.loadUsers());
-            }
-        });
     }
 
+    /**
+     * 登录流程：
+     * 1. 输入校验
+     * 2. 登录获取 Token
+     * 3. 拉取权限菜单
+     * 4. 切换主界面并按需记录历史
+     */
     private void login() {
         if (!validateCredentials()) {
             return;
         }
 
-        String username = userNameField.getText().trim();
-        String password = new String(passwordField.getPassword());
-
-        AuthLoginReqVO authLoginReqVO = new AuthLoginReqVO();
-        authLoginReqVO.setUsername(username);
-        authLoginReqVO.setPassword(password);
+        AuthLoginReqVO loginRequest = createLoginRequest();
 
         updateUiBeforeRequest();
-        // 2. 使用封装的 ExecuteUtils 发起异步请求
         ExecuteUtils.execute(
                 () -> {
-                    // 【后台线程】执行耗时操作
                     AuthApi authApi = Forest.client(AuthApi.class);
-                    AuthLoginRespVO authLoginRespVO = authApi.login(authLoginReqVO).getCheckedData();
-
-                    // 存储 Token 等登录信息
+                    AuthLoginRespVO authLoginRespVO = authApi.login(loginRequest).getCheckedData();
                     AppStore.setAuthLoginRespVO(authLoginRespVO);
-
-                    // 获取用户权限和个人信息
                     return authApi.getPermissionInfo().getCheckedData();
                 },
                 authPermissionInfo -> {
-                    // 【EDT 线程】请求成功后处理业务逻辑（跳转主界面等）
                     handleSuccess(authPermissionInfo);
                     if (rememberCheckBox.isSelected()) {
                         UserHistoryService.recordLogin(
-                                new UserHistory(authPermissionInfo.getUser().getId()+"", authPermissionInfo.getUser().getUsername(), authLoginReqVO.getPassword()),
+                                new UserHistory(
+                                        String.valueOf(authPermissionInfo.getUser().getId()),
+                                        authPermissionInfo.getUser().getUsername(),
+                                        loginRequest.getPassword()
+                                ),
                                 true
                         );
                     } else {
-                        UserHistoryService.removeUser(authPermissionInfo.getUser().getId() + "");
+                        UserHistoryService.removeUser(String.valueOf(authPermissionInfo.getUser().getId()));
                     }
-
                 },
-                () -> {
-                    // 【EDT 线程】无论成功失败，重置 UI 状态（恢复按钮点击、隐藏动画）
-                    resetUiAfterRequest();
-                }
+                this::resetUiAfterRequest
         );
 
+    }
+
+    private AuthLoginReqVO createLoginRequest() {
+        AuthLoginReqVO reqVO = new AuthLoginReqVO();
+        reqVO.setUsername(userNameField.getText().trim());
+        reqVO.setPassword(new String(passwordField.getPassword()));
+        return reqVO;
     }
 
     private boolean validateCredentials() {
@@ -384,7 +412,7 @@ public class LoginPane extends JPanel {
     }
 
     private void updateUiBeforeRequest() {
-        loginButton.setText("正在请求登录...");
+        loginButton.setText(LOGIN_LOADING_TEXT);
         loginButton.setEnabled(false);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
@@ -394,7 +422,7 @@ public class LoginPane extends JPanel {
 
     private void resetUiAfterRequest() {
         loginButton.setEnabled(true);
-        loginButton.setText("登录");
+        loginButton.setText(LOGIN_BUTTON_TEXT);
         progressBar.setVisible(false);
         progressBar.setIndeterminate(false);
     }
@@ -404,7 +432,7 @@ public class LoginPane extends JPanel {
         timer.stop();
         AppStore.loadDictData();
 
-        EventBusCenter.get().post(new LoginEvent(0));
+        EventBusCenter.get().post(new LoginEvent(LoginEvent.LOGIN_SUCCESS));
     }
 
     public void startLogoInfo(){
@@ -413,17 +441,13 @@ public class LoginPane extends JPanel {
         }
     }
 
-
-    private void handleError(Throwable throwable) {
-//        msgLabel.setText(throwable.getMessage());
-        loginButton.setEnabled(true);
-        loginButton.setText("登录");
-    }
-
-    class FunctionType {
-        private String title;
-        private String description;
-        private String icon;
+    /**
+     * 登录页左侧功能介绍模型，仅用于 UI 展示。
+     */
+    private static class FunctionType {
+        private final String title;
+        private final String description;
+        private final String icon;
 
         public FunctionType(String title, String description, String icon) {
             this.title = title;

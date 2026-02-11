@@ -28,6 +28,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
@@ -35,7 +37,9 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class ClientPanel extends JPanel {
-    private String[] COLUMN_ID = {"客户端编号", "客户端密钥","应用名","应用图标", "状态", "访问令牌的有效期","刷新令牌的有效期","授权类型", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"客户端编号", "客户端密钥","应用名","应用图标", "状态", "访问令牌的有效期","刷新令牌的有效期","授权类型", "创建时间", "操作"};
+    private static final int COL_CLIENT_OBJECT = COLUMN_ID.length - 1;
+    private static final String WARN_SELECT_CLIENT_FIRST = "请先选择客户端！";
 
     private DefaultTableModel tableModel;
 
@@ -159,7 +163,18 @@ public class ClientPanel extends JPanel {
 
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -205,20 +220,15 @@ public class ClientPanel extends JPanel {
     }
 
     private void showEditDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        Long id = null;
-        if (selRow != -1) {
-            OAuth2ClientRespVO auth2ClientRespVO= (OAuth2ClientRespVO) table.getValueAt(selRow, COLUMN_ID.length-1);
-            id = auth2ClientRespVO.getId();
-        }else {
+        OAuth2ClientRespVO selectedClient = getSelectedClient();
+        if (selectedClient == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_CLIENT_FIRST);
             return;
         }
 
 
         ClientFormPane clientFormPane = new ClientFormPane();
-        clientFormPane.updateData(id);
+        clientFormPane.updateData(selectedClient.getId());
         int opt = JOptionPane.showOptionDialog(null, clientFormPane, "修改", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             edit(clientFormPane.getValue());
@@ -231,63 +241,35 @@ public class ClientPanel extends JPanel {
      * 添加
      */
     private void add(OAuth2ClientSaveReqVO saveReqVO) {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2ClientApi.class).createOAuth2Client(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OAuth2ClientApi.class).createOAuth2Client(saveReqVO).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void edit(OAuth2ClientSaveReqVO saveReqVO) {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2ClientApi.class).updateOAuth2Client(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OAuth2ClientApi.class).updateOAuth2Client(saveReqVO).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void del() {
-        Long id = null;
-        String name = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            OAuth2ClientRespVO auth2ClientRespVO = (OAuth2ClientRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
-            id = auth2ClientRespVO.getId();
-            name = auth2ClientRespVO.getName();
+        OAuth2ClientRespVO selectedClient = getSelectedClient();
+        if (selectedClient == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_CLIENT_FIRST);
+            return;
         }
 
-        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + selectedClient.getName() + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
         }
 
-        Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2ClientApi.class).deleteOAuth2Client(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OAuth2ClientApi.class).deleteOAuth2Client(selectedClient.getId()).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
@@ -316,9 +298,7 @@ public class ClientPanel extends JPanel {
 
 
         queryMap.values().removeIf(Objects::isNull);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2ClientApi.class).getOAuth2ClientPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OAuth2ClientApi.class).getOAuth2ClientPage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {
                 Vector rowV = new Vector();
@@ -335,8 +315,8 @@ public class ClientPanel extends JPanel {
                 tableData.add(rowV);
             });
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -357,14 +337,28 @@ public class ClientPanel extends JPanel {
                 }
             });
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
 
+    }
+
+    private OAuth2ClientRespVO getSelectedClient() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return (OAuth2ClientRespVO) table.getValueAt(selectedRow, COL_CLIENT_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

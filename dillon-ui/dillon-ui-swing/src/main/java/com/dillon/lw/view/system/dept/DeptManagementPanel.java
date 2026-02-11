@@ -11,7 +11,6 @@ import com.dillon.lw.components.*;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
-import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
@@ -19,7 +18,6 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.google.common.eventbus.Subscribe;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -31,6 +29,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
@@ -41,12 +41,11 @@ import static javax.swing.JOptionPane.*;
  * @date 2022/07/17
  */
 public class DeptManagementPanel extends AbstractRefreshablePanel {
-    private final static String[] COLUMN_ID = {"部门名称", "负责人", "排序", "状态", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"部门名称", "负责人", "排序", "状态", "创建时间", "操作"};
+    private static final String SUCCESS_DELETE = "删除成功！";
+    private static final String WARN_SELECT_DEPT_FIRST = "请先选择部门！";
 
     private JXTreeTable treeTable;
-
-    private DeptEditPane deptEditPane;
-
 
     private JTextField nameTextField;
     private JComboBox statusCombo;
@@ -132,9 +131,8 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
     @Override
     public void updateUI() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
+        SwingUtilities.invokeLater(() -> {
+            if (treeTable != null) {
                 ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
                 treeTable.setHighlighters(rollover);
                 treeTable.setIntercellSpacing(new Dimension(0, 1));
@@ -144,7 +142,18 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏，包含修改/新增/删除。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -160,16 +169,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
         del.setForeground(UIManager.getColor("App.danger.color"));
         JButton add = new JButton("新增");
         add.addActionListener(e -> {
-            int selRow = treeTable.getSelectedRow();
-            Long deptId = null;
-            if (selRow != -1) {
-                Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-                if (obj instanceof Tree) {
-                    Tree tree = (Tree) obj;
-                    deptId = (Long) tree.get("id");
-                }
-            }
-            showDeptAddDialog(deptId);
+            showDeptAddDialog(getSelectedDeptId());
         });
         add.setForeground(UIManager.getColor("App.accent.color"));
         add.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
@@ -202,14 +202,10 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
 
     private void showDeptEditDialog() {
-        int selRow = treeTable.getSelectedRow();
-        Long deptId = null;
-        if (selRow != -1) {
-            Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-            if (obj instanceof Tree) {
-                Tree tree = (Tree) obj;
-                deptId = (Long) tree.get("id");
-            }
+        Long deptId = getSelectedDeptId();
+        if (deptId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_DEPT_FIRST);
+            return;
         }
 
         DeptEditPane formPane = new DeptEditPane();
@@ -228,6 +224,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
     }
 
     private void updateData() {
+        // 1) 组装筛选条件；2) 查询部门列表；3) 构建树并刷新表格。
         DeptListReqVO deptListReqVO = new DeptListReqVO();
         deptListReqVO.setName(nameTextField.getText());
         int selectIndex = statusCombo.getSelectedIndex();
@@ -235,10 +232,8 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
             deptListReqVO.setStatus(selectIndex == 1 ? 0 : 1);
 
         }
-        Map<String, Object> qeryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getDeptList(qeryMap).getCheckedData();
-        }).thenAcceptAsync(deptRespVOList -> {
+        Map<String, Object> queryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
+        executeAsync(() -> Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData(), deptRespVOList -> {
             long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
             TreeNodeConfig config = new TreeNodeConfig();
             config.setWeightKey("sort");
@@ -253,14 +248,9 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
                 if (object.getLeaderUserId() != null) {
                     treeNode.putExtra("leaderUserId", object.getLeaderUserId());
                 }
-                treeNode.putExtra("createTime",DateUtil.format(object.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                treeNode.putExtra("createTime", DateUtil.format(object.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
             }));
             updateTreeTableRoot(treeList);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
 
@@ -291,8 +281,8 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
                 return panel;
             }
         });
-        treeTable.getColumnExt("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-        treeTable.getColumnExt("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        treeTable.getColumnExt("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+        treeTable.getColumnExt("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
         treeTable.getColumn("排序").setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -317,18 +307,13 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
 
     private void del() {
-        Long deptId = null;
-        String deptName = null;
-
-        int selRow = treeTable.getSelectedRow();
-        if (selRow != -1) {
-            Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-            if (obj instanceof Tree) {
-                Tree tree = (Tree) obj;
-                deptId = (Long) tree.get("id");
-                deptName = tree.getName().toString();
-            }
+        Tree selectedDept = getSelectedDeptNode();
+        if (selectedDept == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_DEPT_FIRST);
+            return;
         }
+        Long deptId = (Long) selectedDept.get("id");
+        String deptName = selectedDept.getName().toString();
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + deptName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
@@ -336,25 +321,44 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
             return;
         }
 
-        Long finalDeptId = deptId;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).deleteDept(finalDeptId).getCheckedData();
-        }).thenAcceptAsync(aBoolean -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+        executeAsync(() -> Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData(), aBoolean -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
     }
 
+    private Tree getSelectedDeptNode() {
+        // TreeTable 的每一行对应一个 Tree 节点；未选中时返回 null。
+        int selectedRow = treeTable.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        Object obj = treeTable.getPathForRow(selectedRow).getLastPathComponent();
+        return obj instanceof Tree ? (Tree) obj : null;
+    }
 
+    private Long getSelectedDeptId() {
+        // 统一“未选中返回 null”的语义，便于上层做显式校验。
+        Tree selectedNode = getSelectedDeptNode();
+        if (selectedNode == null) {
+            return null;
+        }
+        return (Long) selectedNode.get("id");
+    }
 
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步执行模板：后台请求 + EDT 更新 + 全局异常处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
+    }
 
-    class DeptTreeTableModel extends AbstractTreeTableModel {
+    private static class DeptTreeTableModel extends AbstractTreeTableModel {
 
 
         public DeptTreeTableModel() {

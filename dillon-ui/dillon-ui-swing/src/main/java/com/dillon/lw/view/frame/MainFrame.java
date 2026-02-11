@@ -136,33 +136,49 @@ public class MainFrame extends JFrame {
         AppStore.clearSession();
         if (!isInit) initTheme(LightTheme.class.getName());
 
-        configureWindowTitleBar(false); // 隐藏缩放按钮
-        setResizable(false);
-
+        configureLoginWindow();
         mainPane.closeAllTab();
         cardLayout.show(cardPanel, CARD_LOGIN);
         loginPane.startLogoInfo();
         loginPane.initData();
 
-        setSize(DEFAULT_LOGIN_WIDTH, DEFAULT_LOGIN_HEIGHT);
-        setLocationRelativeTo(null);
+        centerLoginWindow();
     }
 
     /**
      * 展示主业务界面
      */
     public void showMain() {
-        String userId = AppStore.getUserId() + "";
-        String theme = AppPrefs.prefs().get(KEY_UI_THEME + "_" + userId, LightTheme.class.getName());
+        String theme = resolveUserTheme();
         initTheme(theme);
 
-        configureWindowTitleBar(true); // 显示缩放按钮
-        setResizable(true);
-
+        configureMainWindow();
         cardLayout.show(cardPanel, CARD_MAIN);
         mainPane.updateTreeTableRoot(AppStore.getMenus());
+        maximizeToMainRatio();
+    }
 
-        // 窗口全屏约 90%
+    private String resolveUserTheme() {
+        String userId = String.valueOf(AppStore.getUserId());
+        return AppPrefs.prefs().get(KEY_UI_THEME + "_" + userId, LightTheme.class.getName());
+    }
+
+    private void configureLoginWindow() {
+        configureWindowTitleBar(false); // 隐藏缩放按钮
+        setResizable(false);
+    }
+
+    private void centerLoginWindow() {
+        setSize(DEFAULT_LOGIN_WIDTH, DEFAULT_LOGIN_HEIGHT);
+        setLocationRelativeTo(null);
+    }
+
+    private void configureMainWindow() {
+        configureWindowTitleBar(true); // 显示缩放按钮
+        setResizable(true);
+    }
+
+    private void maximizeToMainRatio() {
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         setSize((int) (screen.width * MAIN_SCREEN_RATIO), (int) (screen.height * MAIN_SCREEN_RATIO));
         setLocationRelativeTo(null);
@@ -187,7 +203,7 @@ public class MainFrame extends JFrame {
     @Subscribe
     private void onLoginMain(LoginEvent event) {
         EventQueue.invokeLater(() -> {
-            if (event.getCode() == 0) {
+            if (event.getCode() == LoginEvent.LOGIN_SUCCESS) {
                 showMain();
             } else {
                 showLogin(false);

@@ -14,36 +14,58 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 public final class SwingExceptionHandler {
+    private static final int UNAUTHORIZED_CODE = 401;
+    private static final String DEFAULT_ERROR_PREFIX = "系统异常：";
 
     private static final Logger log = LoggerFactory.getLogger(SwingExceptionHandler.class);
 
     private SwingExceptionHandler() {}
 
+    /**
+     * 统一异常入口：
+     * 1. 网络异常（连接失败、超时、DNS 等）
+     * 2. 业务异常（ServiceException）
+     * 3. 未知技术异常（兜底）
+     */
     public static void handle(Throwable e) {
         log.error("客户端异常", e);
 
-        // ① 优先处理网络异常
         Throwable root = findRootCause(e);
-        if (isNetworkException(root)) {
-            showError(getNetworkErrorMessage(root));
+        if (tryHandleNetworkException(root)) {
             return;
         }
 
-        // ② 查找业务异常
-        ServiceException se = findServiceException(e);
-        if (se != null) {
-
-            if (se.getCode() == 401) {
-                MainFrame.getInstance().showLogin(false);
-            }
-            showError(se.getMessage());
+        if (tryHandleBusinessException(e)) {
             return;
         }
 
-        // ③ 兜底技术异常
-        showError("系统异常："
+        showError(buildFallbackMessage(root));
+    }
+
+    private static boolean tryHandleNetworkException(Throwable root) {
+        if (!isNetworkException(root)) {
+            return false;
+        }
+        showError(getNetworkErrorMessage(root));
+        return true;
+    }
+
+    private static boolean tryHandleBusinessException(Throwable e) {
+        ServiceException serviceException = findServiceException(e);
+        if (serviceException == null) {
+            return false;
+        }
+        if (serviceException.getCode() == UNAUTHORIZED_CODE) {
+            MainFrame.getInstance().showLogin(false);
+        }
+        showError(serviceException.getMessage());
+        return true;
+    }
+
+    private static String buildFallbackMessage(Throwable root) {
+        return DEFAULT_ERROR_PREFIX
                 + root.getClass().getSimpleName()
-                + (root.getMessage() != null ? "\n" + root.getMessage() : ""));
+                + (root.getMessage() != null ? "\n" + root.getMessage() : "");
     }
 
     private static boolean isNetworkException(Throwable t) {
@@ -91,6 +113,5 @@ public final class SwingExceptionHandler {
         SwingUtilities.invokeLater(() ->
                 WMessage.showMessageWarning(MainFrame.getInstance(), msg)
         );
-
     }
 }

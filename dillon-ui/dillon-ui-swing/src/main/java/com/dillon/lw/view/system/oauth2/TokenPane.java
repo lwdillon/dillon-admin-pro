@@ -9,12 +9,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.OAuth2TokenApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
+import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
@@ -27,6 +29,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -36,7 +40,9 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
  * @author wenli
  */
 public class TokenPane extends JPanel {
-    private String[] COLUMN_ID = {"访问令牌", "刷新令牌", "用户编号", "用户类型", "过期时间", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"访问令牌", "刷新令牌", "用户编号", "用户类型", "过期时间", "创建时间", "操作"};
+    private static final int COL_ACCESS_TOKEN = 0;
+    private static final String WARN_SELECT_TOKEN_FIRST = "请先选择访问令牌！";
 
     private DefaultTableModel tableModel;
 
@@ -165,7 +171,18 @@ public class TokenPane extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
 
@@ -196,11 +213,10 @@ public class TokenPane extends JPanel {
 
 
     private void del() {
-        String accessToken = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            accessToken = Convert.toStr(table.getValueAt(selRow, 0));
+        String accessToken = getSelectedAccessToken();
+        if (StrUtil.isBlank(accessToken)) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_TOKEN_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否要强制退出用户？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -209,17 +225,7 @@ public class TokenPane extends JPanel {
             return;
         }
 
-        String finalAccessToken = accessToken;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2TokenApi.class).deleteAccessToken(finalAccessToken).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(OAuth2TokenApi.class).deleteAccessToken(accessToken).getCheckedData(), result -> updateData());
     }
 
 
@@ -241,9 +247,7 @@ public class TokenPane extends JPanel {
         }
 
         queryMap.values().removeIf(Objects::isNull);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OAuth2TokenApi.class).getAccessTokenPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OAuth2TokenApi.class).getAccessTokenPage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {
                 Vector rowV = new Vector();
@@ -258,8 +262,8 @@ public class TokenPane extends JPanel {
             });
 
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -276,12 +280,26 @@ public class TokenPane extends JPanel {
             });
 
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
+    }
+
+    private String getSelectedAccessToken() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_ACCESS_TOKEN));
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

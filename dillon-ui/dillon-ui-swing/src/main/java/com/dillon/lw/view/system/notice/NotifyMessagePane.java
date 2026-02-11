@@ -10,6 +10,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.system.NotifyMessageApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.exception.SwingExceptionHandler;
@@ -18,6 +19,7 @@ import com.dillon.lw.module.system.controller.admin.notify.vo.message.NotifyMess
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.utils.DictTypeEnum;
+import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
@@ -30,6 +32,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.*;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
@@ -39,7 +43,9 @@ import static javax.swing.JOptionPane.PLAIN_MESSAGE;
  * @author wenli
  */
 public class NotifyMessagePane extends JPanel {
-    private String[] COLUMN_ID = {"编号", "用户类型", "用户编号", "模板编码", "发送人名称", "模版内容", "模版类型", "是否已读", "阅读时间", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"编号", "用户类型", "用户编号", "模板编码", "发送人名称", "模版内容", "模版类型", "是否已读", "阅读时间", "创建时间", "操作"};
+    private static final int COL_MESSAGE_OBJECT = COLUMN_ID.length - 1;
+    private static final String WARN_SELECT_MESSAGE_FIRST = "请先选择站内信记录！";
 
     private DefaultTableModel tableModel;
 
@@ -199,7 +205,18 @@ public class NotifyMessagePane extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
 
@@ -239,12 +256,9 @@ public class NotifyMessagePane extends JPanel {
     }
 
     private void showDetailsDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        NotifyMessageRespVO noticeRespVO = null;
-        if (selRow != -1) {
-            noticeRespVO = (NotifyMessageRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        NotifyMessageRespVO noticeRespVO = getSelectedMessage();
+        if (noticeRespVO == null) {
+            return;
         }
 
         JPanel panel = new JPanel();
@@ -293,14 +307,14 @@ public class NotifyMessagePane extends JPanel {
 
 
     private void clear() {
-
-
+        // 当前页面暂未开放“清空”接口，保留按钮仅做提示，避免用户误以为无响应。
+        WMessage.showMessageWarning(MainFrame.getInstance(), "清空功能暂未开放");
     }
 
 
     private void del() {
-
-
+        // 当前页面暂未开放“删除”接口，保留按钮仅做提示，避免用户误以为无响应。
+        WMessage.showMessageWarning(MainFrame.getInstance(), "删除功能暂未开放");
     }
 
 
@@ -333,9 +347,7 @@ public class NotifyMessagePane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyMessageApi.class).getNotifyMessagePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyMessageApi.class).getNotifyMessagePage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
 
             result.getList().forEach(roleRespVO -> {
@@ -354,8 +366,8 @@ public class NotifyMessagePane extends JPanel {
                 tableData.add(rowV);
             });
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("是否已读").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -396,16 +408,31 @@ public class NotifyMessagePane extends JPanel {
             });
 
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
 
 
 
+    }
+
+    private NotifyMessageRespVO getSelectedMessage() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_MESSAGE_FIRST);
+            return null;
+        }
+        return (NotifyMessageRespVO) table.getValueAt(selectedRow, COL_MESSAGE_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

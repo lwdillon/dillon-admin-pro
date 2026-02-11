@@ -16,10 +16,10 @@ import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.eventbus.EventBusCenter;
-import com.dillon.lw.eventbus.event.MenuRefrestEvent;
-import com.dillon.lw.eventbus.event.RefreshDataEvent;
+import com.dillon.lw.eventbus.event.MenuRefreshEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
+import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.utils.ExecuteUtils;
 import com.dillon.lw.utils.IconLoader;
@@ -27,7 +27,6 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.google.common.eventbus.Subscribe;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -49,12 +48,13 @@ import static javax.swing.JOptionPane.*;
  * @date 2022/07/17
  */
 public class MenuManagementPanel extends AbstractRefreshablePanel {
-    private final static String[] COLUMN_ID = {"菜单名称", "图标", "排序", "权限标识", "组件路径", "组件名称", "状态", "操作"};
+    private static final String[] COLUMN_NAMES = {"菜单名称", "图标", "排序", "权限标识", "组件路径", "组件名称", "状态", "操作"};
+    private static final String COL_ACTION = "操作";
+    private static final String COL_ICON = "图标";
+    private static final String COL_SORT = "排序";
+    private static final String COL_COMPONENT = "组件路径";
 
     private JXTreeTable treeTable;
-
-    private MenuEditPane menuEditPane;
-
 
     private JTextField nameTextField;
     private JComboBox statusCombo;
@@ -147,9 +147,8 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
     @Override
     public void updateUI() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
+        SwingUtilities.invokeLater(() -> {
+            if (treeTable != null) {
                 ColorHighlighter rollover = new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW, UIManager.getColor("App.hoverBackground"), null);
                 treeTable.setHighlighters(rollover);
                 treeTable.setIntercellSpacing(new Dimension(0, 1));
@@ -159,7 +158,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
     }
 
-    private JToolBar creatBar() {
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
 
         JButton edit = new JButton("修改");
@@ -175,16 +174,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         del.setForeground(UIManager.getColor("App.danger.color"));
         JButton add = new JButton("新增");
         add.addActionListener(e -> {
-            int selRow = treeTable.getSelectedRow();
-            Long menuId = null;
-            if (selRow != -1) {
-                Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-                if (obj instanceof Tree) {
-                    Tree tree = (Tree) obj;
-                    menuId = (Long) tree.get("id");
-                }
-            }
-            showMenuAddDialog(menuId);
+            showMenuAddDialog(getSelectedMenuId());
         });
         add.setForeground(UIManager.getColor("App.accent.color"));
         add.setIcon(new FlatSVGIcon("icons/xinzeng.svg", 15, 15));
@@ -214,7 +204,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 },
                 () -> {
                     updateData();
-                    EventBusCenter.get().post(new MenuRefrestEvent());
+                    postMenuRefreshEvent();
                 },
                 "添加菜单成功"
         );
@@ -222,15 +212,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
 
     private void showMenuEditDialog() {
-        int selRow = treeTable.getSelectedRow();
-        Long menuId = null;
-        if (selRow != -1) {
-            Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-            if (obj instanceof Tree) {
-                Tree tree = (Tree) obj;
-                menuId = (Long) tree.get("id");
-            }
-        }
+        Long menuId = getSelectedMenuId();
 
         MenuEditPane formPane = new MenuEditPane();
         formPane.updateData(menuId, false);
@@ -247,59 +229,74 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 },
                 () -> {
                     updateData();
-                    EventBusCenter.get().post(new MenuRefrestEvent());
+                    postMenuRefreshEvent();
                 },
                 "修改菜单成功"
         );
     }
 
+    /**
+     * 从筛选条件构建查询参数并刷新树表。
+     */
     private void updateData() {
-        MenuListReqVO sysMenuModel = new MenuListReqVO();
-        sysMenuModel.setName(nameTextField.getText());
+        MenuListReqVO reqVO = new MenuListReqVO();
+        reqVO.setName(nameTextField.getText());
         int selectIndex = statusCombo.getSelectedIndex();
         if (selectIndex != 0) {
-            sysMenuModel.setStatus(selectIndex == 1 ? 0 : 1);
+            reqVO.setStatus(selectIndex == 1 ? 0 : 1);
         }
-        Map<String, Object> queryMap = BeanUtil.beanToMap(sysMenuModel, false, true);
+        Map<String, Object> queryMap = BeanUtil.beanToMap(reqVO, false, true);
 
-        ExecuteUtils.execute(()->Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData(),
-                data->{long min = data.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-                    TreeNodeConfig config = new TreeNodeConfig();
-                    config.setWeightKey("orderNum");
-                    config.setParentIdKey("parentId");
-                    config.setNameKey("menuName");
-                    Tree<Long> treeList = TreeUtil.buildSingle(data, min, config, ((object, treeNode) -> {
-                        treeNode.setId(object.getId());
-                        treeNode.setParentId(object.getParentId());
-                        treeNode.setName(object.getName());
-                        treeNode.putExtra("icon", object.getIcon());
-                        treeNode.putExtra("component", object.getComponentSwing());
-                        treeNode.putExtra("orderNum", object.getSort());
-                        treeNode.putExtra("status", object.getStatus());
-                        treeNode.putExtra("perms", object.getPermission());
-                        treeNode.putExtra("menuType", object.getType());
-                        treeNode.putExtra("componentName", object.getComponentName());
-                    }));
-                    updateTreeTableRoot(treeList);
+        ExecuteUtils.execute(
+                () -> Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData(),
+                data -> {
+                    Tree<Long> treeRoot = buildMenuTree(data);
+                    updateTreeTableRoot(treeRoot);
                     if (exButton.isSelected()) {
                         treeTable.expandAll();
-                    }},()->{},"查询成功！",waitPane);
+                    }
+                },
+                () -> {
+                },
+                "查询成功！",
+                waitPane
+        );
 
+    }
+
+    private Tree<Long> buildMenuTree(List<MenuRespVO> data) {
+        long minParentId = data.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+        TreeNodeConfig config = new TreeNodeConfig();
+        config.setWeightKey("orderNum");
+        config.setParentIdKey("parentId");
+        config.setNameKey("menuName");
+        return TreeUtil.buildSingle(data, minParentId, config, (object, treeNode) -> {
+            treeNode.setId(object.getId());
+            treeNode.setParentId(object.getParentId());
+            treeNode.setName(object.getName());
+            treeNode.putExtra("icon", object.getIcon());
+            treeNode.putExtra("component", object.getComponentSwing());
+            treeNode.putExtra("orderNum", object.getSort());
+            treeNode.putExtra("status", object.getStatus());
+            treeNode.putExtra("perms", object.getPermission());
+            treeNode.putExtra("menuType", object.getType());
+            treeNode.putExtra("componentName", object.getComponentName());
+        });
     }
 
     private void updateTreeTableRoot(Object root) {
 
         treeTable.setTreeTableModel(new MenuTreeTableModel(root));
-        treeTable.getColumnExt("操作").setMinWidth(240);
-        treeTable.getColumnExt("操作").setMaxWidth(240);
-        treeTable.getColumnExt("图标").setMinWidth(60);
-        treeTable.getColumnExt("图标").setMaxWidth(60);
-        treeTable.getColumnExt("排序").setWidth(80);
-        treeTable.getColumnExt("排序").setMaxWidth(80);
+        treeTable.getColumnExt(COL_ACTION).setMinWidth(240);
+        treeTable.getColumnExt(COL_ACTION).setMaxWidth(240);
+        treeTable.getColumnExt(COL_ICON).setMinWidth(60);
+        treeTable.getColumnExt(COL_ICON).setMaxWidth(60);
+        treeTable.getColumnExt(COL_SORT).setWidth(80);
+        treeTable.getColumnExt(COL_SORT).setMaxWidth(80);
 
-        treeTable.getColumnExt("组件路径").setMinWidth(300);
+        treeTable.getColumnExt(COL_COMPONENT).setMinWidth(300);
 
-        treeTable.getColumnExt("图标").setCellRenderer(new DefaultTableCellRenderer() {
+        treeTable.getColumnExt(COL_ICON).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -310,10 +307,10 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 if (StrUtil.contains(icon, ":")) {
                     String iconPath = "icons/menu/" + icon.split(":")[1] + ".svg";
 
-                    if (StrUtil.isBlank(iconPath)||  IconLoader.class.getResourceAsStream("/"+iconPath) == null) {
+                    if (StrUtil.isBlank(iconPath) || IconLoader.class.getResourceAsStream("/" + iconPath) == null) {
                         label.setIcon(null);
                         label.setText("");
-                    }else {
+                    } else {
                         label.setIcon(new FlatSVGIcon(iconPath, 25, 25));
                         label.setText("");
                     }
@@ -348,9 +345,9 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
                 return panel;
             }
         });
-        treeTable.getColumnExt("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-        treeTable.getColumnExt("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
-        treeTable.getColumn("排序").setCellRenderer(new DefaultTableCellRenderer() {
+        treeTable.getColumnExt(COL_ACTION).setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+        treeTable.getColumnExt(COL_ACTION).setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+        treeTable.getColumn(COL_SORT).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -374,18 +371,12 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
 
     private void delMenu() {
-        Long menuId = null;
-        String menuName = null;
-
-        int selRow = treeTable.getSelectedRow();
-        if (selRow != -1) {
-            Object obj = treeTable.getPathForRow(selRow).getLastPathComponent();
-            if (obj instanceof Tree) {
-                Tree tree = (Tree) obj;
-                menuId = (Long) tree.get("id");
-                menuName = tree.getName().toString();
-            }
+        Tree selectedMenu = getSelectedMenuNode();
+        if (selectedMenu == null) {
+            return;
         }
+        Long menuId = (Long) selectedMenu.get("id");
+        String menuName = selectedMenu.getName().toString();
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + menuName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
@@ -399,7 +390,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         }).thenAcceptAsync(unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除菜单成功");
             updateData();
-            EventBusCenter.get().post(new MenuRefrestEvent());
+            postMenuRefreshEvent();
         }, SwingUtilities::invokeLater).exceptionally(throwable -> {
             SwingUtilities.invokeLater(() -> {
                 SwingExceptionHandler.handle(throwable);
@@ -410,10 +401,27 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
     }
 
+    private Tree getSelectedMenuNode() {
+        int selectedRow = treeTable.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        Object obj = treeTable.getPathForRow(selectedRow).getLastPathComponent();
+        return obj instanceof Tree ? (Tree) obj : null;
+    }
+
+    private Long getSelectedMenuId() {
+        Tree selectedNode = getSelectedMenuNode();
+        return selectedNode == null ? null : (Long) selectedNode.get("id");
+    }
+
+    private void postMenuRefreshEvent() {
+        EventBusCenter.get().post(new MenuRefreshEvent());
+    }
 
 
 
-    class MenuTreeTableModel extends AbstractTreeTableModel {
+    private static class MenuTreeTableModel extends AbstractTreeTableModel {
 
 
         public MenuTreeTableModel() {
@@ -492,13 +500,13 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
         @Override
         public String getColumnName(int column) {
-            return COLUMN_ID[column];
+            return COLUMN_NAMES[column];
         }
 
 
         @Override
         public int getColumnCount() {
-            return COLUMN_ID.length;
+            return COLUMN_NAMES.length;
         }
 
         @Override

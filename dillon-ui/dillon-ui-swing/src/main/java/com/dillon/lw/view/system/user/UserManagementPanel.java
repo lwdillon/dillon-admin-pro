@@ -42,6 +42,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
@@ -49,7 +51,12 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class UserManagementPanel extends JPanel {
-    private String[] COLUMN_ID = {"用户编号", "用户名称", "用户昵称", "部门", "手机号", "状态", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"用户编号", "用户名称", "用户昵称", "部门", "手机号", "状态", "创建时间", "操作"};
+    private static final int COL_USER_ID = 0;
+    private static final int COL_USER_NAME = 1;
+    private static final int COL_USER_NICKNAME = 2;
+    private static final int COL_USER_OBJECT = 7;
+    private static final String WARN_SELECT_USER_FIRST = "请先选择用户！";
 
     private DefaultTableModel tableModel;
 
@@ -223,7 +230,18 @@ public class UserManagementPanel extends JPanel {
 
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -294,10 +312,10 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void showEditDialog() {
-        int selRow = table.getSelectedRow();
-        Long userId = null;
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
+        Long userId = getSelectedUserId();
+        if (userId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_USER_FIRST);
+            return;
         }
 
         UserEditPane formPane = new UserEditPane();
@@ -327,14 +345,14 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void showPermissionAssignUserRoleDialog() {
-        int selRow = table.getSelectedRow();
-        Long userId = null;
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
+        Long userId = getSelectedUserId();
+        if (userId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_USER_FIRST);
+            return;
         }
 
         AssignRolesPane assignRolesPane = new AssignRolesPane();
-        assignRolesPane.updateData(Convert.toStr(table.getValueAt(selRow, 1)), Convert.toStr(table.getValueAt(selRow, 2)), userId);
+        assignRolesPane.updateData(getSelectedUserName(), getSelectedUserNickname(), userId);
         int opt = JOptionPane.showOptionDialog(null, assignRolesPane, "分配角色", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
         if (opt == 0) {
             permissionAssignUserRole(assignRolesPane.getValue());
@@ -373,13 +391,11 @@ public class UserManagementPanel extends JPanel {
     }
 
     private void delMenu() {
-        Long userId = null;
-        String userName = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
-            userName = Convert.toStr(table.getValueAt(selRow, 1));
+        Long userId = getSelectedUserId();
+        String userName = getSelectedUserName();
+        if (userId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_USER_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -387,17 +403,12 @@ public class UserManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalUserId = userId;
-        CompletableFuture.runAsync(() -> {
-            Forest.client(UserApi.class).deleteUser(finalUserId).getCheckedData();
-        }).thenAcceptAsync(unused -> {
+        executeAsync(() -> {
+            Forest.client(UserApi.class).deleteUser(userId).getCheckedData();
+            return true;
+        }, unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除用户成功");
             loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
@@ -405,8 +416,12 @@ public class UserManagementPanel extends JPanel {
      * 重置pwd
      */
     private void resetPwd() {
-        Long id = Convert.toLong(table.getValueAt(table.getSelectedRow(), 0));
-        String pwd = JOptionPane.showInputDialog(this, "请输入【" + table.getValueAt(table.getSelectedRow(), 2) + "】的密码", "重置密码", INFORMATION_MESSAGE);
+        Long id = getSelectedUserId();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_USER_FIRST);
+            return;
+        }
+        String pwd = JOptionPane.showInputDialog(this, "请输入【" + getSelectedUserNickname() + "】的密码", "重置密码", INFORMATION_MESSAGE);
         if (StringUtils.isBlank(pwd)) {
             return;
         }
@@ -414,43 +429,26 @@ public class UserManagementPanel extends JPanel {
         userUpdatePasswordReqVO.setId(id);
         userUpdatePasswordReqVO.setPassword(pwd);
 
-        CompletableFuture.runAsync(() -> {
+        executeAsync(() -> {
             Forest.client(UserApi.class).updateUserPassword(userUpdatePasswordReqVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
+            return true;
+        }, unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "重置密码成功");
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void permissionAssignUserRole(PermissionAssignUserRoleReqVO permissionAssignUserRoleReqVO) {
-        CompletableFuture.runAsync(() -> {
+        executeAsync(() -> {
             Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
+            return true;
+        }, unused -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "分配角色成功");
             loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     public void loadTreeData() {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-        }).thenAcceptAsync(deptSimpleRespVOS -> {
-            updateTreeUI(deptSimpleRespVOS);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData(), this::updateTreeUI);
     }
 
     @NotNull
@@ -515,16 +513,7 @@ public class UserManagementPanel extends JPanel {
 
         // 过滤掉 null 值
         queryMap.entrySet().removeIf(entry -> entry.getValue() == null);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateTableDataUI(result);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData(), this::updateTableDataUI);
 
     }
 
@@ -545,8 +534,8 @@ public class UserManagementPanel extends JPanel {
         });
         tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
         table.getColumn("操作").setMinWidth(240);
-        table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-        table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+        table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
         table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
             @Override
@@ -567,6 +556,49 @@ public class UserManagementPanel extends JPanel {
             }
         });
 
+    }
+
+    private Long getSelectedUserId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_USER_ID));
+    }
+
+    private String getSelectedUserName() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_USER_NAME));
+    }
+
+    private String getSelectedUserNickname() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_USER_NICKNAME));
+    }
+
+    private UserRespVO getSelectedUser() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return (UserRespVO) table.getValueAt(selectedRow, COL_USER_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

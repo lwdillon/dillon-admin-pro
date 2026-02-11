@@ -41,15 +41,10 @@ public final class UserHistoryService {
 
         users.add(0, user);
 
-        if (users.size() > MAX_USERS) {
-            users = users.subList(0, MAX_USERS);
-        }
+        users = keepLatestUsers(users);
 
         save(users);
-
-        // 记录当前用户
-        AppPrefs.prefs().put(AppPrefs.KEY_CURRENT_USER, user.getUserId());
-        AppPrefs.prefs().putBoolean(AppPrefs.KEY_LAST_LOGIN_OK, success);
+        saveCurrentUserMarker(user, success);
     }
 
     /* ---------- 删除 ---------- */
@@ -62,12 +57,28 @@ public final class UserHistoryService {
 
     /* ---------- 内部 ---------- */
 
+    private static List<UserHistory> keepLatestUsers(List<UserHistory> users) {
+        if (users.size() <= MAX_USERS) {
+            return users;
+        }
+        return users.subList(0, MAX_USERS);
+    }
+
+    /**
+     * 保存“当前账号 + 上次登录是否成功”标记，供登录页回填使用。
+     */
+    private static void saveCurrentUserMarker(UserHistory user, boolean success) {
+        AppPrefs.prefs().put(AppPrefs.KEY_CURRENT_USER, user.getUserId());
+        AppPrefs.prefs().putBoolean(AppPrefs.KEY_LAST_LOGIN_OK, success);
+    }
+
     private static void save(List<UserHistory> users) {
         try {
             AppPrefs.prefs().put(
                     AppPrefs.KEY_HISTORY_USERS,
                     MAPPER.writeValueAsString(users)
             );
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

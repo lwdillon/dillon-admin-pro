@@ -47,58 +47,28 @@ public class ExecuteUtils {
             String successMsg,
             WaitPane waitPane
     ) {
-        // 1. 如果提供了 waitPane，立即显示 Loading (确保在 EDT 线程执行)
-        if (waitPane != null) {
-            Runnable showLoading = () -> {
-                waitPane.showMessageLayer();
-                // 额外安全保障：如果 waitPane 的 master 是容器，尝试禁用其中的按钮防止穿透点击
-                // if (waitPane.getComponentCount() > 0 && waitPane.getComponent(0) instanceof Container) {
-                //     setContainerEnabled((Container) waitPane.getComponent(0), false);
-                // }
-            };
+        toggleWaitPane(waitPane, true);
 
-            if (SwingUtilities.isEventDispatchThread()) {
-                showLoading.run();
-            } else {
-                SwingUtilities.invokeLater(showLoading);
-            }
-        }
-
-        // 2. 发起异步任务
         CompletableFuture
                 .supplyAsync(task)
-                // 3. 处理成功结果（自动切回 EDT 线程）
                 .thenAcceptAsync(result -> {
                     try {
-                        // 执行业务层定义的成功回调
                         if (onSuccess != null) {
                             onSuccess.accept(result);
                         }
-
-                        // 智能成功提示逻辑
                         processSuccessMessage(result, successMsg);
                     } catch (Exception uiEx) {
                         SwingExceptionHandler.handle(uiEx);
                     }
                 }, EDT)
-                // 4. 处理任务收尾工作（自动切回 EDT 线程）
                 .whenCompleteAsync((r, t) -> {
                     try {
-                        // 如果提供了 waitPane，隐藏 Loading
-                        if (waitPane != null) {
-                            waitPane.hideMessageLayer();
-                            // 恢复容器中的按钮状态
-                            if (waitPane.getComponentCount() > 0 && waitPane.getComponent(0) instanceof Container) {
-                                setContainerEnabled((Container) waitPane.getComponent(0), true);
-                            }
-                        }
+                        toggleWaitPane(waitPane, false);
 
-                        // 执行清理逻辑：如重置按钮状态
                         if (onComplete != null) {
                             onComplete.run();
                         }
 
-                        // 异常处理
                         if (t != null) {
                             SwingExceptionHandler.handle(unwrap(t));
                         }
@@ -106,6 +76,36 @@ public class ExecuteUtils {
                         SwingExceptionHandler.handle(e);
                     }
                 }, EDT);
+    }
+
+    /**
+     * 统一管理 WaitPane 的显示与隐藏，减少调用方重复代码。
+     */
+    private static void toggleWaitPane(WaitPane waitPane, boolean show) {
+        if (waitPane == null) {
+            return;
+        }
+
+        runOnEdt(() -> {
+            if (show) {
+                waitPane.showMessageLayer();
+                return;
+            }
+
+            waitPane.hideMessageLayer();
+            // 兼容历史行为：关闭 loading 后恢复基础输入控件可用态。
+            if (waitPane.getComponentCount() > 0 && waitPane.getComponent(0) instanceof Container) {
+                setContainerEnabled((Container) waitPane.getComponent(0), true);
+            }
+        });
+    }
+
+    private static void runOnEdt(Runnable action) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            action.run();
+        } else {
+            SwingUtilities.invokeLater(action);
+        }
     }
 
     /**
@@ -122,9 +122,7 @@ public class ExecuteUtils {
         }
     }
 
-    /**
-     * 内部方法：处理成功消息的弹出判定
-     */
+    /** 处理成功提示弹窗。 */
     private static <T> void processSuccessMessage(T result, String successMsg) {
         if (successMsg == null || successMsg.isEmpty()) {
             return;
@@ -140,9 +138,7 @@ public class ExecuteUtils {
         }
     }
 
-    /**
-     * 内部方法：解包 CompletableFuture 包装的异常
-     */
+    /** 解包 CompletableFuture 包装的异常。 */
     private static Throwable unwrap(Throwable t) {
         return (t instanceof CompletionException && t.getCause() != null)
                 ? t.getCause()

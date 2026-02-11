@@ -32,6 +32,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
@@ -39,7 +41,12 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class DictTypeManagementPanel extends JPanel {
-    private String[] COLUMN_ID = {"字典编号", "字典名称", "字典类型", "状态", "备注", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"字典编号", "字典名称", "字典类型", "状态", "备注", "创建时间", "操作"};
+    private static final int COL_DICT_ID = 0;
+    private static final int COL_DICT_NAME = 1;
+    private static final int COL_DICT_OBJECT = 6;
+    private static final String SUCCESS_DELETE = "删除成功！";
+    private static final String WARN_SELECT_DICT_FIRST = "请先选择字典类型！";
 
     private DefaultTableModel tableModel;
 
@@ -189,7 +196,18 @@ public class DictTypeManagementPanel extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -220,11 +238,10 @@ public class DictTypeManagementPanel extends JPanel {
     }
 
     private void showDictDataTab() {
-
-        int selRow = table.getSelectedRow();
-        DictTypeRespVO respVO = null;
-        if (selRow != -1) {
-            respVO = (DictTypeRespVO) table.getValueAt(selRow, 6);
+        DictTypeRespVO selectedDictType = getSelectedDictType();
+        if (selectedDictType == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_DICT_FIRST);
+            return;
         }
 
         int tabIndex = MainFrame.getInstance().getTabbedPane().indexOfTab("字典数据");
@@ -236,7 +253,7 @@ public class DictTypeManagementPanel extends JPanel {
             dictDataManagementPanel = (DictDataManagementPanel) MainFrame.getInstance().getTabbedPane().getComponentAt(tabIndex);
         }
         MainFrame.getInstance().getTabbedPane().setSelectedIndex(MainFrame.getInstance().getTabbedPane().indexOfTab("字典数据"));
-        dictDataManagementPanel.setDictTypeRespVO(respVO);
+        dictDataManagementPanel.setDictTypeRespVO(selectedDictType);
     }
 
     private void initListeners() {
@@ -271,14 +288,14 @@ public class DictTypeManagementPanel extends JPanel {
     }
 
     private void showEditDialog() {
-        int selRow = table.getSelectedRow();
-        Long userId = null;
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
+        Long dictTypeId = getSelectedDictTypeId();
+        if (dictTypeId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_DICT_FIRST);
+            return;
         }
 
         DictTypeFormPane formPane = new DictTypeFormPane();
-        formPane.updateData(userId);
+        formPane.updateData(dictTypeId);
 
         WFormDialog<DictTypeSaveReqVO> dialog = new WFormDialog<>(
                 MainFrame.getInstance(), "修改", formPane);
@@ -294,13 +311,11 @@ public class DictTypeManagementPanel extends JPanel {
 
 
     private void delMenu() {
-        Long id = null;
-        String name = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            id = Convert.toLong(table.getValueAt(selRow, 0));
-            name = Convert.toStr(table.getValueAt(selRow, 1));
+        Long id = getSelectedDictTypeId();
+        String name = getSelectedDictTypeName();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_DICT_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -308,17 +323,9 @@ public class DictTypeManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).deleteDictType(finalId).getCheckedData();
-        }).thenAcceptAsync(aLong -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+        executeAsync(() -> Forest.client(DictTypeApi.class).deleteDictType(id).getCheckedData(), aLong -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
     }
@@ -345,16 +352,7 @@ public class DictTypeManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateTableData(result);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData(), this::updateTableData);
 
 
     }
@@ -395,10 +393,45 @@ public class DictTypeManagementPanel extends JPanel {
             }
         });
 
-        table.getColumnExt("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-        table.getColumnExt("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        table.getColumnExt("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+        table.getColumnExt("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
 
+    }
+
+    private Long getSelectedDictTypeId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_DICT_ID));
+    }
+
+    private String getSelectedDictTypeName() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_DICT_NAME));
+    }
+
+    private DictTypeRespVO getSelectedDictType() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return (DictTypeRespVO) table.getValueAt(selectedRow, COL_DICT_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

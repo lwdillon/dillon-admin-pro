@@ -30,9 +30,16 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 /**
- * @author wenli
+ * 主窗口顶部工具栏。
+ * <p>
+ * 包含主题切换、消息入口、用户菜单与退出登录逻辑。
+ * JFormDesigner 生成区仅负责基础布局，工具栏行为在生成区外维护。
+ * </p>
  */
 public class TitlePanel extends JPanel {
+    private static final int TOOL_ICON_SIZE = 20;
+    private static final int PROFILE_ICON_SIZE = 80;
+    private static final int MENU_ICON_SIZE = 25;
 
     // 自定义组件和状态变量
     private FlatButton themeButton;
@@ -82,34 +89,24 @@ public class TitlePanel extends JPanel {
         add(winFullWindowContentButtonsPlaceholder, BorderLayout.LINE_END);
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
 
-        //user
-        themeButton = new FlatButton();
-        themeButton.setIcon(IconLoader.getSvgIcon("icons/skin.svg", 20, 20));
-        themeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
-        themeButton.setFocusable(false);
-        themeButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
+        // 下方为手写逻辑区域，不修改 JFormDesigner 生成块，保持 .jfd 可回写。
+        themeButton = createToolBarButton("icons/skin.svg");
         themeButton.addActionListener(e -> showThemePopupMenu(e));
+
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
         toolBar.setOpaque(false);
         toolBar.add(Box.createGlue());
         toolBar.add(themeButton);
-        toolBar.setBorder(BorderFactory.createEmptyBorder(0,0,0,5));
+        toolBar.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
+
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
-        noticeButton = new FlatButton();
-        noticeButton.setIcon(IconLoader.getSvgIcon("icons/bell.svg", 20, 20));
-        noticeButton.setButtonType(FlatButton.ButtonType.toolBarButton);
+        noticeButton = createToolBarButton("icons/bell.svg");
         noticeButton.addActionListener(e1 -> EventBusCenter.get().post(new AddMainTabEvent("icons/bell.svg", "我的消息", new MyNotifyMessagePane())));
-
-        noticeButton.setFocusable(false);
-
         toolBar.add(noticeButton);
-        userButton = new FlatButton();
-        userButton.setIcon(IconLoader.getSvgIcon("icons/user.svg", 20, 20));
-        userButton.setButtonType(FlatButton.ButtonType.toolBarButton);
-        userButton.putClientProperty("FlatLaf.internal.testing.ignore", true);
+
+        userButton = createToolBarButton("icons/user.svg");
         userButton.addActionListener(e -> showUserInfoPopupMenu(e));
-        userButton.setFocusable(false);
         toolBar.add(userButton);
 
         toolPanel.add(toolBar, BorderLayout.EAST);
@@ -124,6 +121,15 @@ public class TitlePanel extends JPanel {
         winFullWindowContentButtonsPlaceholder.putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT_BUTTONS_PLACEHOLDER, "win");
 
 
+    }
+
+    private FlatButton createToolBarButton(String iconPath) {
+        FlatButton button = new FlatButton();
+        button.setIcon(IconLoader.getSvgIcon(iconPath, TOOL_ICON_SIZE, TOOL_ICON_SIZE));
+        button.setButtonType(FlatButton.ButtonType.toolBarButton);
+        button.setFocusable(false);
+        button.putClientProperty("FlatLaf.internal.testing.ignore", true);
+        return button;
     }
 
     private void showThemePopupMenu(ActionEvent e) {
@@ -188,7 +194,7 @@ public class TitlePanel extends JPanel {
         JPanel infoPanel = new JPanel(new BorderLayout());
         String nickName = AppStore.getUserVO() != null ? AppStore.getUserVO().getNickname() : "未登录";
         JLabel label = new JLabel(nickName, JLabel.CENTER);
-        label.setIcon(new FlatSVGIcon("icons/user.svg", 80, 80));
+        label.setIcon(new FlatSVGIcon("icons/user.svg", PROFILE_ICON_SIZE, PROFILE_ICON_SIZE));
         label.setVerticalTextPosition(SwingConstants.BOTTOM);
         label.setHorizontalTextPosition(SwingConstants.CENTER);
         infoPanel.add(label, BorderLayout.CENTER);
@@ -199,14 +205,14 @@ public class TitlePanel extends JPanel {
 
         // 个人信息项
         JMenuItem personalInfoItem = new JMenuItem("个人信息");
-        personalInfoItem.setIcon(new FlatSVGIcon("icons/gerenxinxi.svg", 25, 25));
+        personalInfoItem.setIcon(new FlatSVGIcon("icons/gerenxinxi.svg", MENU_ICON_SIZE, MENU_ICON_SIZE));
         personalInfoItem.addActionListener(e1 -> EventBusCenter.get().post(new AddMainTabEvent("icons/gerenxinxi.svg", "个人信息", new PersonalCenterPanel())));
         popupMenu.add(personalInfoItem);
         popupMenu.addSeparator();
 
         // 退出登录项
         JMenuItem logoutItem = new JMenuItem("退出");
-        logoutItem.setIcon(new FlatSVGIcon("icons/logout.svg", 25, 25));
+        logoutItem.setIcon(new FlatSVGIcon("icons/logout.svg", MENU_ICON_SIZE, MENU_ICON_SIZE));
         logoutItem.addActionListener(e1 -> {
             int option = JOptionPane.showConfirmDialog(
                     MainFrame.getInstance(),
@@ -238,8 +244,9 @@ public class TitlePanel extends JPanel {
     }
 
     private void doLocalLogout() {
+        // 本地会话先清理，确保即使服务端退出失败也能回到干净登录态。
         AppStore.clearSession();
-        EventBusCenter.get().post(new LoginEvent(1));
+        EventBusCenter.get().post(new LoginEvent(LoginEvent.LOGOUT_OR_INVALID));
     }
 
 

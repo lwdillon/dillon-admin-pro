@@ -30,6 +30,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.COMMON_STATUS;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_NOTIFY_TEMPLATE_TYPE;
@@ -39,7 +41,11 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class NotifyTemplatePane extends JPanel {
-    private final static String[] COLUMN_ID = {"模板编码", "模板名称", "类型", "发送人名称", "模板内容", "开启状态", "备注", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"模板编码", "模板名称", "类型", "发送人名称", "模板内容", "开启状态", "备注", "创建时间", "操作"};
+    private static final int COL_TEMPLATE_ID = 0;
+    private static final int COL_TEMPLATE_NAME = 1;
+    private static final int COL_TEMPLATE_OBJECT = COLUMN_ID.length - 1;
+    private static final String WARN_SELECT_TEMPLATE_FIRST = "请先选择消息模板！";
 
 
     private DefaultTableModel tableModel;
@@ -171,7 +177,18 @@ public class NotifyTemplatePane extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -220,12 +237,10 @@ public class NotifyTemplatePane extends JPanel {
     }
 
     private void showEditDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        NotifyTemplateRespVO noticeRespVO = null;
-        if (selRow != -1) {
-            noticeRespVO = (NotifyTemplateRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        NotifyTemplateRespVO noticeRespVO = getSelectedTemplate();
+        if (noticeRespVO == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_TEMPLATE_FIRST);
+            return;
         }
 
         NotifyTemplateFromPane noticeFormPane = new NotifyTemplateFromPane();
@@ -238,12 +253,10 @@ public class NotifyTemplatePane extends JPanel {
 
 
     private void showSendDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        NotifyTemplateRespVO noticeRespVO = null;
-        if (selRow != -1) {
-            noticeRespVO = (NotifyTemplateRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        NotifyTemplateRespVO noticeRespVO = getSelectedTemplate();
+        if (noticeRespVO == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_TEMPLATE_FIRST);
+            return;
         }
 
         NotifyTemplateSendPane noticeFormPane = new NotifyTemplateSendPane();
@@ -256,41 +269,25 @@ public class NotifyTemplatePane extends JPanel {
 
 
     private void add(NotifyTemplateSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).createNotifyTemplate(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyTemplateApi.class).createNotifyTemplate(saveReqVO).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void edit(NotifyTemplateSaveReqVO saveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).updateNotifyTemplate(saveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyTemplateApi.class).updateNotifyTemplate(saveReqVO).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void del() {
-        Long id = null;
-        String name = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            id = Convert.toLong(table.getValueAt(selRow, 0));
-            name = Convert.toStr(table.getValueAt(selRow, 1));
+        Long id = getSelectedTemplateId();
+        String name = getSelectedTemplateName();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_TEMPLATE_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -299,31 +296,16 @@ public class NotifyTemplatePane extends JPanel {
             return;
         }
 
-        Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).deleteNotifyTemplate(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyTemplateApi.class).deleteNotifyTemplate(id).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void send(NotifyTemplateSendReqVO sendReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).sendNotify(sendReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyTemplateApi.class).sendNotify(sendReqVO).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "发送成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
@@ -343,9 +325,7 @@ public class NotifyTemplatePane extends JPanel {
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? 0 : 1));
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).getNotifyTemplatePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NotifyTemplateApi.class).getNotifyTemplatePage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
 
             result.getList().forEach(respVO -> {
@@ -362,8 +342,8 @@ public class NotifyTemplatePane extends JPanel {
                 tableData.add(rowV);
             });
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("开启状态").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -390,12 +370,42 @@ public class NotifyTemplatePane extends JPanel {
                 }
             });
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
+    }
+
+    private Long getSelectedTemplateId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_TEMPLATE_ID));
+    }
+
+    private String getSelectedTemplateName() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_TEMPLATE_NAME));
+    }
+
+    private NotifyTemplateRespVO getSelectedTemplate() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return (NotifyTemplateRespVO) table.getValueAt(selectedRow, COL_TEMPLATE_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

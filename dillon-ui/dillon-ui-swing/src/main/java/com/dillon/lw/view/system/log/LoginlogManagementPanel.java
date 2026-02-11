@@ -11,12 +11,14 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.LoginLogApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.logger.vo.loginlog.LoginLogRespVO;
 import com.dillon.lw.utils.BadgeLabelUtil;
 import com.dillon.lw.utils.DictTypeEnum;
+import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
@@ -29,6 +31,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
@@ -38,7 +42,10 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class LoginlogManagementPanel extends JPanel {
-    private String[] COLUMN_ID = {"日志编号", "操作类型", "用户名称", "登录地址", "浏览器", "登录结果", "登录日期", "操作"};
+    private static final String[] COLUMN_ID = {"日志编号", "操作类型", "用户名称", "登录地址", "浏览器", "登录结果", "登录日期", "操作"};
+    private static final int COL_LOG_ID = 0;
+    private static final int COL_LOG_OBJECT = COLUMN_ID.length - 1;
+    private static final String WARN_SELECT_LOG_FIRST = "请先选择登录日志！";
 
     private DefaultTableModel tableModel;
 
@@ -189,7 +196,18 @@ public class LoginlogManagementPanel extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton viewBut = new JButton("详情");
@@ -216,12 +234,9 @@ public class LoginlogManagementPanel extends JPanel {
     }
 
     private void showDetailsDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        LoginLogRespVO logRespVO = null;
-        if (selRow != -1) {
-            logRespVO = (LoginLogRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        LoginLogRespVO logRespVO = getSelectedLog();
+        if (logRespVO == null) {
+            return;
         }
 
         JPanel panel = new JPanel();
@@ -273,13 +288,11 @@ public class LoginlogManagementPanel extends JPanel {
 
 
     private void delMenu() {
-        Long userId = null;
-        String userName = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
-            userName = Convert.toStr(table.getValueAt(selRow, 1));
+        Long logId = getSelectedLogId();
+        String userName = getSelectedUsername();
+        if (logId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_LOG_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -288,17 +301,7 @@ public class LoginlogManagementPanel extends JPanel {
             return;
         }
 
-        Long finalId = userId;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(LoginLogApi.class).deleteLoginLog(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(LoginLogApi.class).deleteLoginLog(logId).getCheckedData(), result -> updateData());
 
 
     }
@@ -310,16 +313,7 @@ public class LoginlogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(LoginLogApi.class).clearLoginLog().getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(LoginLogApi.class).clearLoginLog().getCheckedData(), result -> updateData());
 
 
     }
@@ -345,9 +339,7 @@ public class LoginlogManagementPanel extends JPanel {
             queryMap.put("createTime", ListUtil.of(sd, ed));
         }
         queryMap.values().removeIf(Objects::isNull);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {
                 Vector rowV = new Vector();
@@ -363,8 +355,8 @@ public class LoginlogManagementPanel extends JPanel {
             });
 
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("登录结果").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -394,14 +386,45 @@ public class LoginlogManagementPanel extends JPanel {
             });
 
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
 
+    }
+
+    private LoginLogRespVO getSelectedLog() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_LOG_FIRST);
+            return null;
+        }
+        return (LoginLogRespVO) table.getValueAt(selectedRow, COL_LOG_OBJECT);
+    }
+
+    private Long getSelectedLogId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_LOG_ID));
+    }
+
+    private String getSelectedUsername() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, 2));
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

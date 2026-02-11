@@ -7,7 +7,7 @@ import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
-import com.dillon.lw.eventbus.event.MenuRefrestEvent;
+import com.dillon.lw.eventbus.event.MenuRefreshEvent;
 import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
@@ -47,6 +47,13 @@ import java.util.concurrent.CompletableFuture;
  * - 南部 (SOUTH)：状态栏
  */
 public class MainPane extends JPanel {
+    private static final String CARD_EXPANDED_MENU = "ExpandedMenu";
+    private static final String CARD_COLLAPSED_MENU = "CollapsedMenu";
+    private static final int NAV_BAR_COLLAPSED_WIDTH = 60;
+    private static final int MENU_ICON_SIZE = 20;
+    private static final int COLLAPSED_MENU_ICON_SIZE = 25;
+    private static final int TOOLBAR_ICON_SIZE = 22;
+    private static final DateTimeFormatter STATUS_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // --- 核心 UI 组件 ---
     private JPanel navBarPane;            // 侧边栏容器 (CardLayout)
@@ -63,7 +70,7 @@ public class MainPane extends JPanel {
     // --- 配置属性 ---
     private int navBarExpandedWidth = 300;
 
-    private boolean isExpanded=true;
+    private boolean isExpanded = true;
 
     public MainPane() {
         initComponents();
@@ -103,8 +110,8 @@ public class MainPane extends JPanel {
         // --- 折叠状态面板 ---
         initCollapsedIconPanel();
 
-        navBarPane.add(expandedPanel, "ExpandedMenu");
-        navBarPane.add(collapsedIconPanel, "CollapsedMenu");
+        navBarPane.add(expandedPanel, CARD_EXPANDED_MENU);
+        navBarPane.add(collapsedIconPanel, CARD_COLLAPSED_MENU);
         navBarExpandedWidth = navBarPane.getPreferredSize().width;
 
         // 2. 初始化中央标签页
@@ -122,7 +129,7 @@ public class MainPane extends JPanel {
         add(statusPane, BorderLayout.SOUTH);
 
         // 默认显示展开状态
-        ((CardLayout) navBarPane.getLayout()).show(navBarPane, "ExpandedMenu");
+        ((CardLayout) navBarPane.getLayout()).show(navBarPane, CARD_EXPANDED_MENU);
     }
 
     // ===================================================================================
@@ -143,23 +150,8 @@ public class MainPane extends JPanel {
         searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         // 搜索框实时过滤监听
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) {
-                filter();
-            }
-
-            public void insertUpdate(DocumentEvent e) {
-                filter();
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                filter();
-            }
-
-            private void filter() {
-                applyTreeFilter(searchField.getText().trim());
-            }
-        });
+        searchField.getDocument().addDocumentListener(createDocumentListener(() ->
+                applyTreeFilter(searchField.getText().trim())));
 
         toolBar.add(searchField);
         toolBar.add(createToolbarButton("icons/expand-up-down-line.svg", "展开菜单", e -> navBarTreeTable.expandAll()));
@@ -173,17 +165,10 @@ public class MainPane extends JPanel {
     private void setupTreeTable() {
         navBarTreeTable = new JXTreeTable();
         navBarTreeTable.setRowHeight(45);
-        // 设置鼠标悬停高亮
-        navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
-                UIManager.getColor("App.hoverBackground"), null));
+        applyTreeHoverHighlighter();
 
         // 隐藏表格头
-        navBarTreeTable.setTableHeader(new JTableHeader() {
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(super.getPreferredSize().width, 0);
-            }
-        });
+        navBarTreeTable.setTableHeader(createZeroHeightTableHeader());
 
         // 自定义树节点渲染
         navBarTreeTable.setTreeCellRenderer(new DefaultTreeCellRenderer() {
@@ -193,7 +178,7 @@ public class MainPane extends JPanel {
                 if (value instanceof AuthPermissionInfoRespVO.MenuVO) {
                     AuthPermissionInfoRespVO.MenuVO menu = (AuthPermissionInfoRespVO.MenuVO) value;
                     label.setText(menu.getName());
-                    label.setIcon(getMenuIcon(menu.getIcon(), 20));
+                    label.setIcon(getMenuIcon(menu.getIcon(), MENU_ICON_SIZE));
                     label.setIconTextGap(10);
                 }
                 return label;
@@ -230,7 +215,7 @@ public class MainPane extends JPanel {
         tabbedPane.setTabInsets(new Insets(0, 20, 0, 5));
         tabbedPane.setTabAreaInsets(new Insets(0, 0, 0, 0));
         // 默认主页
-        tabbedPane.addTab("主页", IconLoader.getSvgIcon("icons/menu/zhuye.svg", 20, 20), AppStore.getNavigatonPanel(HomePanel.class.getName()));
+        tabbedPane.addTab("主页", IconLoader.getSvgIcon("icons/menu/zhuye.svg", 20, 20), AppStore.getNavigationPanel(HomePanel.class.getName()));
         tabbedPane.setTabClosableAt(0, false);
 
         // 设置标签栏辅助组件
@@ -268,17 +253,15 @@ public class MainPane extends JPanel {
 
         for (AuthPermissionInfoRespVO.MenuVO node : nodes) {
             List<AuthPermissionInfoRespVO.MenuVO> filteredChildren = filterMenuItems(node.getChildren(), query);
+            String menuName = node.getName() == null ? "" : node.getName();
 
             // 匹配规则：名称包含、拼音包含、或子项有匹配
-            boolean matches = node.getName().toLowerCase().contains(query)
-                    || PinyinUtil.getPinyin(node.getName(), "").toLowerCase().contains(query)
-                    || PinyinUtil.getFirstLetter(node.getName(), "").toLowerCase().contains(query);
+            boolean matches = menuName.toLowerCase().contains(query)
+                    || PinyinUtil.getPinyin(menuName, "").toLowerCase().contains(query)
+                    || PinyinUtil.getFirstLetter(menuName, "").toLowerCase().contains(query);
 
             if (matches || !filteredChildren.isEmpty()) {
-                AuthPermissionInfoRespVO.MenuVO newNode = new AuthPermissionInfoRespVO.MenuVO();
-                newNode.setName(node.getName());
-                newNode.setIcon(node.getIcon());
-                newNode.setComponentSwing(node.getComponentSwing());
+                AuthPermissionInfoRespVO.MenuVO newNode = copyMenuNode(node);
                 newNode.setChildren(filteredChildren);
                 result.add(newNode);
             }
@@ -294,10 +277,10 @@ public class MainPane extends JPanel {
         isExpanded = !isExpanded;
         if (isExpanded) {
             navBarPane.setPreferredSize(new Dimension(navBarExpandedWidth, navBarPane.getHeight()));
-            cl.show(navBarPane, "ExpandedMenu");
+            cl.show(navBarPane, CARD_EXPANDED_MENU);
         } else {
-            navBarPane.setPreferredSize(new Dimension(60, navBarPane.getHeight()));
-            cl.show(navBarPane, "CollapsedMenu");
+            navBarPane.setPreferredSize(new Dimension(NAV_BAR_COLLAPSED_WIDTH, navBarPane.getHeight()));
+            cl.show(navBarPane, CARD_COLLAPSED_MENU);
         }
         revalidate();
         repaint();
@@ -308,14 +291,16 @@ public class MainPane extends JPanel {
      */
     public void updateNavBarData() {
         CompletableFuture.supplyAsync(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData())
-                .thenAccept(result -> SwingUtilities.invokeLater(() -> {
-                    AppStore.setAuthPermissionInfoRespVO(result);
-                    updateTreeTableRoot(AppStore.getMenus());
-                }))
+                .thenAcceptAsync(this::refreshMenuTree, SwingUtilities::invokeLater)
                 .exceptionally(ex -> {
                     SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(ex));
                     return null;
                 });
+    }
+
+    private void refreshMenuTree(AuthPermissionInfoRespVO authPermissionInfo) {
+        AppStore.setAuthPermissionInfoRespVO(authPermissionInfo);
+        updateTreeTableRoot(AppStore.getMenus());
     }
 
     /**
@@ -340,11 +325,11 @@ public class MainPane extends JPanel {
         int index = tabbedPane.indexOfTab(menuVO.getName());
         if (index == -1) {
             if (StrUtil.equals(menuVO.getName(), "菜单管理")) {
-                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
-                        AppStore.getNavigatonPanel(MenuManagementPanel.class.getName()));
-            }else {
-                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), 20),
-                        AppStore.getNavigatonPanel(menuVO.getComponentSwing()));
+                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
+                        AppStore.getNavigationPanel(MenuManagementPanel.class.getName()));
+            } else {
+                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
+                        AppStore.getNavigationPanel(menuVO.getComponentSwing()));
             }
 
             index = tabbedPane.getTabCount() - 1;
@@ -427,7 +412,7 @@ public class MainPane extends JPanel {
     }
 
     private JButton createIconMenuButton(AuthPermissionInfoRespVO.MenuVO menu) {
-        JButton btn = new JButton(getMenuIcon(menu.getIcon(), 25));
+        JButton btn = new JButton(getMenuIcon(menu.getIcon(), COLLAPSED_MENU_ICON_SIZE));
         btn.setToolTipText(menu.getName());
         btn.putClientProperty("JButton.buttonType", "toolBarButton");
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -460,12 +445,12 @@ public class MainPane extends JPanel {
         for (AuthPermissionInfoRespVO.MenuVO menu : children) {
             if (menu.getChildren() != null && !menu.getChildren().isEmpty()) {
                 JMenu sub = new JMenu(menu.getName());
-                sub.setIcon(getMenuIcon(menu.getIcon(), 20));
+                sub.setIcon(getMenuIcon(menu.getIcon(), MENU_ICON_SIZE));
                 JPopupMenu subPopup = createFloatingMenu(menu.getChildren());
                 for (Component c : subPopup.getComponents()) sub.add(c);
                 popup.add(sub);
             } else {
-                JMenuItem item = new JMenuItem(menu.getName(), getMenuIcon(menu.getIcon(), 20));
+                JMenuItem item = new JMenuItem(menu.getName(), getMenuIcon(menu.getIcon(), MENU_ICON_SIZE));
                 item.addActionListener(e -> addTab(menu));
                 popup.add(item);
             }
@@ -497,7 +482,7 @@ public class MainPane extends JPanel {
             // 创建定时器，每 1000 毫秒（1秒）触发一次
             timeTimer = new Timer(1000, e -> {
                 // 更新标签文本
-                timeLabel.setText(" " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                timeLabel.setText(" " + LocalDateTime.now().format(STATUS_TIME_FORMATTER));
             });
         }
 
@@ -536,11 +521,58 @@ public class MainPane extends JPanel {
     // ===================================================================================
 
     private JButton createToolbarButton(String iconPath, String toolTip, java.awt.event.ActionListener listener) {
-        JButton btn = new JButton(IconLoader.getSvgIcon(iconPath, 22, 22));
+        JButton btn = new JButton(IconLoader.getSvgIcon(iconPath, TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE));
         btn.putClientProperty("JButton.buttonType", "toolBarButton");
         btn.addActionListener(listener);
         btn.setToolTipText(toolTip);
         return btn;
+    }
+
+    private DocumentListener createDocumentListener(Runnable action) {
+        return new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                action.run();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                action.run();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                action.run();
+            }
+        };
+    }
+
+    private JTableHeader createZeroHeightTableHeader() {
+        return new JTableHeader() {
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(super.getPreferredSize().width, 0);
+            }
+        };
+    }
+
+    private void applyTreeHoverHighlighter() {
+        if (navBarTreeTable == null) {
+            return;
+        }
+        navBarTreeTable.setHighlighters(new ColorHighlighter(
+                HighlightPredicate.ROLLOVER_ROW,
+                UIManager.getColor("App.hoverBackground"),
+                null
+        ));
+    }
+
+    private AuthPermissionInfoRespVO.MenuVO copyMenuNode(AuthPermissionInfoRespVO.MenuVO source) {
+        AuthPermissionInfoRespVO.MenuVO copy = new AuthPermissionInfoRespVO.MenuVO();
+        copy.setName(source.getName());
+        copy.setIcon(source.getIcon());
+        copy.setComponentSwing(source.getComponentSwing());
+        return copy;
     }
 
     private JMenuItem createMenuItem(String text, Runnable action) {
@@ -571,7 +603,7 @@ public class MainPane extends JPanel {
     // ===================================================================================
 
     @Subscribe
-    private void onMenuRefresh(MenuRefrestEvent event) {
+    private void onMenuRefresh(MenuRefreshEvent event) {
         updateNavBarData();
     }
 
@@ -589,20 +621,13 @@ public class MainPane extends JPanel {
     @Override
     public void updateUI() {
         super.updateUI();
-
-        if (navBarTreeTable != null) {
-            // 设置鼠标悬停高亮
-            navBarTreeTable.setHighlighters(new ColorHighlighter(HighlightPredicate.ROLLOVER_ROW,
-                    UIManager.getColor("App.hoverBackground"), null));
-
-        }
-
+        applyTreeHoverHighlighter();
     }
 
     /**
      * TreeTable 内部模型类
      */
-    class MenuModel extends AbstractTreeTableModel {
+    private static class MenuModel extends AbstractTreeTableModel {
         public MenuModel(Object root) {
             super(root);
         }

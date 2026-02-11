@@ -33,14 +33,25 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
 /**
+ * 角色管理主面板。
+ * <p>
+ * 负责角色列表查询、分页、增删改，以及角色菜单/数据权限分配。
+ * </p>
  * @author wenli
  */
 public class RoleManagementPanel extends JPanel {
-    private String[] COLUMN_ID = {"角色编号", "角色名称", "角色类型", "角色标识", "显示顺序", "备注", "状态", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"角色编号", "角色名称", "角色类型", "角色标识", "显示顺序", "备注", "状态", "创建时间", "操作"};
+    private static final int COL_ROLE_ID = 0;
+    private static final int COL_ROLE_NAME = 1;
+    private static final int COL_ROLE_OBJECT = 8;
+    private static final String SUCCESS_ASSIGN = "分配成功！";
+    private static final String WARN_SELECT_ROLE_FIRST = "请先选择角色！";
 
     private DefaultTableModel tableModel;
 
@@ -185,7 +196,18 @@ public class RoleManagementPanel extends JPanel {
 
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”按钮工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -250,14 +272,14 @@ public class RoleManagementPanel extends JPanel {
     }
 
     private void showEditDialog() {
-        int selRow = table.getSelectedRow();
-        Long userId = null;
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
+        Long roleId = getSelectedRoleId();
+        if (roleId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_ROLE_FIRST);
+            return;
         }
 
         RoleEditPane formPane = new RoleEditPane();
-        formPane.updateData(userId);
+        formPane.updateData(roleId);
 
         WFormDialog<RoleSaveReqVO> dialog = new WFormDialog<>(
                 MainFrame.getInstance(), "修改", formPane);
@@ -272,10 +294,10 @@ public class RoleManagementPanel extends JPanel {
     }
 
     private void showDataPermissionPaneDialog() {
-        int selRow = table.getSelectedRow();
-        RoleRespVO roleRespVO = new RoleRespVO();
-        if (selRow != -1) {
-            roleRespVO = (RoleRespVO) table.getValueAt(selRow, 8);
+        RoleRespVO roleRespVO = getSelectedRole();
+        if (roleRespVO.getId() == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_ROLE_FIRST);
+            return;
         }
 
         DataPermissionPane dataPermissionPane = new DataPermissionPane();
@@ -287,10 +309,10 @@ public class RoleManagementPanel extends JPanel {
     }
 
     private void showRoleAssignMenuDialog() {
-        int selRow = table.getSelectedRow();
-        RoleRespVO roleRespVO = new RoleRespVO();
-        if (selRow != -1) {
-            roleRespVO = (RoleRespVO) table.getValueAt(selRow, 8);
+        RoleRespVO roleRespVO = getSelectedRole();
+        if (roleRespVO.getId() == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_ROLE_FIRST);
+            return;
         }
 
         RoleAssignMenuPane roleAssignMenuPane = new RoleAssignMenuPane();
@@ -311,67 +333,49 @@ public class RoleManagementPanel extends JPanel {
 
 
     private void del() {
-        Long id = null;
-        String userName = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            id = Convert.toLong(table.getValueAt(selRow, 0));
-            userName = Convert.toStr(table.getValueAt(selRow, 1));
+        Long id = getSelectedRoleId();
+        String roleName = getSelectedRoleName();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_ROLE_FIRST);
+            return;
         }
 
-        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
+        int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + roleName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
 
         if (opt != 0) {
             return;
         }
 
-        Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).deleteRole(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(RoleApi.class).deleteRole(id).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
             loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     /**
-     * 重置pwd
+     * 提交角色菜单权限分配。
      */
     private void assignRoleMenu(PermissionAssignRoleMenuReqVO permissionAssignRoleMenuReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+        executeAsync(() -> Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData(), result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
             loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
+    /**
+     * 提交角色数据权限分配。
+     */
     private void assignRoleDataScope(PermissionAssignRoleDataScopeReqVO permissionAssignRoleDataScopeReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+        executeAsync(() -> Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData(), result -> {
+            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
             loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
 
+    /**
+     * 按当前筛选条件查询角色分页数据，并刷新表格与分页器。
+     */
     public void loadTableData() {
 
         Map<String, Object> queryMap = new HashMap<>();
@@ -393,9 +397,7 @@ public class RoleManagementPanel extends JPanel {
         }
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {
                 Vector rowV = new Vector();
@@ -412,8 +414,8 @@ public class RoleManagementPanel extends JPanel {
             });
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
             table.getColumn("操作").setMinWidth(240);
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -434,12 +436,45 @@ public class RoleManagementPanel extends JPanel {
                 }
             });
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
+    }
+
+    private Long getSelectedRoleId() {
+        // 表格未选择行时返回 null，调用方需做前置校验并给出提示。
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_ROLE_ID));
+    }
+
+    private String getSelectedRoleName() {
+        // 与 getSelectedRoleId 保持一致的“未选中即 null”语义。
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_ROLE_NAME));
+    }
+
+    private RoleRespVO getSelectedRole() {
+        // 返回空对象以避免调用方出现 NPE；调用方按 id 是否为空判断是否有选择。
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return new RoleRespVO();
+        }
+        return (RoleRespVO) table.getValueAt(selectedRow, COL_ROLE_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步执行模板：后台请求 + EDT 更新 + 全局异常处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

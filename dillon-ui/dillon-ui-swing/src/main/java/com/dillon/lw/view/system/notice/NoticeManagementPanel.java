@@ -30,6 +30,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_NOTICE_TYPE;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
@@ -39,7 +41,11 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class NoticeManagementPanel extends JPanel {
-    private final static String[] COLUMN_ID = {"公告编号", "公告标题", "公告类型", "状态", "创建时间", "操作"};
+    private static final String[] COLUMN_ID = {"公告编号", "公告标题", "公告类型", "状态", "创建时间", "操作"};
+    private static final int COL_NOTICE_ID = 0;
+    private static final int COL_NOTICE_TITLE = 1;
+    private static final int COL_NOTICE_OBJECT = 5;
+    private static final String WARN_SELECT_NOTICE_FIRST = "请先选择公告！";
 
 
     private DefaultTableModel tableModel;
@@ -161,7 +167,18 @@ public class NoticeManagementPanel extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
         JButton edit = new JButton("修改");
@@ -218,10 +235,10 @@ public class NoticeManagementPanel extends JPanel {
     }
 
     private void showEditDialog() {
-        int selRow = table.getSelectedRow();
-        NoticeRespVO noticeRespVO = null;
-        if (selRow != -1) {
-            noticeRespVO = (NoticeRespVO) table.getValueAt(selRow, 5);
+        NoticeRespVO noticeRespVO = getSelectedNotice();
+        if (noticeRespVO == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_NOTICE_FIRST);
+            return;
         }
 
         NoticeFormPane formPane = new NoticeFormPane();
@@ -240,13 +257,11 @@ public class NoticeManagementPanel extends JPanel {
     }
 
     private void del() {
-        Long id = null;
-        String name = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            id = Convert.toLong(table.getValueAt(selRow, 0));
-            name = Convert.toStr(table.getValueAt(selRow, 1));
+        Long id = getSelectedNoticeId();
+        String name = getSelectedNoticeTitle();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_NOTICE_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + name + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -255,35 +270,21 @@ public class NoticeManagementPanel extends JPanel {
             return;
         }
 
-        Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).deleteNotice(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NoticeApi.class).deleteNotice(id).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
     private void push() {
-
-        int selRow = table.getSelectedRow();
-        Long id = Convert.toLong(table.getValueAt(selRow, 0));
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).push(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        Long id = getSelectedNoticeId();
+        if (id == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_NOTICE_FIRST);
+            return;
+        }
+        executeAsync(() -> Forest.client(NoticeApi.class).push(id).getCheckedData(), result -> {
             WMessage.showMessageSuccess(MainFrame.getInstance(), "发布成功！");
             updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
     }
 
@@ -301,9 +302,7 @@ public class NoticeManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).getNoticePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(NoticeApi.class).getNoticePage(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(respVO -> {
                 Vector rowV = new Vector();
@@ -317,8 +316,8 @@ public class NoticeManagementPanel extends JPanel {
             });
 
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
                 @Override
@@ -357,12 +356,42 @@ public class NoticeManagementPanel extends JPanel {
 
 
             paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
+    }
+
+    private Long getSelectedNoticeId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_NOTICE_ID));
+    }
+
+    private String getSelectedNoticeTitle() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_NOTICE_TITLE));
+    }
+
+    private NoticeRespVO getSelectedNotice() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return (NoticeRespVO) table.getValueAt(selectedRow, COL_NOTICE_OBJECT);
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

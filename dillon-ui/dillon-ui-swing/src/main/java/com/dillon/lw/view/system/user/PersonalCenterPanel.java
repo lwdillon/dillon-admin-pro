@@ -5,7 +5,6 @@ import com.dillon.lw.api.system.UserProfileApi;
 import com.dillon.lw.components.AbstractRefreshablePanel;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.components.notice.WMessage;
-import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSimpleRespVO;
@@ -15,7 +14,6 @@ import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.google.common.eventbus.Subscribe;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +22,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
@@ -35,27 +35,19 @@ import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMP
  * @date 2022/07/08
  */
 public class PersonalCenterPanel extends AbstractRefreshablePanel {
+    private static final String SUCCESS_MESSAGE = "修改成功";
+    private static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
-    /**
-     * 人小组
-     */
+    /** 左侧个人信息展示区域 */
     private JPanel personPanel;
-    /**
-     * 选项卡式窗格
-     */
+    /** 右侧编辑 Tab 容器 */
     private JTabbedPane tabbedPane;
-    /**
-     * 基本信息面板
-     */
+    /** 基础信息面板 */
     private JPanel basicInfoPanel;
-    /**
-     * pwd面板
-     */
+    /** 密码修改面板 */
     private JPanel pwdPanel;
 
-    /**
-     * 《阿凡达》标签
-     */
+    /** 头像标签 */
     private JLabel avatarLabel;
     /**
      * 用户名称标签
@@ -98,32 +90,20 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
      * 电子邮件文本字段
      */
     private JTextField emailTextField;
-    /**
-     * 性组合框
-     */
+    /** 性别选择框 */
     private JComboBox<String> sexComboBox;
 
 
-    /**
-     * 老pwd领域
-     */
+    /** 旧密码输入框 */
     private JPasswordField oldPwdField;
-    /**
-     * 新pwd字段
-     */
+    /** 新密码输入框 */
     private JPasswordField newPwdField;
-    /**
-     * 新pwd field2
-     */
+    /** 新密码确认输入框 */
     private JPasswordField newPwdField2;
 
-    /**
-     * 保存信息,但
-     */
+    /** 保存基础信息按钮 */
     private JButton saveInfoBut;
-    /**
-     * 拯救pwd但
-     */
+    /** 保存密码按钮 */
     private JButton savePwdBut;
 
     /**
@@ -146,14 +126,14 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
 
         this.setOpaque(false);
         this.setLayout(new BorderLayout(10, 1));
-        this.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        this.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         initPersonPanel();
         initTabbedPane();
         updateData();
     }
 
     /**
-     * init人小组
+     * 初始化左侧个人信息展示区域
      */
     private void initPersonPanel() {
         personPanel = new WPanel();
@@ -253,49 +233,40 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
      * 更新数据
      */
     public void updateData() {
+        executeAsync(
+                () -> Forest.client(UserProfileApi.class).getUserProfile().getCheckedData(),
+                userProfileRespVO -> {
+                    userNameLabel.setText(userProfileRespVO.getUsername());
+                    phoneNumberLabel.setText(userProfileRespVO.getMobile());
+                    emailLabel.setText(userProfileRespVO.getEmail());
+                    deptLabel.setText(userProfileRespVO.getDept().getName());
+                    List<PostSimpleRespVO> posts = userProfileRespVO.getPosts();
+                    String postInfo = posts == null || posts.isEmpty()
+                            ? "-"
+                            : posts.stream()
+                            .map(PostSimpleRespVO::getName)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(", "));
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserProfileApi.class).getUserProfile().getCheckedData();
-        }).thenAcceptAsync(userProfileRespVO -> {
-            userNameLabel.setText(userProfileRespVO.getUsername());
-            phoneNumberLabel.setText(userProfileRespVO.getMobile());
-            emailLabel.setText(userProfileRespVO.getEmail());
-            deptLabel.setText(userProfileRespVO.getDept().getName());
-            List<PostSimpleRespVO> posts = userProfileRespVO.getPosts();
-            String postInfo = posts == null || posts.isEmpty()
-                    ? "-"
-                    : posts.stream()
-                    .map(PostSimpleRespVO::getName)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.joining(", "));
+                    postLabel.setText(postInfo);
 
-            postLabel.setText(postInfo);
+                    List<RoleSimpleRespVO> roles = userProfileRespVO.getRoles();
+                    String roleInfo = roles == null || roles.isEmpty()
+                            ? "-"
+                            : roles.stream()
+                            .map(RoleSimpleRespVO::getName)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(", "));
 
-            List<RoleSimpleRespVO> roles = userProfileRespVO.getRoles();
-            String roleInfo = roles == null || roles.isEmpty()
-                    ? "-"
-                    : roles.stream()
-                    .map(RoleSimpleRespVO::getName)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.joining(", "));
+                    roleLabel.setText(roleInfo);
+                    createTimeLabel.setText(DateUtil.format(userProfileRespVO.getCreateTime(), DATETIME_PATTERN));
 
-            roleLabel.setText(roleInfo);
-
-
-            createTimeLabel.setText(DateUtil.format(userProfileRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-
-            nickNameTextField.setText(userProfileRespVO.getNickname());
-            phoneTextField.setText(userProfileRespVO.getMobile());
-            emailTextField.setText(userProfileRespVO.getEmail());
-            sexComboBox.setSelectedItem(userProfileRespVO.getSex());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-
+                    nickNameTextField.setText(userProfileRespVO.getNickname());
+                    phoneTextField.setText(userProfileRespVO.getMobile());
+                    emailTextField.setText(userProfileRespVO.getEmail());
+                    sexComboBox.setSelectedItem(userProfileRespVO.getSex());
+                }
+        );
     }
 
 
@@ -310,17 +281,13 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
         sysUser.setEmail(emailTextField.getText());
         sysUser.setSex(sexComboBox.getSelectedIndex());
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserProfileApi.class).updateUserProfile(sysUser).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(
+                () -> Forest.client(UserProfileApi.class).updateUserProfile(sysUser).getCheckedData(),
+                result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_MESSAGE);
+                    updateData();
+                }
+        );
 
     }
 
@@ -328,27 +295,27 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
      * 更新pwd
      */
     private void updatePwd() {
-        String oldPwd = oldPwdField.getText();
-        String newPwd = newPwdField.getText();
-        String newPwd2 = newPwdField2.getText();
+        String oldPwd = String.valueOf(oldPwdField.getPassword());
+        String newPwd = String.valueOf(newPwdField.getPassword());
+        String newPwd2 = String.valueOf(newPwdField2.getPassword());
 
 
-        if (updateFieldValidity(oldPwdField, StringUtils.isEmpty(oldPwd))) {
+        if (updateFieldErrorState(oldPwdField, StringUtils.isBlank(oldPwd))) {
             oldPwdField.requestFocusInWindow();
             return;
         }
-        if (updateFieldValidity(newPwdField, StringUtils.isEmpty(newPwd))) {
+        if (updateFieldErrorState(newPwdField, StringUtils.isBlank(newPwd))) {
             newPwdField.requestFocusInWindow();
             return;
         }
-        if (updateFieldValidity(newPwdField2, StringUtils.isEmpty(newPwd2))) {
+        if (updateFieldErrorState(newPwdField2, StringUtils.isBlank(newPwd2))) {
             newPwdField2.requestFocusInWindow();
             return;
         }
 
         if (!newPwd2.equals(newPwd)) {
-            updateFieldValidity(newPwdField, true);
-            updateFieldValidity(newPwdField2, true);
+            updateFieldErrorState(newPwdField, true);
+            updateFieldErrorState(newPwdField2, true);
             return;
         }
 
@@ -356,24 +323,33 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
         reqVO.setNewPassword(newPwd);
         reqVO.setOldPassword(oldPwd);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserProfileApi.class).updateUserProfilePassword(reqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(
+                () -> Forest.client(UserProfileApi.class).updateUserProfilePassword(reqVO).getCheckedData(),
+                result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_MESSAGE);
+                    updateData();
+                }
+        );
 
 
     }
 
-    private boolean updateFieldValidity(JTextField textField, boolean valid) {
-        textField.putClientProperty(FlatClientProperties.OUTLINE, valid ? FlatClientProperties.OUTLINE_ERROR : null);
-        return valid;
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
+    }
+
+    /**
+     * 更新输入框错误样式并返回当前是否为错误状态。
+     */
+    private boolean updateFieldErrorState(JTextField textField, boolean hasError) {
+        textField.putClientProperty(FlatClientProperties.OUTLINE, hasError ? FlatClientProperties.OUTLINE_ERROR : null);
+        return hasError;
     }
 
 

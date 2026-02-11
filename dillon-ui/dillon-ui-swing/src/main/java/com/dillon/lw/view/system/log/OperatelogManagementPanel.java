@@ -11,10 +11,12 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.api.system.OperateLogApi;
 import com.dillon.lw.components.*;
+import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellEditor;
 import com.dillon.lw.components.table.renderer.OptButtonTableCellRenderer;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
+import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
@@ -26,6 +28,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
 
@@ -33,7 +37,11 @@ import static javax.swing.JOptionPane.*;
  * @author wenli
  */
 public class OperatelogManagementPanel extends JPanel {
-    private String[] COLUMN_ID = {"日志编号", "操作人", "操作模块", "操作名", "操作内容", "操作时间", "业务编号", "ip", "操作"};
+    private static final String[] COLUMN_ID = {"日志编号", "操作人", "操作模块", "操作名", "操作内容", "操作时间", "业务编号", "ip", "操作"};
+    private static final int COL_LOG_ID = 0;
+    private static final int COL_LOG_OPERATOR = 3;
+    private static final int COL_LOG_OBJECT = COLUMN_ID.length - 1;
+    private static final String WARN_SELECT_LOG_FIRST = "请先选择操作日志！";
 
     private DefaultTableModel tableModel;
 
@@ -192,7 +200,18 @@ public class OperatelogManagementPanel extends JPanel {
         }
     }
 
+    /**
+     * @deprecated 历史命名，建议改用 {@link #createActionBar()}。
+     */
+    @Deprecated
     private JToolBar creatBar() {
+        return createActionBar();
+    }
+
+    /**
+     * 创建“操作列”工具栏。
+     */
+    private JToolBar createActionBar() {
         JToolBar optBar = new JToolBar();
         optBar.setOpaque(false);
 
@@ -224,12 +243,9 @@ public class OperatelogManagementPanel extends JPanel {
 
 
     private void showDetailsDialog() {
-
-
-        int selRow = table.getSelectedRow();
-        OperateLogRespVO logRespVO = null;
-        if (selRow != -1) {
-            logRespVO = (OperateLogRespVO) table.getValueAt(selRow, COLUMN_ID.length - 1);
+        OperateLogRespVO logRespVO = getSelectedLog();
+        if (logRespVO == null) {
+            return;
         }
 
         JPanel panel = new JPanel();
@@ -295,28 +311,17 @@ public class OperatelogManagementPanel extends JPanel {
             return;
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OperateLogApi.class).clearOperateLog().getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(OperateLogApi.class).clearOperateLog().getCheckedData(), result -> updateData());
 
     }
 
 
     private void del() {
-        Long userId = null;
-        String userName = null;
-
-        int selRow = table.getSelectedRow();
-        if (selRow != -1) {
-            userId = Convert.toLong(table.getValueAt(selRow, 0));
-            userName = Convert.toStr(table.getValueAt(selRow, 3));
+        Long logId = getSelectedLogId();
+        String userName = getSelectedOperatorName();
+        if (logId == null) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_LOG_FIRST);
+            return;
         }
 
         int opt = JOptionPane.showOptionDialog(this, "是否确定删除[" + userName + "]？", "提示", OK_CANCEL_OPTION, WARNING_MESSAGE, null, null, null);
@@ -324,17 +329,7 @@ public class OperatelogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        Long finalUserId = userId;
-        CompletableFuture.supplyAsync(() -> {
-             return Forest.client(OperateLogApi.class).deleteOperateLog(finalUserId).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        executeAsync(() -> Forest.client(OperateLogApi.class).deleteOperateLog(logId).getCheckedData(), result -> updateData());
 
 
     }
@@ -369,9 +364,7 @@ public class OperatelogManagementPanel extends JPanel {
         }
 
         queryMap.values().removeIf(Objects::isNull);
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
+        executeAsync(() -> Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData(), result -> {
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {
                 Vector rowV = new Vector();
@@ -387,19 +380,49 @@ public class OperatelogManagementPanel extends JPanel {
                 tableData.add(rowV);
             });
             tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
             paginationPane.setTotal(result.getTotal());
-
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
         });
 
 
+    }
+
+    private OperateLogRespVO getSelectedLog() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_LOG_FIRST);
+            return null;
+        }
+        return (OperateLogRespVO) table.getValueAt(selectedRow, COL_LOG_OBJECT);
+    }
+
+    private Long getSelectedLogId() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toLong(table.getValueAt(selectedRow, COL_LOG_ID));
+    }
+
+    private String getSelectedOperatorName() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow < 0) {
+            return null;
+        }
+        return Convert.toStr(table.getValueAt(selectedRow, COL_LOG_OPERATOR));
+    }
+
+    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
+        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
+        CompletableFuture
+                .supplyAsync(request)
+                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

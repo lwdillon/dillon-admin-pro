@@ -25,30 +25,32 @@ public class AppStore {
     private static AuthPermissionInfoRespVO authPermissionInfoRespVO;
 
     private static Map<String, List<DictDataSimpleRespVO>> dictDataListMap;
-
+    private static final String EMPTY_TOKEN = "";
+    private static final String EMPTY_VIEW_TEXT = "暂无投运";
 
     /**
-     * 获取功能面板
-     *
-     * @param className
+     * 获取功能面板（兼容历史拼写）。
+     * 建议新代码使用 {@link #getNavigationPanel(String)}。
      */
+    @Deprecated
     public static Container getNavigatonPanel(String className) {
+        return getNavigationPanel(className);
+    }
 
-        JComponent container = null;
-        if (container == null) {
-            Class<?> clazz = null;
-            try {
-                clazz = Class.forName(className);
-                container = (JComponent) clazz.newInstance();
-                container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-                container.setOpaque(false);
-            } catch (Exception e1) {
-                container = new JLabel("暂无投运", JLabel.CENTER);
-                log.error("获取功能面板出错:[" + className + "] as:" + e1);
-                e1.printStackTrace();
-            }
+    /**
+     * 通过类名反射创建导航面板。
+     */
+    public static Container getNavigationPanel(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            JComponent container = (JComponent) clazz.getDeclaredConstructor().newInstance();
+            container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            container.setOpaque(false);
+            return container;
+        } catch (Exception ex) {
+            log.error("获取功能面板失败: className={}", className, ex);
+            return new JLabel(EMPTY_VIEW_TEXT, JLabel.CENTER);
         }
-        return container;
     }
 
     public static void setAuthLoginRespVO(AuthLoginRespVO authLoginRespVO) {
@@ -56,17 +58,11 @@ public class AppStore {
     }
 
     public static String getAccessToken() {
-        if (authLoginRespVO == null) {
-            return "";
-        }
-        return authLoginRespVO.getAccessToken();
+        return authLoginRespVO == null ? EMPTY_TOKEN : authLoginRespVO.getAccessToken();
     }
 
     public static String getRefreshToken() {
-        if (authLoginRespVO == null) {
-            return "";
-        }
-        return authLoginRespVO.getRefreshToken();
+        return authLoginRespVO == null ? EMPTY_TOKEN : authLoginRespVO.getRefreshToken();
     }
 
     public static LocalDateTime getExpiresTime() {
@@ -102,10 +98,7 @@ public class AppStore {
      * @return {@link AuthPermissionInfoRespVO.UserVO }
      */
     public static AuthPermissionInfoRespVO.UserVO getUserVO() {
-        if (authPermissionInfoRespVO == null) {
-            return null;
-        }
-        return authPermissionInfoRespVO.getUser();
+        return authPermissionInfoRespVO == null ? null : authPermissionInfoRespVO.getUser();
     }
 
     /**
@@ -114,10 +107,7 @@ public class AppStore {
      * @return {@link Set }<{@link String }>
      */
     public static Set<String> getPermissions() {
-        if (authPermissionInfoRespVO == null) {
-            return null;
-        }
-        return authPermissionInfoRespVO.getPermissions();
+        return authPermissionInfoRespVO == null ? null : authPermissionInfoRespVO.getPermissions();
     }
 
 
@@ -127,10 +117,7 @@ public class AppStore {
      * @return {@link Set }<{@link String }>
      */
     public static Set<String> getRoles() {
-        if (authPermissionInfoRespVO == null) {
-            return null;
-        }
-        return authPermissionInfoRespVO.getRoles();
+        return authPermissionInfoRespVO == null ? null : authPermissionInfoRespVO.getRoles();
     }
 
     /**
@@ -139,10 +126,7 @@ public class AppStore {
      * @return {@link Set }<{@link String }>
      */
     public static List<AuthPermissionInfoRespVO.MenuVO> getMenus() {
-        if (authPermissionInfoRespVO == null) {
-            return null;
-        }
-        return authPermissionInfoRespVO.getMenus();
+        return authPermissionInfoRespVO == null ? null : authPermissionInfoRespVO.getMenus();
     }
 
     public static Map<String, List<DictDataSimpleRespVO>> getDictDataListMap() {
@@ -171,42 +155,34 @@ public class AppStore {
         List<DictDataSimpleRespVO> dictDataSimpleRespVOList = dictDataListMap.get(dictType.getType());
 
         // 将 List 转换为 Map，使用 id 作为键
-        Map<String, DictDataSimpleRespVO> reultMap = dictDataSimpleRespVOList.stream()
+        Map<String, DictDataSimpleRespVO> resultMap = dictDataSimpleRespVOList.stream()
                 .collect(Collectors.toMap(DictDataSimpleRespVO::getValue, item -> item));
 
-        return reultMap;
+        return resultMap;
     }
 
     public static Map<String, DictDataSimpleRespVO> getDictDataMap(DictTypeEnum dictType) {
         List<DictDataSimpleRespVO> dictDataSimpleRespVOList = dictDataListMap.get(dictType.getType());
 
         // 将 List 转换为 Map，使用 id 作为键
-        Map<String, DictDataSimpleRespVO> reultMap = dictDataSimpleRespVOList.stream()
+        Map<String, DictDataSimpleRespVO> resultMap = dictDataSimpleRespVOList.stream()
                 .collect(Collectors.toMap(DictDataSimpleRespVO::getLabel, item -> item));
 
-        return reultMap;
+        return resultMap;
     }
 
 
     public static void loadDictData() {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData();
-        }).thenAcceptAsync(result -> {
-            // 按 type 属性分组
-            Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
-                    .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
-
-            setDictDataListMap(groupedByType);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-
+        CompletableFuture
+                .supplyAsync(() -> Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData())
+                .thenAcceptAsync(result -> {
+                    Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
+                            .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
+                    setDictDataListMap(groupedByType);
+                }, SwingUtilities::invokeLater)
+                .exceptionally(throwable -> {
+                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
+                    return null;
+                });
     }
-
-
 }
