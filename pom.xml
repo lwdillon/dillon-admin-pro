@@ -136,6 +136,11 @@
         </pluginManagement>
 
         <plugins>
+            <!-- 统一启用 Toolchains：默认使用根 java.version(JDK8)，子模块可通过覆写 java.version 指定其它 JDK（如 dillon-ui-fx=23） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+            </plugin>
             <!-- 统一 revision 版本 -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

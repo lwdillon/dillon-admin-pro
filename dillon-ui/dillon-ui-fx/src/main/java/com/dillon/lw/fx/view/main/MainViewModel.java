@@ -15,6 +15,7 @@ import com.dillon.lw.fx.eventbus.event.ThemeEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
+import com.dillon.lw.fx.websocket.WebSocketNoticeService;
 import com.dillon.lw.fx.view.home.DashboardView;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
@@ -92,25 +93,44 @@ public class MainViewModel extends BaseViewModel {
         });
     }
 
-    public void loginOut(boolean exeit) {
+    /**
+     * 退出登录。
+     * <p>
+     * 设计原则：本地退出优先，服务端登出尽力而为。
+     * 避免因网络/后端异常导致客户端无法退出。
+     * </p>
+     *
+     * @param exitApp true 表示退出整个客户端；false 表示仅退出到登录页
+     */
+    public void loginOut(boolean exitApp) {
+        // 先主动关闭 websocket，避免退出切页期间继续接收推送。
+        WebSocketNoticeService.getInstance().stop();
         AppStore.setToken(null);
         AppStore.setAuthPermissionInfoRespVO(null);
         AppStore.setDictDataListMap(null);
-        // 退出登录
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(AuthApi.class).logout().getCheckedData();
-        }).thenAcceptAsync(data -> {
-            if (exeit) {
-                System.exit(0);
-            } else {
-                EventBusCenter.get().post(new LogoutEvent());
-                EventBusCenter.get().post(new MessageEvent("退出成功！", MessageType.SUCCESS));
-            }
-        }, Platform::runLater).exceptionally(throwable -> {
-            // 处理错误
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        // 先异步通知服务端登出，失败不阻塞本地退出。
+        CompletableFuture
+                .supplyAsync(() -> Forest.client(AuthApi.class).logout().getCheckedData())
+                .handle((ignored, throwable) -> {
+                    if (throwable != null) {
+                        DefaultExceptionHandler.handle(throwable);
+                        return false;
+                    }
+                    return true;
+                })
+                .thenAcceptAsync(serverLogoutSuccess -> {
+                    if (exitApp) {
+                        Platform.exit();
+                        System.exit(0);
+                        return;
+                    }
+                    EventBusCenter.get().post(new LogoutEvent());
+                    if (Boolean.TRUE.equals(serverLogoutSuccess)) {
+                        EventBusCenter.get().post(new MessageEvent("退出成功！", MessageType.SUCCESS));
+                    } else {
+                        EventBusCenter.get().post(new MessageEvent("服务端退出失败，已本地退出", MessageType.WARNING));
+                    }
+                }, Platform::runLater);
     }
 
     private TreeItem<AuthPermissionInfoRespVO.MenuVO> convertToTreeItem(AuthPermissionInfoRespVO.MenuVO menu) {

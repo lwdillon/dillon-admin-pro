@@ -29,6 +29,6 @@ public interface NoticeApi extends BaseApi {
     CommonResult<NoticeRespVO> getNotice(@Query("id") Long id);
 
     @Post("system/notice/push")
-    CommonResult<Boolean> push(@Body("id") Long id);
+    CommonResult<Boolean> push(@Query("id") Long id);
 
 }

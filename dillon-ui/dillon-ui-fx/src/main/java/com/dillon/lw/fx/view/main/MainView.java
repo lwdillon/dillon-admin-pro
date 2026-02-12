@@ -4,18 +4,24 @@ import atlantafx.base.controls.Breadcrumbs;
 import atlantafx.base.controls.Spacer;
 import atlantafx.base.theme.Styles;
 import atlantafx.base.theme.Tweaks;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.api.system.NotifyMessageApi;
 import com.dillon.lw.fx.MainApp;
 import com.dillon.lw.fx.Resources;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MainTabEvent;
+import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.ThemeEvent;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
 import com.dillon.lw.fx.utils.Lazy;
+import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.utils.NodeUtils;
+import com.dillon.lw.fx.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.fx.view.infra.apilog.ApiAccessLogView;
 import com.dillon.lw.fx.view.infra.apilog.ApiErrorLogView;
 import com.dillon.lw.fx.view.infra.config.ConfigView;
@@ -32,9 +38,11 @@ import com.dillon.lw.fx.view.system.menu.MenuManageView;
 import com.dillon.lw.fx.view.system.post.PostView;
 import com.dillon.lw.fx.view.system.role.RoleView;
 import com.dillon.lw.fx.view.system.user.UserView;
+import com.dillon.lw.fx.websocket.WebSocketNoticeService;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.profile.UserProfileRespVO;
+import com.dtflys.forest.Forest;
 import com.dlsc.gemsfx.AvatarView;
 import com.dlsc.gemsfx.SVGImageView;
 import com.google.common.eventbus.Subscribe;
@@ -69,15 +77,20 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.fx.utils.NodeUtils.getIcon;
 
 
 public class MainView extends BaseView<MainViewModel> {
+    private static final int BADGE_COUNT_MAX = 99;
+
     private boolean showSidebar = true; // 记录菜单状态
     private boolean expand = true; // 记录菜单状态
     private double lastSideBarWidth = 300D; // 记录上次窗口宽度
     private Lazy<SearchDialog> searchDialog;
+    private Label bellBadgeLabel;
+    private int unreadNoticeCount = 0;
 
 
     @FXML
@@ -212,10 +225,12 @@ public class MainView extends BaseView<MainViewModel> {
         setButton.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_CIRCLE);
         themeBut.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_CIRCLE);
         bellButton.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_CIRCLE);
+        initBellBadge();
         showSidebarButton.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_ICON);
         refreshButton.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_ICON);
         foldMenuButton.getStyleClass().addAll(Styles.FLAT, Styles.BUTTON_ICON);
         refreshButton.setOnAction(event -> EventBusCenter.get().post(new RefreshEvent("")));
+        bellButton.setOnAction(event -> openMyNotifyMessageTab());
 
         minimizeBut.setOnAction(actionEvent -> {
 
@@ -241,7 +256,9 @@ public class MainView extends BaseView<MainViewModel> {
         closeBut.getStyleClass().addAll(Styles.FLAT);
         closeBut.setGraphic(close);
         closeBut.setOnAction(actionEvent -> {
-            viewModel.loginOut(true);
+            if (MainApp.confirmAndMarkExit(closeBut.getScene().getWindow())) {
+                viewModel.loginOut(true);
+            }
         });
 
 
@@ -362,6 +379,10 @@ public class MainView extends BaseView<MainViewModel> {
         });
 
 //        MvvmFX.getNotificationCenter().subscribe("updateMenu3", (key, payload) -> viewModel.initData());
+        // 启动 WebSocket（进入主界面后生效）并注册消息处理。
+        WebSocketNoticeService.getInstance().setMessageListener(this::onWebSocketMessage);
+        WebSocketNoticeService.getInstance().start(com.dillon.lw.fx.store.AppStore.getToken());
+        loadUnreadNoticeCount();
 
     }
 
@@ -818,9 +839,112 @@ public class MainView extends BaseView<MainViewModel> {
 
     }
 
+    /**
+     * 初始化铃铛图标：固定按钮大小不变，角标右上角锚定。
+     * 数字增大时仅向左扩展，保持和其它顶部按钮协调。
+     */
+    private void initBellBadge() {
+        FontIcon bellIcon = new FontIcon(Feather.BELL);
+        bellIcon.setIconSize(18);
+
+        bellBadgeLabel = new Label();
+        bellBadgeLabel.setId("main-notice-badge");
+        bellBadgeLabel.setVisible(false);
+        bellBadgeLabel.setManaged(false);
+
+        StackPane bellGraphic = new StackPane(bellIcon, bellBadgeLabel);
+        bellGraphic.setPrefSize(20, 20);
+        bellGraphic.setMinSize(20, 20);
+        bellGraphic.setMaxSize(20, 20);
+        StackPane.setAlignment(bellBadgeLabel, Pos.TOP_RIGHT);
+        StackPane.setMargin(bellBadgeLabel, new Insets(-3, -5, 0, 0));
+        bellButton.setGraphic(bellGraphic);
+    }
+
+    private void loadUnreadNoticeCount() {
+        CompletableFuture
+                .supplyAsync(() -> Forest.client(NotifyMessageApi.class).getUnreadNotifyMessageCount().getCheckedData())
+                .thenAcceptAsync(count -> setUnreadNoticeCount(Math.max(0, count == null ? 0 : count.intValue())), Platform::runLater)
+                .exceptionally(ex -> null);
+    }
+
+    private void onWebSocketMessage(String rawMessage) {
+        try {
+            JSONObject frame = JSONUtil.parseObj(rawMessage);
+            if (!"notice-push".equals(frame.getStr("type"))) {
+                return;
+            }
+            String title = "系统通知";
+            String content = frame.getStr("content");
+            if (StrUtil.isNotBlank(content)) {
+                try {
+                    JSONObject notice = JSONUtil.parseObj(content);
+                    if (notice.containsKey("title")) {
+                        title = notice.getStr("title");
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            final String finalTitle = title;
+            Platform.runLater(() -> {
+                increaseUnreadNoticeCount();
+                EventBusCenter.get().post(new MessageEvent("收到消息：" + finalTitle, MessageType.INFO));
+            });
+        } catch (Exception ignored) {
+            // 兼容非标准消息帧，避免影响主流程。
+        }
+    }
+
+    private void openMyNotifyMessageTab() {
+        resetUnreadNoticeCount();
+        EventBusCenter.get().post(new MainTabEvent("fth-bell", "我的消息", new MyNotifyMessagePane()));
+    }
+
+    private void setUnreadNoticeCount(int count) {
+        unreadNoticeCount = Math.max(0, count);
+        refreshBellBadge();
+    }
+
+    private void increaseUnreadNoticeCount() {
+        setUnreadNoticeCount(unreadNoticeCount + 1);
+    }
+
+    private void resetUnreadNoticeCount() {
+        setUnreadNoticeCount(0);
+    }
+
+    private void refreshBellBadge() {
+        if (bellBadgeLabel == null) {
+            return;
+        }
+        if (unreadNoticeCount <= 0) {
+            bellBadgeLabel.setVisible(false);
+            bellBadgeLabel.setManaged(false);
+            return;
+        }
+        String text = unreadNoticeCount > BADGE_COUNT_MAX ? "99+" : String.valueOf(unreadNoticeCount);
+        bellBadgeLabel.setText(text);
+        bellBadgeLabel.setVisible(true);
+        bellBadgeLabel.setManaged(true);
+
+        // 右边缘锚定：位数越多只增加左侧宽度。
+        double width;
+        if (text.length() <= 1) {
+            width = 12;
+        } else if (text.length() == 2) {
+            width = 18;
+        } else {
+            width = 24;
+        }
+        bellBadgeLabel.setMinWidth(width);
+        bellBadgeLabel.setPrefWidth(width);
+        bellBadgeLabel.setMaxWidth(width);
+    }
+
     @Override
     public void onRemove() {
         super.onRemove();
         EventBusCenter.get().unregister(this);
+        WebSocketNoticeService.getInstance().stop();
     }
 }

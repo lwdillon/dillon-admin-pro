@@ -325,7 +325,7 @@ public class MyNotifyMessagePane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(NotifyMessageApi.class).getNotifyMessagePage(queryMap).getCheckedData(), result -> {
+        executeAsync(() -> Forest.client(NotifyMessageApi.class).getMyMyNotifyMessagePage(queryMap).getCheckedData(), result -> {
             paginationPane.setTotal(result.getTotal());
             Vector<Vector> tableData = new Vector<>();
             result.getList().forEach(roleRespVO -> {

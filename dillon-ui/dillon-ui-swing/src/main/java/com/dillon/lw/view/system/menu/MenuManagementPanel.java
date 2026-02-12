@@ -55,7 +55,6 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
     private static final String COL_COMPONENT = "组件路径";
 
     private JXTreeTable treeTable;
-
     private JTextField nameTextField;
     private JComboBox statusCombo;
     private JToggleButton exButton;

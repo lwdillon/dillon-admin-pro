@@ -3,6 +3,7 @@ package com.dillon.lw.fx.view.login;
 import atlantafx.base.controls.CustomTextField;
 import atlantafx.base.controls.PasswordTextField;
 import atlantafx.base.theme.Styles;
+import com.dillon.lw.fx.MainApp;
 import com.dillon.lw.fx.AppStart;
 import com.dillon.lw.fx.mvvm.base.BaseView;
 import com.dlsc.gemsfx.SVGImageView;
@@ -89,7 +90,12 @@ public class LoginView extends BaseView<LoginViewModel> {
         closeBut.getStyleClass().addAll(
                 Styles.BUTTON_ICON, Styles.FLAT, Styles.DANGER
         );
-        closeBut.setOnAction(event -> System.exit(0));
+        closeBut.setOnAction(event -> {
+            if (MainApp.confirmAndMarkExit(closeBut.getScene().getWindow())) {
+                javafx.application.Platform.exit();
+                System.exit(0);
+            }
+        });
 
         messageLabel.getStyleClass().add(Styles.DANGER);
 

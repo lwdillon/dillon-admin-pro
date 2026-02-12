@@ -8,6 +8,10 @@ import com.dillon.lw.store.AppStore;
 import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.view.login.LoginPane;
 import com.dillon.lw.view.mainpane.MainPane;
+import com.dillon.lw.websocket.WebSocketNoticeService;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.dillon.lw.components.notice.WMessage;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
@@ -122,6 +126,9 @@ public class MainFrame extends JFrame {
         mainContainer.add(mainPane, BorderLayout.CENTER);
 
         cardPanel.add(mainContainer, CARD_MAIN);
+
+        // 注册 WebSocket 消息回调：统一在主窗口层处理推送消息展示。
+        WebSocketNoticeService.getInstance().setMessageListener(this::onWebSocketMessage);
     }
 
     // ===================================================================================
@@ -133,7 +140,12 @@ public class MainFrame extends JFrame {
      * @param isInit 是否为应用启动时的第一次展示
      */
     public void showLogin(boolean isInit) {
+        // 回到登录页时立即关闭 websocket，避免旧 token 继续收消息。
+        WebSocketNoticeService.getInstance().stop();
         AppStore.clearSession();
+        if (titlePanel != null) {
+            titlePanel.resetUnreadNoticeCount();
+        }
         if (!isInit) initTheme(LightTheme.class.getName());
 
         configureLoginWindow();
@@ -151,11 +163,52 @@ public class MainFrame extends JFrame {
     public void showMain() {
         String theme = resolveUserTheme();
         initTheme(theme);
+        if (titlePanel != null) {
+            titlePanel.resetUnreadNoticeCount();
+        }
 
         configureMainWindow();
         cardLayout.show(cardPanel, CARD_MAIN);
         mainPane.updateTreeTableRoot(AppStore.getMenus());
         maximizeToMainRatio();
+
+        // 登录成功后开启 websocket，使用当前 accessToken 建立连接。
+        WebSocketNoticeService.getInstance().start(AppStore.getAccessToken());
+    }
+
+    /**
+     * 处理 WebSocket 推送消息。
+     * 当前重点处理 notice-push；其它类型可按需扩展。
+     */
+    private void onWebSocketMessage(String rawMessage) {
+        try {
+            JSONObject frame = JSONUtil.parseObj(rawMessage);
+            String type = frame.getStr("type");
+            String content = frame.getStr("content");
+            if (!"notice-push".equals(type)) {
+                return;
+            }
+            String title = "公告推送";
+            if (content != null) {
+                try {
+                    JSONObject notice = JSONUtil.parseObj(content);
+                    if (notice.containsKey("title")) {
+                        title = notice.getStr("title");
+                    }
+                } catch (Exception ignored) {
+                    // content 不是 JSON 时，走默认文案
+                }
+            }
+            final String finalTitle = title;
+            EventQueue.invokeLater(() -> {
+                if (titlePanel != null) {
+                    titlePanel.increaseUnreadNoticeCount();
+                }
+                WMessage.showMessageInfo(MainFrame.getInstance(), "收到消息：" + finalTitle);
+            });
+        } catch (Exception ignored) {
+            // 非标准消息帧直接忽略，避免影响 UI 主流程。
+        }
     }
 
     private String resolveUserTheme() {
@@ -285,6 +338,7 @@ public class MainFrame extends JFrame {
     @Override
     public void dispose() {
         EventBusCenter.get().unregister(this);
+        WebSocketNoticeService.getInstance().stop();
         // 异步执行登出并彻底关闭应用
         CompletableFuture.runAsync(() -> {
             try {

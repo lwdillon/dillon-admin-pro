@@ -220,6 +220,11 @@
             <artifactId>guava</artifactId>
             <version>33.5.0-jre</version>
         </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.6</version>
+        </dependency>
 
     </dependencies>
 

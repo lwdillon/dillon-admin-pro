@@ -246,6 +246,20 @@
     -fx-icon-color: -color-fg-default;
 }
 
+#main-notice-badge {
+    -fx-background-color: #e53935;
+    -fx-text-fill: white;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-padding: 0 3 0 3;
+    -fx-min-height: 12px;
+    -fx-pref-height: 12px;
+    -fx-max-height: 12px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+}
+
 .modal-box {
     -fx-background-color: -color-bg-default;
     -fx-background-radius: 10px;

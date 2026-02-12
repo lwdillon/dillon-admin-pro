@@ -37,7 +37,9 @@ import java.awt.event.ActionEvent;
  * </p>
  */
 public class TitlePanel extends JPanel {
-    private static final int TOOL_ICON_SIZE = 20;
+    private static final int TOOL_ICON_SIZE = 24;
+    private static final int TOOL_BUTTON_WIDTH = 36;
+    private static final int TOOL_BUTTON_HEIGHT = 30;
     private static final int PROFILE_ICON_SIZE = 80;
     private static final int MENU_ICON_SIZE = 25;
 
@@ -45,6 +47,8 @@ public class TitlePanel extends JPanel {
     private FlatButton themeButton;
     private FlatButton noticeButton;
     private FlatButton userButton;
+    private NotificationBadgeIcon noticeBadgeIcon;
+    private int unreadNoticeCount;
 
 
     public TitlePanel() {
@@ -102,7 +106,13 @@ public class TitlePanel extends JPanel {
 
         titleLabel.setFont(titleLabel.getFont().deriveFont(18f).deriveFont(Font.BOLD));
         noticeButton = createToolBarButton("icons/bell.svg");
-        noticeButton.addActionListener(e1 -> EventBusCenter.get().post(new AddMainTabEvent("icons/bell.svg", "我的消息", new MyNotifyMessagePane())));
+        noticeBadgeIcon = new NotificationBadgeIcon(IconLoader.getSvgIcon("icons/bell.svg", TOOL_ICON_SIZE, TOOL_ICON_SIZE));
+        noticeButton.setIcon(noticeBadgeIcon);
+        noticeButton.addActionListener(e1 -> {
+            // 用户主动查看消息时，视为已读并清空角标。
+            resetUnreadNoticeCount();
+            EventBusCenter.get().post(new AddMainTabEvent("icons/bell.svg", "我的消息", new MyNotifyMessagePane()));
+        });
         toolBar.add(noticeButton);
 
         userButton = createToolBarButton("icons/user.svg");
@@ -128,6 +138,13 @@ public class TitlePanel extends JPanel {
         button.setIcon(IconLoader.getSvgIcon(iconPath, TOOL_ICON_SIZE, TOOL_ICON_SIZE));
         button.setButtonType(FlatButton.ButtonType.toolBarButton);
         button.setFocusable(false);
+        // 统一顶部工具按钮尺寸，避免消息角标引入后与其它按钮视觉不协调。
+        Dimension buttonSize = new Dimension(TOOL_BUTTON_WIDTH, TOOL_BUTTON_HEIGHT);
+        button.setPreferredSize(buttonSize);
+        button.setMinimumSize(buttonSize);
+        button.setMaximumSize(buttonSize);
+        button.setHorizontalAlignment(SwingConstants.CENTER);
+        button.setVerticalAlignment(SwingConstants.CENTER);
         button.putClientProperty("FlatLaf.internal.testing.ignore", true);
         return button;
     }
@@ -246,7 +263,41 @@ public class TitlePanel extends JPanel {
     private void doLocalLogout() {
         // 本地会话先清理，确保即使服务端退出失败也能回到干净登录态。
         AppStore.clearSession();
+        resetUnreadNoticeCount();
         EventBusCenter.get().post(new LoginEvent(LoginEvent.LOGOUT_OR_INVALID));
+    }
+
+    /**
+     * 收到新消息后递增未读数。
+     * 该方法对非 EDT 调用安全，会自动切回 EDT 更新 UI。
+     */
+    public void increaseUnreadNoticeCount() {
+        if (!EventQueue.isDispatchThread()) {
+            EventQueue.invokeLater(this::increaseUnreadNoticeCount);
+            return;
+        }
+        unreadNoticeCount++;
+        refreshNoticeBadge();
+    }
+
+    /**
+     * 清空未读数并刷新角标。
+     */
+    public void resetUnreadNoticeCount() {
+        if (!EventQueue.isDispatchThread()) {
+            EventQueue.invokeLater(this::resetUnreadNoticeCount);
+            return;
+        }
+        unreadNoticeCount = 0;
+        refreshNoticeBadge();
+    }
+
+    private void refreshNoticeBadge() {
+        if (noticeBadgeIcon == null || noticeButton == null) {
+            return;
+        }
+        noticeBadgeIcon.setCount(unreadNoticeCount);
+        noticeButton.repaint();
     }
 
 

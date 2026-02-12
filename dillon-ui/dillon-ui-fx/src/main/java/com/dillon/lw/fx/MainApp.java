@@ -9,17 +9,22 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MainApp extends Application {
+    private static final AtomicBoolean EXIT_CONFIRMED = new AtomicBoolean(false);
 
 
     @Override
@@ -59,7 +64,14 @@ public class MainApp extends Application {
         stage.setScene(scene);
         stage.setTitle(System.getProperty("app.name"));
         stage.setResizable(true);
-        stage.setOnCloseRequest(t -> Platform.exit());
+        stage.setOnCloseRequest(event -> {
+            if (EXIT_CONFIRMED.get()) {
+                return;
+            }
+            if (!confirmAndMarkExit(stage)) {
+                event.consume();
+            }
+        });
 
 
         Platform.runLater(() -> {
@@ -85,5 +97,23 @@ public class MainApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    /**
+     * 弹出退出确认框；确认后写入全局退出标记，避免重复弹窗。
+     */
+    public static boolean confirmAndMarkExit(Window owner) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("退出确认");
+        alert.setHeaderText("确认关闭应用吗？");
+        alert.setContentText("关闭后将退出当前客户端。");
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        boolean confirmed = alert.showAndWait().filter(ButtonType.OK::equals).isPresent();
+        if (confirmed) {
+            EXIT_CONFIRMED.set(true);
+        }
+        return confirmed;
     }
 }
