@@ -37,8 +37,10 @@ public class MenuManageViewModel extends BaseViewModel {
     public final static String OPEN_ALERT = "OPEN_ALERT";
 
     private ObjectProperty<TreeItem<MenuRespVO>> treeItemObjectProperty = new SimpleObjectProperty<>(new TreeItem<>());
+    private ObjectProperty<TreeItem<MenuRespVO>> selectedTreeItemProperty = new SimpleObjectProperty<>();
     private SimpleStringProperty searchText = new SimpleStringProperty("");
     private SimpleStringProperty statusText = new SimpleStringProperty("全部");
+    private Long pendingSelectMenuId;
 
 
     public String getSearchText() {
@@ -68,6 +70,10 @@ public class MenuManageViewModel extends BaseViewModel {
 
     public ObjectProperty<TreeItem<MenuRespVO>> treeItemObjectPropertyProperty() {
         return treeItemObjectProperty;
+    }
+
+    public ObjectProperty<TreeItem<MenuRespVO>> selectedTreeItemProperty() {
+        return selectedTreeItemProperty;
     }
 
     /**
@@ -107,6 +113,14 @@ public class MenuManageViewModel extends BaseViewModel {
             });
 
             treeItemObjectProperty.setValue(rootItem);
+            if (pendingSelectMenuId != null) {
+                TreeItem<MenuRespVO> target = itemMap.get(pendingSelectMenuId);
+                if (target != null) {
+                    expandToRoot(target);
+                    selectedTreeItemProperty.set(target);
+                }
+                pendingSelectMenuId = null;
+            }
 
         }, Platform::runLater).exceptionally(throwable -> {
             DefaultExceptionHandler.handle(throwable);
@@ -142,6 +156,10 @@ public class MenuManageViewModel extends BaseViewModel {
     private void updateData(UpdateDataEvent menuEvent) {
         Platform.runLater(() -> {
             if("更新菜单列表".equals(menuEvent.getMessage())) {
+                Object data = menuEvent.getData();
+                if (data instanceof Number) {
+                    pendingSelectMenuId = ((Number) data).longValue();
+                }
                 query();
             }
         });
@@ -150,6 +168,14 @@ public class MenuManageViewModel extends BaseViewModel {
     @Subscribe
     private void refresh(RefreshEvent event) {
         Platform.runLater(() -> query());
+    }
+
+    private void expandToRoot(TreeItem<MenuRespVO> node) {
+        TreeItem<MenuRespVO> current = node;
+        while (current != null) {
+            current.setExpanded(true);
+            current = current.getParent();
+        }
     }
 
 

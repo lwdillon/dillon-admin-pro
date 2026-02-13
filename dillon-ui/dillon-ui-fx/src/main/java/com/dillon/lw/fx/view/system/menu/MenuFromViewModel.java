@@ -53,7 +53,7 @@ public class MenuFromViewModel extends BaseViewModel {
         CompletableFuture.supplyAsync(() -> {
             return Forest.client(MenuApi.class).updateMenu(menuSaveVO).getCheckedData();
         }).thenAcceptAsync(result -> {// 订阅成功
-            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));// 发布更新菜单列表事件
+            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuSaveVO.getId()));// 发布更新菜单列表事件
             EventBusCenter.get().post(new SideMenuEvent("更新菜单"));// 发布更新侧边菜单事件
             EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));// 发布成功消息事件
             dialog.close();// 关闭对话框
@@ -69,9 +69,9 @@ public class MenuFromViewModel extends BaseViewModel {
         MenuSaveVO menuSaveVO = wrapper.get();
         CompletableFuture.supplyAsync(() -> {
             return Forest.client(MenuApi.class).createMenu(menuSaveVO).getCheckedData();
-        }).thenAcceptAsync(listCommonResult -> {
+        }).thenAcceptAsync(menuId -> {
 
-            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
+            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuId));
             EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
             EventBusCenter.get().post(new MessageEvent("添加成功", MessageType.SUCCESS));
             dialog.close();
@@ -125,12 +125,12 @@ public class MenuFromViewModel extends BaseViewModel {
 
             });
 
+            menuTreeRoot.set(root);
             if (nodeMap.get(sysMenu.getParentId()) != null) {
                 selectTreeItem.set(nodeMap.get(sysMenu.getParentId()));
             } else {
                 selectTreeItem.set(root);
             }
-            menuTreeRoot.set(root);
 
 
         }, Platform::runLater).exceptionally(throwable -> {

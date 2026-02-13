@@ -96,18 +96,31 @@ public class DeptFromView extends BaseView<DeptFromViewModel>implements Initiali
         deptTreeTextField.setOnMouseClicked(actionEvent ->{
             deptTree.setPrefWidth(deptTreeTextField.getWidth()-50);
             popover.show(deptTreeTextField);
-            viewModel.selectTreeItemProperty().get().setExpanded(true);
+            TreeItem<DeptSimpleRespVO> selectedTreeItem = viewModel.selectTreeItemProperty().get();
+            if (selectedTreeItem != null) {
+                selectedTreeItem.setExpanded(true);
+            }
         } );
         nameTextField.textProperty().bindBidirectional(viewModel.nameProperty());
         deptTree.rootProperty().bind(viewModel.deptTreeRootProperty());
 
-        viewModel.sortProperty().addListener((observable, oldValue, newValue) -> {
-            sortNumFeild.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, newValue.intValue()));
-        });
+        int initSort = viewModel.sortProperty().getValue() == null ? 0 : viewModel.sortProperty().getValue().intValue();
+        SpinnerValueFactory.IntegerSpinnerValueFactory sortFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, initSort);
+        sortNumFeild.setValueFactory(sortFactory);
+        sortNumFeild.setEditable(true);
         sortNumFeild.valueProperty().addListener((observableValue, integer, t1) -> {
-            viewModel.sortProperty().set(t1);
+            if (t1 != null) {
+                viewModel.sortProperty().set(t1);
+            }
         });
-        viewModel.sortProperty().addListener((observable, oldValue, newValue) -> viewModel.sortProperty().setValue(newValue));
+        viewModel.sortProperty().addListener((observable, oldValue, newValue) -> {
+            int value = newValue == null ? 0 : newValue.intValue();
+            Integer currentValue = sortFactory.getValue();
+            if (currentValue == null || currentValue.intValue() != value) {
+                sortFactory.setValue(value);
+            }
+        });
         viewModel.statusProperty().addListener((observableValue, number, t1) -> statusToggleBut.setSelected(NumberUtil.equals(t1, 0)));
         statusToggleBut.selectedProperty().addListener((observableValue, aBoolean, t1) -> viewModel.statusProperty().set(t1 ? 0 : 1));
         phoneField.textProperty().bindBidirectional(viewModel.phoneProperty());

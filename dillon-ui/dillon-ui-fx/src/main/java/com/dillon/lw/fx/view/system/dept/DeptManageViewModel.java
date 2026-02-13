@@ -41,8 +41,10 @@ public class DeptManageViewModel extends BaseViewModel {
     public final static String OPEN_ALERT = "OPEN_ALERT";
 
     private ObjectProperty<TreeItem<DeptRespVO>> treeItemObjectProperty = new SimpleObjectProperty<>(new TreeItem<>());
+    private ObjectProperty<TreeItem<DeptRespVO>> selectedTreeItemProperty = new SimpleObjectProperty<>();
     private SimpleStringProperty searchText = new SimpleStringProperty("");
     private SimpleStringProperty statusText = new SimpleStringProperty("全部");
+    private Long pendingSelectDeptId;
 
     public String getSearchText() {
         return searchText.get();
@@ -62,6 +64,10 @@ public class DeptManageViewModel extends BaseViewModel {
 
     public ObjectProperty<TreeItem<DeptRespVO>> treeItemObjectPropertyProperty() {
         return treeItemObjectProperty;
+    }
+
+    public ObjectProperty<TreeItem<DeptRespVO>> selectedTreeItemProperty() {
+        return selectedTreeItemProperty;
     }
 
     public Map<Long, UserSimpleRespVO> userMap = new HashMap<>();
@@ -128,6 +134,14 @@ public class DeptManageViewModel extends BaseViewModel {
 
             });
             treeItemObjectProperty.set(rootItem);
+            if (pendingSelectDeptId != null) {
+                TreeItem<DeptRespVO> target = itemMap.get(pendingSelectDeptId);
+                if (target != null) {
+                    expandToRoot(target);
+                    selectedTreeItemProperty.set(target);
+                }
+                pendingSelectDeptId = null;
+            }
         }, Platform::runLater).exceptionally(throwable -> {
             DefaultExceptionHandler.handle(throwable);
             return null;
@@ -164,6 +178,10 @@ public class DeptManageViewModel extends BaseViewModel {
     private void updateData(UpdateDataEvent menuEvent) {
         Platform.runLater(() -> {
             if ("更新部门列表".equals(menuEvent.getMessage())) {
+                Object data = menuEvent.getData();
+                if (data instanceof Number) {
+                    pendingSelectDeptId = ((Number) data).longValue();
+                }
                 query();
             }
         });
@@ -172,6 +190,14 @@ public class DeptManageViewModel extends BaseViewModel {
     @Subscribe
     private void refresh(RefreshEvent event) {
         Platform.runLater(() -> query());
+    }
+
+    private void expandToRoot(TreeItem<DeptRespVO> node) {
+        TreeItem<DeptRespVO> current = node;
+        while (current != null) {
+            current.setExpanded(true);
+            current = current.getParent();
+        }
     }
 
 

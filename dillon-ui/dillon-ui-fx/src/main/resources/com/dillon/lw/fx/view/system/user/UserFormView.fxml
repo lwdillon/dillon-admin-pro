@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import java.lang.String?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
 <VBox fx:id="rootPane" prefHeight="464.0" prefWidth="640.0" spacing="10.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.dillon.lw.fx.view.system.user.UserFormView">
     <children>
       <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -17,6 +22,12 @@
          <children>
                 <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="*用户名称" />
                 <TextField fx:id="userNameField" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <HBox fx:id="pwdBox" alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label alignment="CENTER_RIGHT" maxWidth="80.0" minWidth="80.0" text="*登录密码" />
+            <TextField fx:id="userPwdField" promptText="请输入密码" HBox.hgrow="ALWAYS" />
          </children>
       </HBox>
       <HBox alignment="CENTER_LEFT" spacing="10.0">

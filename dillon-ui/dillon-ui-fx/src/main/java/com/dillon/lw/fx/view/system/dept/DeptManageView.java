@@ -91,7 +91,18 @@ public class DeptManageView extends BaseView<DeptManageViewModel> implements Ini
         root.getChildren().add(load);
         treeTableView.setShowRoot(false);
         treeTableView.rootProperty().bind(viewModel.treeItemObjectPropertyProperty());
-        addBut.setOnAction(event -> showEditDialog(new DeptRespVO(), false));
+        viewModel.treeItemObjectPropertyProperty().addListener((observable, oldRoot, newRoot) ->
+                treeExpandedAll(newRoot, expansionBut.isSelected()));
+        viewModel.selectedTreeItemProperty().addListener((observable, oldItem, newItem) -> {
+            if (newItem != null) {
+                treeTableView.getSelectionModel().select(newItem);
+                treeTableView.scrollTo(treeTableView.getRow(newItem));
+            }
+        });
+        addBut.setOnAction(event -> {
+            TreeItem<DeptRespVO> selectedItem = treeTableView.getSelectionModel().getSelectedItem();
+            showEditDialog(selectedItem != null ? selectedItem.getValue() : new DeptRespVO(), false);
+        });
         addBut.getStyleClass().addAll(BUTTON_OUTLINED, ACCENT);
         searchField.textProperty().bindBidirectional(viewModel.searchTextProperty());
         statusCombo.valueProperty().bindBidirectional(viewModel.statusTextProperty());
@@ -231,6 +242,9 @@ public class DeptManageView extends BaseView<DeptManageViewModel> implements Ini
      * @param expanded 扩大
      */
     private void treeExpandedAll(TreeItem<DeptRespVO> root, boolean expanded) {
+        if (root == null) {
+            return;
+        }
         for (TreeItem<DeptRespVO> child : root.getChildren()) {
             child.setExpanded(expanded);
             if (!child.getChildren().isEmpty()) {
@@ -258,7 +272,7 @@ public class DeptManageView extends BaseView<DeptManageViewModel> implements Ini
 
 
         DeptFromView view = ViewLoader.load(DeptFromView.class);
-        view.getViewModel().initData(deptRespVo);
+        view.getViewModel().initData(deptRespVO);
         new ConfirmDialog.Builder(modalPane)
                 .title(isEdit ? "编辑部门" : "添加部门")
                 .content(view.getNode())

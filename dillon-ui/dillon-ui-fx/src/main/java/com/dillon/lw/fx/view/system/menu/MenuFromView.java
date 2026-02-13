@@ -138,6 +138,10 @@ public class MenuFromView extends BaseView<MenuFromViewModel> {
             menuTree.setPrefWidth(menuTreeTextField.getWidth() - 50);
             popover.setContentNode(menuTree);
             popover.show(menuTreeTextField);
+            TreeItem<MenuSimpleRespVO> selectedTreeItem = viewModel.selectTreeItemProperty().get();
+            if (selectedTreeItem != null) {
+                selectedTreeItem.setExpanded(true);
+            }
         });
     }
 
@@ -206,10 +210,23 @@ public class MenuFromView extends BaseView<MenuFromViewModel> {
         });
 
         IntegerProperty sortProperty = viewModel.sortProperty();
-        sortNumFeild.valueProperty().addListener((obs, oldVal, newVal) -> sortProperty.set(newVal));
-        sortProperty.addListener((obs, oldVal, newVal) ->
-                sortNumFeild.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, (Integer) newVal))
-        );
+        int initSort = sortProperty.getValue() == null ? 0 : sortProperty.getValue().intValue();
+        SpinnerValueFactory.IntegerSpinnerValueFactory sortFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, initSort);
+        sortNumFeild.setValueFactory(sortFactory);
+        sortNumFeild.setEditable(true);
+        sortNumFeild.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                sortProperty.set(newVal);
+            }
+        });
+        sortProperty.addListener((obs, oldVal, newVal) -> {
+            int value = newVal == null ? 0 : newVal.intValue();
+            Integer currentValue = sortFactory.getValue();
+            if (currentValue == null || currentValue.intValue() != value) {
+                sortFactory.setValue(value);
+            }
+        });
 
         IntegerProperty statusProperty = viewModel.statusProperty();
         statusProperty.addListener((obs, oldVal, newVal) -> statusToggleBut.setSelected(NumberUtil.equals(newVal, 0)));

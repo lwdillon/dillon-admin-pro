@@ -10,6 +10,7 @@ import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
@@ -30,7 +31,11 @@ public class UserFormView extends BaseView<UserFormViewModel> implements Initial
     @FXML
     private TextField nickNameField;
 
+    @FXML
+    private TextField userPwdField;
 
+    @FXML
+    private HBox pwdBox;
     @FXML
     private TextField phonenumberField;
 
@@ -64,6 +69,11 @@ public class UserFormView extends BaseView<UserFormViewModel> implements Initial
         postListViewPopover.setArrowLocation(Popover.ArrowLocation.TOP_CENTER);
 
 
+        pwdBox.visibleProperty().bind(getViewModel().isAddProperty());
+
+        pwdBox.managedProperty().bind(
+                pwdBox.visibleProperty()
+        );
         deptField.setEditable(false);
         deptField.setOnMouseClicked(actionEvent -> {
             deptTreeView.setPrefWidth(deptField.getWidth() - 50);
@@ -103,7 +113,7 @@ public class UserFormView extends BaseView<UserFormViewModel> implements Initial
 
         viewModel.getSelectPostItems().addListener((ListChangeListener<PostSimpleRespVO>) change -> {
             while (change.next()) {
-                if (change.wasAdded()||change.wasRemoved()) {
+                if (change.wasAdded() || change.wasRemoved()) {
                     List<PostSimpleRespVO> selectedPosts = viewModel.getSelectPostItems();
                     String names = selectedPosts.stream()
                             .map(PostSimpleRespVO::getName)
@@ -118,6 +128,7 @@ public class UserFormView extends BaseView<UserFormViewModel> implements Initial
         deptTreeView.rootProperty().bind(viewModel.deptTreeRootProperty());
         nickNameField.textProperty().bindBidirectional(viewModel.nickNameProperty());
         userNameField.textProperty().bindBidirectional(viewModel.usernameProperty());
+        userPwdField.textProperty().bindBidirectional(viewModel.passwordProperty());
         phonenumberField.textProperty().bindBidirectional(viewModel.mobileProperty());
         emailField.textProperty().bindBidirectional(viewModel.emailProperty());
         remarkArea.textProperty().bindBidirectional(viewModel.remarkProperty());

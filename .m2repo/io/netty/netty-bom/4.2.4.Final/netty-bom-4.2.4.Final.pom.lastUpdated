@@ -1,0 +1,10 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Sat Feb 14 00:13:18 CST 2026
+@default-aliyunmaven-https\://maven.aliyun.com/repository/public/.lastUpdated=1770999198995
+@default-central-https\://repo.maven.apache.org/maven2/.lastUpdated=1770999198998
+@default-huaweicloud-https\://mirrors.huaweicloud.com/repository/maven/.lastUpdated=1770999198988
+@default-spring-milestones-https\://repo.spring.io/milestone/.lastUpdated=1770999198996
+https\://maven.aliyun.com/repository/public/.error=Could not transfer artifact io.netty\:netty-bom\:pom\:4.2.4.Final from/to aliyunmaven (https\://maven.aliyun.com/repository/public)\: maven.aliyun.com\: nodename nor servname provided, or not known
+https\://mirrors.huaweicloud.com/repository/maven/.error=Could not transfer artifact io.netty\:netty-bom\:pom\:4.2.4.Final from/to huaweicloud (https\://mirrors.huaweicloud.com/repository/maven/)\: mirrors.huaweicloud.com\: nodename nor servname provided, or not known
+https\://repo.maven.apache.org/maven2/.error=Could not transfer artifact io.netty\:netty-bom\:pom\:4.2.4.Final from/to central (https\://repo.maven.apache.org/maven2)\: repo.maven.apache.org\: nodename nor servname provided, or not known
+https\://repo.spring.io/milestone/.error=Could not transfer artifact io.netty\:netty-bom\:pom\:4.2.4.Final from/to spring-milestones (https\://repo.spring.io/milestone)\: repo.spring.io\: nodename nor servname provided, or not known

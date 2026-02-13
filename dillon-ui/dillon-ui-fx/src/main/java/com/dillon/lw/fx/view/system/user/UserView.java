@@ -283,7 +283,7 @@ public class UserView extends BaseView<UserViewModel> implements Initializable {
         UserFormView view = ViewLoader.load(UserFormView.class);
         view.getViewModel().query(userId);
         new ConfirmDialog.Builder(modalPane)
-                .title(isAdd ? "编辑用户" : "添加用户")
+                .title(isAdd ? "添加用户" : "编辑用户")
                 .content(view.getNode())
                 .width(450)
                 .height(450)

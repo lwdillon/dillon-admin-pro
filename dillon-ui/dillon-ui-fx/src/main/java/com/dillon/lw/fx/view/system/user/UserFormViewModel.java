@@ -34,6 +34,7 @@ public class UserFormViewModel extends BaseViewModel {
     private ObjectProperty<TreeItem<DeptSimpleRespVO>> selectTreeItem = new SimpleObjectProperty<>();
     private ObjectProperty<ObservableList<PostSimpleRespVO>> postItems = new SimpleObjectProperty<>();
     private ObservableList<PostSimpleRespVO> selectPostItems = FXCollections.observableArrayList();
+    private ObjectProperty<Boolean> isAdd= new SimpleObjectProperty<>(false);
 
     private ModelWrapper<UserSaveReqVO> wrapper = new ModelWrapper<>();
 
@@ -46,6 +47,7 @@ public class UserFormViewModel extends BaseViewModel {
     public void query(Long id) {
 
         if (id == null) {
+            setIsAdd(true);
             setUser(new UserSaveReqVO());
             CompletableFuture.supplyAsync(() -> {
                 return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
@@ -96,6 +98,7 @@ public class UserFormViewModel extends BaseViewModel {
                 return null;
             });
         } else {
+            setIsAdd(false);
 
             CompletableFuture.supplyAsync(() -> {
                 return Forest.client(UserApi.class).getUser(id).getCheckedData();
@@ -185,6 +188,8 @@ public class UserFormViewModel extends BaseViewModel {
         if (selectTreeItem != null) {
             saveReqVO.setDeptId(selectTreeItem.getValue().getValue().getId());
         }
+
+
 
         return saveReqVO;
     }
@@ -284,4 +289,15 @@ public class UserFormViewModel extends BaseViewModel {
         return wrapper.field("deptId", UserSaveReqVO::getDeptId, UserSaveReqVO::setDeptId, 0L);
     }
 
+    public Boolean getIsAdd() {
+        return isAdd.get();
+    }
+
+    public ObjectProperty<Boolean> isAddProperty() {
+        return isAdd;
+    }
+
+    public void setIsAdd(Boolean isAdd) {
+        this.isAdd.set(isAdd);
+    }
 }

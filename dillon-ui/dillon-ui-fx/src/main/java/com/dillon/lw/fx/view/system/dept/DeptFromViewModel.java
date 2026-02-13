@@ -47,15 +47,15 @@ public class DeptFromViewModel extends BaseViewModel {
 
     public void addDept(ConfirmDialog confirmDialog) {
 
-        wrapper.get().setLeaderUserId(selectLeaderUser.get().getId());
+        wrapper.get().setLeaderUserId(selectLeaderUser.get() != null ? selectLeaderUser.get().getId() : null);
         wrapper.commit();
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
         CompletableFuture.supplyAsync(() -> {
             return Forest.client(DeptApi.class).createDept(deptSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(rel -> {
+        }).thenAcceptAsync(deptId -> {
             EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptId));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
             DefaultExceptionHandler.handle(throwable);
@@ -64,7 +64,7 @@ public class DeptFromViewModel extends BaseViewModel {
     }
 
     public void updateDept(ConfirmDialog confirmDialog) {
-        wrapper.get().setLeaderUserId(selectLeaderUser.get().getId());
+        wrapper.get().setLeaderUserId(selectLeaderUser.get() != null ? selectLeaderUser.get().getId() : null);
         wrapper.commit();
         DeptSaveReqVO deptSaveReqVO=  wrapper.get();
 
@@ -72,7 +72,7 @@ public class DeptFromViewModel extends BaseViewModel {
             return Forest.client(DeptApi.class).updateDept(deptSaveReqVO).getCheckedData();
         }).thenAcceptAsync(rel -> {
             EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptSaveReqVO.getId()));
             confirmDialog.close();
         }, Platform::runLater).exceptionally(throwable -> {
             DefaultExceptionHandler.handle(throwable);

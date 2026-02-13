@@ -114,13 +114,24 @@ public class MenuManageView extends BaseView<MenuManageViewModel> {
         load.disableProperty().bind(load.visibleProperty().not());
         load.visibleProperty().bindBidirectional(content.disableProperty());
         treeTableView.rootProperty().bind(viewModel.treeItemObjectPropertyProperty());
+        viewModel.treeItemObjectPropertyProperty().addListener((observable, oldRoot, newRoot) ->
+                treeExpandedAll(newRoot, expansionBut.isSelected()));
+        viewModel.selectedTreeItemProperty().addListener((observable, oldItem, newItem) -> {
+            if (newItem != null) {
+                treeTableView.getSelectionModel().select(newItem);
+                treeTableView.scrollTo(treeTableView.getRow(newItem));
+            }
+        });
         searchField.textProperty().bindBidirectional(viewModel.searchTextProperty());
         statusCombo.valueProperty().bindBidirectional(viewModel.statusTextProperty());
 
     }
 
     private void initEventListeners() {
-        addBut.setOnAction(event -> showEditDialog(new MenuRespVO(), false));
+        addBut.setOnAction(event -> {
+            TreeItem<MenuRespVO> selectedItem = treeTableView.getSelectionModel().getSelectedItem();
+            showEditDialog(selectedItem != null ? selectedItem.getValue() : new MenuRespVO(), false);
+        });
         searchBut.setOnAction(event -> viewModel.query());
         restBut.setOnAction(event -> viewModel.rest());
         expansionBut.selectedProperty().addListener((observable, oldValue, newValue) -> treeExpandedAll(treeTableView.getRoot(), newValue));
@@ -197,7 +208,7 @@ public class MenuManageView extends BaseView<MenuManageViewModel> {
                 }
             };
         });
-        sortCol.setCellValueFactory(new TreeItemPropertyValueFactory<>("type"));
+        sortCol.setCellValueFactory(new TreeItemPropertyValueFactory<>("sort"));
         sortCol.setStyle("-fx-alignment: CENTER");
         authCol.setCellValueFactory(new TreeItemPropertyValueFactory<>("permission"));
         authCol.setStyle("-fx-alignment: CENTER");
@@ -297,6 +308,9 @@ public class MenuManageView extends BaseView<MenuManageViewModel> {
      * @param expanded 扩大
      */
     private void treeExpandedAll(TreeItem<MenuRespVO> root, boolean expanded) {
+        if (root == null) {
+            return;
+        }
         for (TreeItem<MenuRespVO> child : root.getChildren()) {
             child.setExpanded(expanded);
             if (!child.getChildren().isEmpty()) {
@@ -321,7 +335,12 @@ public class MenuManageView extends BaseView<MenuManageViewModel> {
             menuRespVO = sysMenu;
         } else {
             menuRespVO = new MenuRespVO();
-            menuRespVO.setParentId(sysMenu.getId());
+            Long parentId = sysMenu != null ? sysMenu.getId() : 0L;
+            // 按钮类型不能作为上级菜单，回退到其父级
+            if (sysMenu != null && Integer.valueOf(3).equals(sysMenu.getType())) {
+                parentId = sysMenu.getParentId();
+            }
+            menuRespVO.setParentId(parentId == null ? 0L : parentId);
             menuRespVO.setType(1);
         }
         load.getViewModel().updateData(menuRespVO);
