@@ -107,6 +107,15 @@ public class NotifyTemplateSendPane extends JPanel {
         for (DictDataSimpleRespVO dictDataSimpleRespVO : dictDataSimpleRespVOList) {
             userTypeComboBox.addItem(dictDataSimpleRespVO);
         }
+        userComboBox.setRenderer(new DefaultListCellRenderer(){
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof UserSimpleRespVO) {
+                    value = ((UserSimpleRespVO) value).getNickname();
+                }
+                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            }
+        });
     }
 
     private void setValue(NotifyTemplateRespVO respVO) {
