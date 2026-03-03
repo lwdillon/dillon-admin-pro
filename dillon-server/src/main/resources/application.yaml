@@ -257,7 +257,7 @@ dillon:
 
 dillon:
   info:
-    version: 1.0.0
+    version: 1.0.1
     base-package: com.dillon.lw
   web:
     admin-ui:

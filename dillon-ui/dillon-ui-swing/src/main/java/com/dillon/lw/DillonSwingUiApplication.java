@@ -4,6 +4,7 @@ import com.dillon.lw.exception.ExceptionEventQueue;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.http.ForestConfig;
 import com.dillon.lw.theme.LightTheme;
+import com.dillon.lw.updater.ClientAutoUpdater;
 import com.dillon.lw.view.frame.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
@@ -38,17 +39,18 @@ public class DillonSwingUiApplication {
     public static void main(String[] args) {
         // 1. 加载 application.properties 配置
         loadApplicationProperties();
-
-        // 2. 针对不同操作系统进行 UI 适配
-        setupPlatformEnvironment();
-
-        // 3. 全局异常捕捉机制
-        setupGlobalExceptionHandler();
-
-        // 4. 初始化网络框架 (Forest)
+        // 5. 初始化网络框架 (Forest)
         ForestConfig.init();
 
-        // 5. 在事件分发线程 (EDT) 中启动 UI
+        // 3. 针对不同操作系统进行 UI 适配
+        setupPlatformEnvironment();
+
+        // 4. 全局异常捕捉机制
+        setupGlobalExceptionHandler();
+
+
+
+        // 6. 在事件分发线程 (EDT) 中启动 UI
         SwingUtilities.invokeLater(() -> {
             // 初始化主题
             initLookAndFeel();
@@ -60,7 +62,20 @@ public class DillonSwingUiApplication {
             MainFrame frame = MainFrame.getInstance();
             frame.showLogin(true);
             frame.setVisible(true);
+            startAutoUpdateCheckAsync();
         });
+    }
+
+    private static void startAutoUpdateCheckAsync() {
+        Thread updateThread = new Thread(() -> {
+            try {
+                ClientAutoUpdater.checkAndUpdateIfNeeded();
+            } catch (Exception e) {
+                SwingExceptionHandler.handle(e);
+            }
+        }, "swing-client-auto-updater");
+        updateThread.setDaemon(true);
+        updateThread.start();
     }
 
     /**

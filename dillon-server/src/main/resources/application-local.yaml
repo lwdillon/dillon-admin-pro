@@ -167,6 +167,24 @@ debug: false
 
 # 芋道配置项，设置当前项目所有自定义的配置
 dillon:
+  client-update:
+    enabled: true
+    swing:
+      version: 1.0.1
+      notes: 修复若干已知问题
+      # 二选一：
+      # 1) 配置 jar-url（可指向对象存储/CDN）
+      jar-url:
+      # 2) 配置本地 jar-file，服务端将通过 /infra/client/update/swing/download 提供下载
+      jar-file: /Users/wenli/Desktop/test/swing/dillon-ui-swing.jar
+    javafx:
+      version: 1.0.1
+      notes: 修复若干已知问题
+      # 二选一：
+      # 1) 配置 jar-url（可指向对象存储/CDN）
+      jar-url:
+      # 2) 配置本地 jar-file，服务端将通过 /infra/client/update/javafx/download 提供下载
+      jar-file: /Users/wenli/Desktop/test/javafx/dillon-ui-fx.jar
   captcha:
     enable: false # 本地环境，暂时关闭图片验证码，方便登录等接口的测试；
   security:

@@ -2,6 +2,7 @@ package com.dillon.lw.fx;
 
 import com.dillon.lw.fx.http.forest.ForestConfig;
 import com.dillon.lw.fx.mvvm.loader.ViewLoader;
+import com.dillon.lw.fx.updater.ClientAutoUpdater;
 import com.dillon.lw.fx.view.window.WindowView;
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessPane;
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
@@ -77,7 +78,20 @@ public class MainApp extends Application {
         Platform.runLater(() -> {
             stage.show();
             stage.requestFocus();
+            startAutoUpdateCheckAsync();
         });
+    }
+
+    private void startAutoUpdateCheckAsync() {
+        Thread updateThread = new Thread(() -> {
+            try {
+                ClientAutoUpdater.checkAndUpdateIfNeeded();
+            } catch (Exception e) {
+                DefaultExceptionHandler.handle(e);
+            }
+        }, "fx-client-auto-updater");
+        updateThread.setDaemon(true);
+        updateThread.start();
     }
 
 
