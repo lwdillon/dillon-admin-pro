@@ -11,7 +11,7 @@ import javafx.scene.control.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class DictDataFormView extends BaseView<DictDataFormViewModel>implements Initializable {
+public class DictDataFormView extends BaseView<DictDataFormViewModel> implements Initializable {
     @FXML
     private ComboBox<DictDataSimpleRespVO> colorTypeComboBox;
 
@@ -35,6 +35,7 @@ public class DictDataFormView extends BaseView<DictDataFormViewModel>implements 
 
     @FXML
     private TextField valueField;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         typeField.disableProperty().bind(viewModel.editProperty());
@@ -72,7 +73,7 @@ public class DictDataFormView extends BaseView<DictDataFormViewModel>implements 
             // 设置选中项为 name 等于 "abc" 的对象
             for (DictDataSimpleRespVO item : colorTypeComboBox.getItems()) {
                 if (t1.equals(item.getValue())) {
-                   viewModel.selDictDataSimpleRespVOProperty().set(item);
+                    viewModel.selDictDataSimpleRespVOProperty().set(item);
                     break;
                 }
             }

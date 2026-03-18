@@ -28,10 +28,10 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface SetPropertyAccessor<M, E> extends Function<M, SetProperty<E>> {
 
-	/**
-	 * @param model the model instance
-	 * @return the property field of the model
-	 */
-	@Override
-	SetProperty<E> apply(M model);
+    /**
+     * @param model the model instance
+     * @return the property field of the model
+     */
+    @Override
+    SetProperty<E> apply(M model);
 }

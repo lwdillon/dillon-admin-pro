@@ -21,12 +21,16 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
-import com.dillon.lw.utils.ExecuteUtils;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -37,7 +41,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static javax.swing.JOptionPane.*;
 
@@ -58,8 +63,25 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
     private JTextField nameTextField;
     private JComboBox statusCombo;
     private JToggleButton exButton;
+    private JButton searchButton;
 
     private WaitPane waitPane;
+    /**
+     * 菜单列表加载请求版本号。
+     * <p>
+     * 即使旧订阅被 dispose，底层 HTTP 调用也未必立刻中断。
+     * 因此这里额外保留版本号，确保“后发起的请求”永远只接受自己的返回结果。
+     * </p>
+     */
+    private final AtomicInteger loadRequestVersion = new AtomicInteger();
+    /**
+     * 当前列表加载订阅。
+     */
+    private final AtomicReference<Disposable> currentLoadDisposable = new AtomicReference<Disposable>();
+    /**
+     * 当前删除操作订阅。
+     */
+    private final AtomicReference<Disposable> currentDeleteDisposable = new AtomicReference<Disposable>();
 
     public MenuManagementPanel() {
 
@@ -89,7 +111,7 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         restButton.addActionListener(e -> {
             statusCombo.setSelectedIndex(0);
         });
-        JButton searchButton = new WButton("搜索");
+        searchButton = new WButton("搜索");
         searchButton.setBackground(new Color(0xff9c4b));
         searchButton.addActionListener(e -> updateData());
         toolBar.add(searchButton);
@@ -236,31 +258,82 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
 
     /**
      * 从筛选条件构建查询参数并刷新树表。
+     * <p>
+     * 这里统一走 RxJava：
+     * 1. 请求在 IO 线程执行；
+     * 2. `observeOn(SwingSchedulers.edt())` 后的树表刷新、提示消息都固定回到 EDT；
+     * 3. 新请求会主动替换旧订阅，并通过 requestId 屏蔽迟到结果。
+     * </p>
      */
     private void updateData() {
+        final Map<String, Object> queryMap = createQueryMap();
+        final int requestId = loadRequestVersion.incrementAndGet();
+        disposeTrackedDisposable(currentLoadDisposable);
+
+        final AtomicReference<Disposable> loadDisposableRef = new AtomicReference<Disposable>();
+        Single
+                /*
+                 * 菜单查询接口是同步调用，这里直接包成 Single，
+                 * 让 subscribeOn(io) 负责把它切到后台线程执行。
+                 */
+                .fromCallable(() -> Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    loadDisposableRef.set(disposable);
+                    currentLoadDisposable.set(disposable);
+                    /*
+                     * doOnSubscribe 不保证运行在 EDT。
+                     * 这里把等待遮罩和搜索按钮置灰都显式投递回 Swing 线程，
+                     * 这样用户在查询返回前无法重复点击“搜索”。
+                     */
+                    SwingSchedulers.runOnEdt(() -> {
+                        searchButton.setEnabled(false);
+                        showWaitMessage("菜单加载中...");
+                    });
+                })
+                .doFinally(() -> {
+                    clearTrackedDisposable(currentLoadDisposable, loadDisposableRef.get());
+                    if (requestId == loadRequestVersion.get()) {
+                        /*
+                         * 只有最后一次仍然有效的查询才允许恢复 UI 状态，
+                         * 避免旧请求结束时把新请求的加载态提前清掉。
+                         */
+                        SwingSchedulers.runOnEdt(() -> {
+                            searchButton.setEnabled(true);
+                            hideWaitMessage();
+                        });
+                    }
+                })
+                .subscribe(
+                        data -> {
+                            /*
+                             * 即使旧订阅被 dispose，底层请求也可能已经发出。
+                             * 这里再用 requestId 做一次兜底，保证只有最后一次查询能刷新树表。
+                             */
+                            if (requestId != loadRequestVersion.get()) {
+                                return;
+                            }
+
+                            Tree<Long> treeRoot = buildMenuTree(data);
+                            updateTreeTableRoot(treeRoot);
+                            if (exButton.isSelected()) {
+                                treeTable.expandAll();
+                            }
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "查询成功！");
+                        },
+                        SwingExceptionHandler::handle
+                );
+    }
+
+    private Map<String, Object> createQueryMap() {
         MenuListReqVO reqVO = new MenuListReqVO();
         reqVO.setName(nameTextField.getText());
         int selectIndex = statusCombo.getSelectedIndex();
         if (selectIndex != 0) {
             reqVO.setStatus(selectIndex == 1 ? 0 : 1);
         }
-        Map<String, Object> queryMap = BeanUtil.beanToMap(reqVO, false, true);
-
-        ExecuteUtils.execute(
-                () -> Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData(),
-                data -> {
-                    Tree<Long> treeRoot = buildMenuTree(data);
-                    updateTreeTableRoot(treeRoot);
-                    if (exButton.isSelected()) {
-                        treeTable.expandAll();
-                    }
-                },
-                () -> {
-                },
-                "查询成功！",
-                waitPane
-        );
-
+        return BeanUtil.beanToMap(reqVO, false, true);
     }
 
     private Tree<Long> buildMenuTree(List<MenuRespVO> data) {
@@ -383,21 +456,76 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
             return;
         }
 
-        Long finalMenuId = menuId;
-        CompletableFuture.runAsync(() -> {
-            Forest.client(MenuApi.class).deleteMenu(finalMenuId).getCheckedData();
-        }).thenAcceptAsync(unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除菜单成功");
-            updateData();
-            postMenuRefreshEvent();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        final Long finalMenuId = menuId;
+        disposeTrackedDisposable(currentDeleteDisposable);
 
+        final AtomicReference<Disposable> deleteDisposableRef = new AtomicReference<Disposable>();
+        Completable
+                /*
+                 * 删除接口没有业务返回值，因此用 Completable 表达“只关心完成/失败”会更直观。
+                 */
+                .fromAction(() -> Forest.client(MenuApi.class).deleteMenu(finalMenuId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    deleteDisposableRef.set(disposable);
+                    currentDeleteDisposable.set(disposable);
+                    showWaitMessage("菜单删除中...");
+                })
+                .doFinally(() -> {
+                    clearTrackedDisposable(currentDeleteDisposable, deleteDisposableRef.get());
+                    hideWaitMessage();
+                })
+                .subscribe(
+                        () -> {
+                            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除菜单成功");
+                            postMenuRefreshEvent();
+                            /*
+                             * 这里故意放到下一轮 EDT 再触发刷新，
+                             * 避免本次删除链的 doFinally 把下一次“菜单加载中...”遮罩提前关掉。
+                             */
+                            SwingSchedulers.postOnEdt(this::updateData);
+                        },
+                        SwingExceptionHandler::handle
+                );
+    }
 
+    /**
+     * 统一显示等待遮罩。
+     * <p>
+     * 即使未来调用方不在 EDT，也可以安全复用。
+     * </p>
+     */
+    private void showWaitMessage(final String message) {
+        SwingSchedulers.runOnEdt(() -> waitPane.showMessageLayer(message));
+    }
+
+    /**
+     * 统一隐藏等待遮罩。
+     */
+    private void hideWaitMessage() {
+        SwingSchedulers.runOnEdt(waitPane::hideMessageLayer);
+    }
+
+    /**
+     * 替换式 dispose。
+     * <p>
+     * 发起新请求前先 dispose 旧订阅，避免旧链继续占用页面资源。
+     * </p>
+     */
+    private void disposeTrackedDisposable(AtomicReference<Disposable> disposableRef) {
+        Disposable disposable = disposableRef.getAndSet(null);
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+    }
+
+    /**
+     * 仅在句柄仍然是“当前活跃订阅”时才清空引用。
+     * 这样可以防止旧请求结束时把新请求的句柄误覆盖掉。
+     */
+    private void clearTrackedDisposable(AtomicReference<Disposable> disposableRef, Disposable disposable) {
+        disposableRef.compareAndSet(disposable, null);
     }
 
     private Tree getSelectedMenuNode() {
@@ -418,6 +546,12 @@ public class MenuManagementPanel extends AbstractRefreshablePanel {
         EventBusCenter.get().post(new MenuRefreshEvent());
     }
 
+    @Override
+    public void removeNotify() {
+        disposeTrackedDisposable(currentLoadDisposable);
+        disposeTrackedDisposable(currentDeleteDisposable);
+        super.removeNotify();
+    }
 
 
     private static class MenuTreeTableModel extends AbstractTreeTableModel {

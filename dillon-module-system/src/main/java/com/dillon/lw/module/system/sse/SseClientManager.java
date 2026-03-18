@@ -18,7 +18,7 @@ public class SseClientManager {
     // taskId -> roleId -> clientId 列表（用于判断新客户端）
     private final Map<String, Map<String, Set<String>>> roleClients = new ConcurrentHashMap<>();
 
-//    @Resource
+    //    @Resource
 //    private TaskPermissionService permissionService;
     @Resource
     private TaskSnapshotHolder snapshotHolder;
@@ -51,7 +51,8 @@ public class SseClientManager {
             snapshotHolder.getAll(taskId).forEach((type, payload) -> {
                 try {
                     emitter.send(build(taskId, type, payload));
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             });
         }
 

@@ -5,20 +5,22 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.JobLogApi;
 import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.module.infra.controller.admin.job.vo.log.JobLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class JobLogViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -52,22 +54,26 @@ public class JobLogViewModel extends BaseViewModel {
         if (ObjectUtil.isAllNotEmpty(beginDate.get(), endDate.get())) {
             String sd = beginDate.get().atTime(0, 0, 0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String ed = endDate.get().atTime(23, 59, 59).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            queryMap.put("beginTime",sd);
-            queryMap.put("endTime",ed);
+            queryMap.put("beginTime", sd);
+            queryMap.put("endTime", ed);
         }
 
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobLogApi.class).getJobLogPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            tableItems.setAll(data.getList());
-            total.set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                /*
+                 * 调度日志分页查询改成 RxJava 链，
+                 * 后台线程负责网络请求，JavaFX UI 线程负责刷新表格和分页属性。
+                 */
+                .fromCallable(() -> Forest.client(JobLogApi.class).getJobLogPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    tableItems.setAll(data.getList());
+                    total.set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
@@ -97,7 +103,6 @@ public class JobLogViewModel extends BaseViewModel {
     }
 
 
-
     public ObservableList<JobLogRespVO> getTableItems() {
         return tableItems;
     }
@@ -125,7 +130,6 @@ public class JobLogViewModel extends BaseViewModel {
     public ObjectProperty<DictDataSimpleRespVO> statusProperty() {
         return status;
     }
-
 
 
     public LocalDate getBeginDate() {

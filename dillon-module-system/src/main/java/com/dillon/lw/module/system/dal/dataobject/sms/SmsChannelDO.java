@@ -34,13 +34,13 @@ public class SmsChannelDO extends BaseDO {
     private String signature;
     /**
      * 渠道编码
-     *
+     * <p>
      * 枚举 {@link SmsChannelEnum}
      */
     private String code;
     /**
      * 启用状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

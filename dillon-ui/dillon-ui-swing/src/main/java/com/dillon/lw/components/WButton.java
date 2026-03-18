@@ -20,9 +20,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public class WButton extends JButton {
 
 
-
-
-
     /**
      * 直角&圆角 true为直角，flase为圆角
      */
@@ -47,11 +44,11 @@ public class WButton extends JButton {
     }
 
     public WButton(Icon icon) {
-        this(null,icon);
+        this(null, icon);
     }
 
     public WButton(String text) {
-        this(text,null);
+        this(text, null);
     }
 
     public WButton(Action a) {
@@ -98,9 +95,6 @@ public class WButton extends JButton {
     }
 
 
-
-
-
     public boolean isFill() {
         return fill;
     }
@@ -132,8 +126,8 @@ public class WButton extends JButton {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int w = getWidth()-2;
-        int h = getHeight()-2 ;
+        int w = getWidth() - 2;
+        int h = getHeight() - 2;
         int x = 1;
         int y = 1;
 
@@ -179,7 +173,7 @@ public class WButton extends JButton {
 
     }
 
-      private Animator getAnimationStart() {
+    private Animator getAnimationStart() {
         if (animationStart == null) {
             if (Animator.getDefaultTimingSource() == null) {
                 TimingSource ts = new SwingTimerTimingSource();

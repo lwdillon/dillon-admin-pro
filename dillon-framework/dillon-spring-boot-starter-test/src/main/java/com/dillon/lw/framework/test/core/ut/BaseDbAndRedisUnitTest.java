@@ -19,7 +19,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 /**
  * 依赖内存 DB + Redis 的单元测试
- *
+ * <p>
  * 相比 {@link BaseDbUnitTest} 来说，额外增加了内存 Redis
  *
  * @author liwen

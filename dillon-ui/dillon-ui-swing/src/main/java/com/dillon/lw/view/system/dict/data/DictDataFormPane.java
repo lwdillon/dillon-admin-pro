@@ -18,12 +18,16 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DictDataFormPane extends JPanel {
+public class DictDataFormPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id = null;
 
     public DictDataFormPane() {
@@ -171,6 +175,7 @@ public class DictDataFormPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -191,38 +196,40 @@ public class DictDataFormPane extends JPanel {
             return;
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).getDictData(id).getCheckedData();
-        }).thenAcceptAsync(dictDataRespVO -> {
-            Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
-            colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
-            colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
-            colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
-            colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
-            colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
-            colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
-            ColorTypeOptions colorTypeOptionSel = null;
+        Single
+                /*
+                 * 编辑态需要先拉取字典数据详情；接口是同步 HTTP 调用，
+                 * 因此先包装成 Single，再把执行线程交给 IO 调度器。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getDictData(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                /*
+                 * 下面会回填表单、更新下拉框模型，这些都只能在 EDT 中完成。
+                 */
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(dictDataRespVO -> {
+                    Vector<ColorTypeOptions> colorTypeOptionsVector = new Vector<>();
+                    colorTypeOptionsVector.add(new ColorTypeOptions("默认", "default"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("主要", "primary"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("成功", "success"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("信息", "info"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("警告", "warning"));
+                    colorTypeOptionsVector.add(new ColorTypeOptions("危险", "danger"));
+                    ColorTypeOptions colorTypeOptionSel = null;
 
-            for (ColorTypeOptions colorTypeOptions : colorTypeOptionsVector) {
+                    for (ColorTypeOptions colorTypeOptions : colorTypeOptionsVector) {
+                        if (StrUtil.equals(dictDataRespVO.getColorType(), colorTypeOptions.getValue())) {
+                            colorTypeOptionSel = colorTypeOptions;
+                        }
+                    }
 
-                if (StrUtil.equals(dictDataRespVO.getColorType(), colorTypeOptions.getValue())) {
-                    colorTypeOptionSel = colorTypeOptions;
-                }
-            }
-
-            setValue(dictDataRespVO);
-            colorTypeComboBox.setModel(new DefaultComboBoxModel(colorTypeOptionsVector));
-
-            if (colorTypeOptionSel != null) {
-                colorTypeComboBox.setSelectedItem(colorTypeOptionSel);
-            }
-
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                    setValue(dictDataRespVO);
+                    colorTypeComboBox.setModel(new DefaultComboBoxModel(colorTypeOptionsVector));
+                    if (colorTypeOptionSel != null) {
+                        colorTypeComboBox.setSelectedItem(colorTypeOptionSel);
+                    }
+                }, SwingExceptionHandler::handle);
     }
 
     // 数据标签回显样式
@@ -274,4 +281,3 @@ public class DictDataFormPane extends JPanel {
     private JTextArea remarkTextArea;
     // JFormDesigner - End of variables declaration  //GEN-END:variables  @formatter:on
 }
-

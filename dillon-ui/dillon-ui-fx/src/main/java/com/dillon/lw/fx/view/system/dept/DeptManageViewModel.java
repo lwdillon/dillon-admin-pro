@@ -10,6 +10,8 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptListReqVO;
@@ -17,16 +19,16 @@ import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -87,21 +89,25 @@ public class DeptManageViewModel extends BaseViewModel {
         deptListReqVO.setStatus(StrUtil.equals("全部", status) ? null : (StrUtil.equals("开启", status) ? 0 : 1));
         Map<String, Object> queryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
 
-
-        CompletableFuture<List<UserSimpleRespVO>> userListFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
-        });
-
-        CompletableFuture<List<DeptRespVO>> deptListFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData();
-        });
-
-        userListFuture.thenCombineAsync(deptListFuture, (userListData, data) -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("user", userListData);
-            map.put("dept", data);
-            return map;
-        }).thenAcceptAsync(result -> {
+        Single
+                /*
+                 * 部门树和负责人列表互不依赖，直接用 zip 并行拉取，
+                 * 更直观地表达“两个请求都完成后再更新 UI”。
+                 */
+                .zip(
+                        Single.fromCallable(() -> Forest.client(UserApi.class).getSimpleUserList().getCheckedData()),
+                        Single.fromCallable(() -> Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData()),
+                        (userListData, data) -> {
+                            Map<String, Object> result = new HashMap<String, Object>();
+                            result.put("user", userListData);
+                            result.put("dept", data);
+                            return result;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
 
             List<DeptRespVO> data = (List<DeptRespVO>) result.get("dept");
             List<UserSimpleRespVO> userListData = (List<UserSimpleRespVO>) result.get("user");
@@ -142,27 +148,23 @@ public class DeptManageViewModel extends BaseViewModel {
                 }
                 pendingSelectDeptId = null;
             }
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        }, DefaultExceptionHandler::handle);
 
 
     }
 
 
     public void deleteDept(Long deptId, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-
-            EventBusCenter.get().post(new MessageEvent("删除成功！", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    EventBusCenter.get().post(new MessageEvent("删除成功！", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void rest() {
@@ -176,7 +178,7 @@ public class DeptManageViewModel extends BaseViewModel {
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新部门列表".equals(menuEvent.getMessage())) {
                 Object data = menuEvent.getData();
                 if (data instanceof Number) {
@@ -189,7 +191,7 @@ public class DeptManageViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> query());
+        FxSchedulers.runOnFx(() -> query());
     }
 
     private void expandToRoot(TreeItem<DeptRespVO> node) {

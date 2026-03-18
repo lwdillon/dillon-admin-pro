@@ -41,16 +41,19 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class UserManagementPanel extends JPanel {
+public class UserManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"用户编号", "用户名称", "用户昵称", "部门", "手机号", "状态", "创建时间", "操作"};
     private static final int COL_USER_ID = 0;
     private static final int COL_USER_NAME = 1;
@@ -76,7 +79,7 @@ public class UserManagementPanel extends JPanel {
         tree = new JTree();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -363,31 +366,34 @@ public class UserManagementPanel extends JPanel {
      * 添加
      */
     private void add(UserSaveReqVO userSaveReqVO) {
-        CompletableFuture.runAsync(() -> {
-            Forest.client(UserApi.class).createUser(userSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加用户成功");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Completable
+                /*
+                 * 新增用户没有业务返回值，更适合用 Completable 表达“只关心完成或失败”。
+                 */
+                .fromAction(() -> Forest.client(UserApi.class).createUser(userSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(() -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加用户成功");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void edit(UserSaveReqVO userSaveReqVO) {
-        CompletableFuture.runAsync(() -> {
-            Forest.client(UserApi.class).updateUser(userSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改用户成功");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Completable
+                /*
+                 * 修改用户同样没有下游业务值，保持和新增一致的 Completable 写法，
+                 * 让线程切换和错误处理更直观。
+                 */
+                .fromAction(() -> Forest.client(UserApi.class).updateUser(userSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(() -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改用户成功");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void delMenu() {
@@ -403,13 +409,22 @@ public class UserManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        executeAsync(() -> {
-            Forest.client(UserApi.class).deleteUser(userId).getCheckedData();
-            return true;
-        }, unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除用户成功");
-            loadTableData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> {
+                    Forest.client(UserApi.class).deleteUser(userId).getCheckedData();
+                    return true;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(unused -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除用户成功");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     /**
@@ -429,26 +444,53 @@ public class UserManagementPanel extends JPanel {
         userUpdatePasswordReqVO.setId(id);
         userUpdatePasswordReqVO.setPassword(pwd);
 
-        executeAsync(() -> {
-            Forest.client(UserApi.class).updateUserPassword(userUpdatePasswordReqVO).getCheckedData();
-            return true;
-        }, unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "重置密码成功");
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> {
+                    Forest.client(UserApi.class).updateUserPassword(userUpdatePasswordReqVO).getCheckedData();
+                    return true;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(unused -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "重置密码成功");
+                }, SwingExceptionHandler::handle);
     }
 
     private void permissionAssignUserRole(PermissionAssignUserRoleReqVO permissionAssignUserRoleReqVO) {
-        executeAsync(() -> {
-            Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
-            return true;
-        }, unused -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "分配角色成功");
-            loadTableData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> {
+                    Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
+                    return true;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(unused -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "分配角色成功");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     public void loadTreeData() {
-        executeAsync(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData(), this::updateTreeUI);
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::updateTreeUI, SwingExceptionHandler::handle);
     }
 
     @NotNull
@@ -513,7 +555,30 @@ public class UserManagementPanel extends JPanel {
 
         // 过滤掉 null 值
         queryMap.entrySet().removeIf(entry -> entry.getValue() == null);
-        executeAsync(() -> Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData(), this::updateTableDataUI);
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(UserApi.class).getUserPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询用户列表时先禁用搜索按钮，防止用户在请求返回前再次点击造成重复请求。
+                     * doOnSubscribe 不保证运行在 EDT，所以按钮状态更新统一显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 无论查询成功、失败还是链路提前结束，都要恢复按钮可用态。
+                     * doFinally 也可能运行在后台线程，因此恢复动作继续走 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::updateTableDataUI, SwingExceptionHandler::handle);
 
     }
 
@@ -590,16 +655,6 @@ public class UserManagementPanel extends JPanel {
         return (UserRespVO) table.getValueAt(selectedRow, COL_USER_OBJECT);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

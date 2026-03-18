@@ -362,7 +362,6 @@ public final class ClientAutoUpdater {
     }
 
 
-
     private static final class ProgressDialog extends JDialog {
         private final JProgressBar progressBar = new JProgressBar();
         private final JLabel progressLabel = new JLabel("下载准备中...");

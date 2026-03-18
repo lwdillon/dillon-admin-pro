@@ -29,17 +29,21 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_JOB_LOG_STATUS;
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_JOB_STATUS;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class JobLogPane extends JPanel {
+public class JobLogPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private String[] COLUMN_ID = {"日志编号", "任务编号", "处理器的名字", "处理器的参数", "第几次执行", "执行时间", "执行时长", "任务状态", "操作"};
 
     private DefaultTableModel tableModel;
@@ -56,7 +60,7 @@ public class JobLogPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -291,51 +295,67 @@ public class JobLogPane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobLogApi.class).getJobLogPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            paginationPane.setTotal(result.getTotal());
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(respVO -> {
-                Vector rowV = new Vector();
-                rowV.add(respVO.getId());
-                rowV.add(respVO.getJobId());
-                rowV.add(respVO.getHandlerName());
-                rowV.add(respVO.getHandlerParam());
-                rowV.add(respVO.getExecuteIndex());
-                rowV.add(DateUtil.format(Convert.toLocalDateTime(respVO.getBeginTime()), "yyyy-MM-dd HH:mm:ss") + " ~ " + DateUtil.format(Convert.toLocalDateTime(respVO.getEndTime()), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(respVO.getDuration() + " 毫秒");
-                rowV.add(respVO.getStatus());
-                rowV.add(respVO);
-                tableData.add(rowV);
-            });
+        Single
+                /*
+                 * 调度日志查询也是同步接口，统一通过 RxJava 切到 IO，
+                 * 拿到结果后再回到 EDT 更新表格与分页组件。
+                 */
+                .fromCallable(() -> Forest.client(JobLogApi.class).getJobLogPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 搜索按钮在日志查询期间保持禁用，避免重复点击造成多个相同请求并发。
+                     * doOnSubscribe 线程不固定，所以按钮状态修改显式切回 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询结束时恢复按钮，保证失败和取消时也能继续使用筛选入口。
+                     * doFinally 同样需要借助 EDT，避免跨线程操作 Swing 组件。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    paginationPane.setTotal(result.getTotal());
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(respVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(respVO.getId());
+                        rowV.add(respVO.getJobId());
+                        rowV.add(respVO.getHandlerName());
+                        rowV.add(respVO.getHandlerParam());
+                        rowV.add(respVO.getExecuteIndex());
+                        rowV.add(DateUtil.format(Convert.toLocalDateTime(respVO.getBeginTime()), "yyyy-MM-dd HH:mm:ss") + " ~ " + DateUtil.format(Convert.toLocalDateTime(respVO.getEndTime()), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(respVO.getDuration() + " 毫秒");
+                        rowV.add(respVO.getStatus());
+                        rowV.add(respVO);
+                        tableData.add(rowV);
+                    });
 
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("执行时间").setMinWidth(300);
-            table.getColumn("操作").setMinWidth(80);
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("执行时间").setMinWidth(300);
+                    table.getColumn("操作").setMinWidth(80);
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-            table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            paginationPane.setTotal(result.getTotal());
+                    table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    paginationPane.setTotal(result.getTotal());
 
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                }, SwingExceptionHandler::handle);
 
 
     }

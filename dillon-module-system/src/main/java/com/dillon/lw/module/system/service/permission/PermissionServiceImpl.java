@@ -86,7 +86,7 @@ public class PermissionServiceImpl implements PermissionService {
     /**
      * 判断指定角色，是否拥有该 permission 权限
      *
-     * @param roles 指定角色数组
+     * @param roles      指定角色数组
      * @param permission 权限标识
      * @return 是否拥有
      */
@@ -134,9 +134,9 @@ public class PermissionServiceImpl implements PermissionService {
     @DSTransactional // 多数据源，使用 @DSTransactional 保证本地事务，以及数据源的切换
     @Caching(evict = {
             @CacheEvict(value = RedisKeyConstants.MENU_ROLE_ID_LIST,
-            allEntries = true),
+                    allEntries = true),
             @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST,
-            allEntries = true) // allEntries 清空所有缓存，主要一次更新涉及到的 menuIds 较多，反倒批量会更快
+                    allEntries = true) // allEntries 清空所有缓存，主要一次更新涉及到的 menuIds 较多，反倒批量会更快
     })
     public void assignRoleMenu(Long roleId, Set<Long> menuIds) {
         // 获得角色拥有菜单编号

@@ -40,9 +40,11 @@ import java.util.List;
  *
  * @author xingyu4j
  */
-@AutoConfiguration(before = DillonRedisMQConsumerAutoConfiguration.class) // before DillonRedisMQConsumerAutoConfiguration 的原因是，需要保证 RedisWebSocketMessageConsumer 先创建，才能创建 RedisMessageListenerContainer
+@AutoConfiguration(before = DillonRedisMQConsumerAutoConfiguration.class)
+// before DillonRedisMQConsumerAutoConfiguration 的原因是，需要保证 RedisWebSocketMessageConsumer 先创建，才能创建 RedisMessageListenerContainer
 @EnableWebSocket // 开启 websocket
-@ConditionalOnProperty(prefix = "dillon.websocket", value = "enable", matchIfMissing = true) // 允许使用 dillon.websocket.enable=false 禁用 websocket
+@ConditionalOnProperty(prefix = "dillon.websocket", value = "enable", matchIfMissing = true)
+// 允许使用 dillon.websocket.enable=false 禁用 websocket
 @EnableConfigurationProperties(WebSocketProperties.class)
 public class DillonWebSocketAutoConfiguration {
 

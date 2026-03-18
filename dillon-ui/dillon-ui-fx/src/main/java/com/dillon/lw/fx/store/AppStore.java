@@ -2,17 +2,18 @@ package com.dillon.lw.fx.store;
 
 import com.dillon.lw.api.system.DictDataApi;
 import com.dillon.lw.fx.DefaultExceptionHandler;
+import com.dillon.lw.fx.rx.FxSchedulers;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.kordamp.ikonli.feather.Feather;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class AppStore {
@@ -85,22 +86,20 @@ public class AppStore {
     }
 
 
-
     public static void loadDictData() {
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            // 按 type 属性分组
-            Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.stream()
-                    .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
-
-            setDictDataListMap(groupedByType);
-        }, Platform::runLater).exceptionally(throwable -> {
-            // 处理错误
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 字典缓存加载本质上是一次同步 HTTP 请求：
+                 * 上游放到 IO 线程取数，按类型分组后的缓存回写再切回 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .subscribe(commonResult -> {
+                    Map<String, List<DictDataSimpleRespVO>> groupedByType = commonResult.stream()
+                            .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
+                    setDictDataListMap(groupedByType);
+                }, DefaultExceptionHandler::handle);
 
     }
 

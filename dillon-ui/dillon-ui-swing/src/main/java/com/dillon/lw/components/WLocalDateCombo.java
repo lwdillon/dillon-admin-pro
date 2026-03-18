@@ -252,7 +252,7 @@ public class WLocalDateCombo extends JComboBox<LocalDate> {
         super.updateUI();
         setUI(new MyFlatComboBoxUI());
         if (popupMenu != null) {
-            SwingUtilities.updateComponentTreeUI( popupMenu );
+            SwingUtilities.updateComponentTreeUI(popupMenu);
         }
     }
 

@@ -31,13 +31,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class ClientFormPane extends JPanel {
+public class ClientFormPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id = null;
     private JPopupMenu authorizedGrantTypesPopupMenu;
     private CheckBoxList authorizedGrantTypesCheckBoxList;
@@ -311,27 +315,29 @@ public class ClientFormPane extends JPanel {
 
         this.id = id;
 
-        CompletableFuture.supplyAsync(() -> {
-            if (id == null) {
-                return new OAuth2ClientRespVO();
-            }
-            return Forest.client(OAuth2ClientApi.class).getOAuth2Client(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            setValue(result);
-            List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_OAUTH2_GRANT_TYPE);
-            // 提取所有 label
-            List<String> labels = dictDataSimpleRespVOList.stream().map(DictDataSimpleRespVO::getLabel).collect(Collectors.toList());
-            authorizedGrantTypesCheckBoxList.setModel(new DefaultComboBoxModel(labels.toArray()));
-            if (result.getAuthorizedGrantTypes() != null) {
-                authorizedGrantTypesCheckBoxList.setSelectedObjects(result.getAuthorizedGrantTypes().toArray());
-            }
-
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 客户端详情读取后还要同步刷新授权方式多选框，
+                 * 因此整条“取数 + 回填”链统一在 EDT 收口。
+                 */
+                .fromCallable(() -> {
+                    if (id == null) {
+                        return new OAuth2ClientRespVO();
+                    }
+                    return Forest.client(OAuth2ClientApi.class).getOAuth2Client(id).getCheckedData();
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    setValue(result);
+                    List<DictDataSimpleRespVO> dictDataSimpleRespVOList = AppStore.getDictDataList(DictTypeEnum.SYSTEM_OAUTH2_GRANT_TYPE);
+                    List<String> labels = dictDataSimpleRespVOList.stream().map(DictDataSimpleRespVO::getLabel).collect(Collectors.toList());
+                    authorizedGrantTypesCheckBoxList.setModel(new DefaultComboBoxModel(labels.toArray()));
+                    if (result.getAuthorizedGrantTypes() != null) {
+                        authorizedGrantTypesCheckBoxList.setSelectedObjects(result.getAuthorizedGrantTypes().toArray());
+                    }
+                }, SwingExceptionHandler::handle);
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

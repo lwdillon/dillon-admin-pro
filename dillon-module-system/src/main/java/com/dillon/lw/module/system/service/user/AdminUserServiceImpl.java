@@ -355,7 +355,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     private AdminUserDO validateUserForCreateOrUpdate(Long id, String username, String mobile, String email,
-                                               Long deptId, Set<Long> postIds) {
+                                                      Long deptId, Set<Long> postIds) {
         // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
         return DataPermissionUtils.executeIgnore(() -> {
             // 校验用户存在
@@ -442,6 +442,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 
     /**
      * 校验旧密码
+     *
      * @param id          用户 id
      * @param oldPassword 旧密码
      */
@@ -476,7 +477,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             // 2.1.1 校验字段是否符合要求
             try {
                 ValidationUtils.validate(BeanUtils.toBean(importUser, UserSaveReqVO.class).setPassword(initPassword));
-            } catch (ConstraintViolationException ex){
+            } catch (ConstraintViolationException ex) {
                 respVO.getFailureUsernames().put(importUser.getUsername(), ex.getMessage());
                 return;
             }

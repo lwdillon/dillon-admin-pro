@@ -29,11 +29,10 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface MapPropertyAccessor<M, K, V> extends Function<M, MapProperty<K, V>> {
 
-	/**
-	 * @param model the model instance
-	 *
-	 * @return the property field of the model
-	 */
-	@Override
-	MapProperty<K, V> apply(M model);
+    /**
+     * @param model the model instance
+     * @return the property field of the model
+     */
+    @Override
+    MapProperty<K, V> apply(M model);
 }

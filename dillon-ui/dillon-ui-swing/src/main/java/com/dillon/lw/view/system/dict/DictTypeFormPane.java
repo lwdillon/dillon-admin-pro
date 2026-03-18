@@ -14,12 +14,16 @@ import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DictTypeFormPane extends JPanel {
+public class DictTypeFormPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id = null;
 
     public DictTypeFormPane() {
@@ -100,6 +104,7 @@ public class DictTypeFormPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -121,16 +126,16 @@ public class DictTypeFormPane extends JPanel {
             return;
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).getDictType(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            setValue(result);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 详情接口是同步调用，包装成 Single 后交给 IO 线程，
+                 * 这样不会阻塞打开弹窗时的 Swing 主线程。
+                 */
+                .fromCallable(() -> Forest.client(DictTypeApi.class).getDictType(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::setValue, SwingExceptionHandler::handle);
 
 
     }

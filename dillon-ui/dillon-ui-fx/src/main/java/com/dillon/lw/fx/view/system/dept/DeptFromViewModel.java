@@ -10,6 +10,8 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptRespVO;
@@ -17,15 +19,15 @@ import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 部门对话框视图模型
@@ -49,35 +51,35 @@ public class DeptFromViewModel extends BaseViewModel {
 
         wrapper.get().setLeaderUserId(selectLeaderUser.get() != null ? selectLeaderUser.get().getId() : null);
         wrapper.commit();
-        DeptSaveReqVO deptSaveReqVO=  wrapper.get();
+        DeptSaveReqVO deptSaveReqVO = wrapper.get();
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).createDept(deptSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(deptId -> {
-            EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptId));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DeptApi.class).createDept(deptSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(deptId -> {
+                    EventBusCenter.get().post(new MessageEvent("添加成功！", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptId));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void updateDept(ConfirmDialog confirmDialog) {
         wrapper.get().setLeaderUserId(selectLeaderUser.get() != null ? selectLeaderUser.get().getId() : null);
         wrapper.commit();
-        DeptSaveReqVO deptSaveReqVO=  wrapper.get();
+        DeptSaveReqVO deptSaveReqVO = wrapper.get();
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).updateDept(deptSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(rel -> {
-            EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptSaveReqVO.getId()));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DeptApi.class).updateDept(deptSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(rel -> {
+                    EventBusCenter.get().post(new MessageEvent("更新成功！", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新部门列表", deptSaveReqVO.getId()));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void initData(DeptRespVO sysDept) {
@@ -86,9 +88,27 @@ public class DeptFromViewModel extends BaseViewModel {
         BeanUtil.copyProperties(sysDept, saveVO);
         wrapper.set(saveVO);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
-        }).thenAcceptAsync(userList -> {
+        Single
+                /*
+                 * 部门编辑页初始化依赖“负责人列表 + 部门树”两份数据，
+                 * 这里直接用 zip 并行加载，再一次性回到 JavaFX UI 线程填充表单。
+                 */
+                .zip(
+                        Single.fromCallable(() -> Forest.client(UserApi.class).getSimpleUserList().getCheckedData()),
+                        Single.fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData()),
+                        (userList, deptList) -> {
+                            Map<String, Object> result = new HashMap<String, Object>();
+                            result.put("users", userList);
+                            result.put("depts", deptList);
+                            return result;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+            java.util.List<UserSimpleRespVO> userList = (java.util.List<UserSimpleRespVO>) result.get("users");
+            java.util.List<DeptSimpleRespVO> deptList = (java.util.List<DeptSimpleRespVO>) result.get("depts");
             leaderUserList.set(FXCollections.observableList(userList));
 
             for (UserSimpleRespVO respVO : userList) {
@@ -96,9 +116,6 @@ public class DeptFromViewModel extends BaseViewModel {
                     selectLeaderUser.set(respVO);
                 }
             }
-        }, Platform::runLater).thenApplyAsync(unused -> {
-            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-        }).thenAcceptAsync(deptList -> {
 
             DeptSimpleRespVO respVO = new DeptSimpleRespVO();
             respVO.setId(0L);
@@ -131,10 +148,7 @@ public class DeptFromViewModel extends BaseViewModel {
             }
             deptTreeRoot.set(root);
 
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        }, DefaultExceptionHandler::handle);
     }
 
     /**

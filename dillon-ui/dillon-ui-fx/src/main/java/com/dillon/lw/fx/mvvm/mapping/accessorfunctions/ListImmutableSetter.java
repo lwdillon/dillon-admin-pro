@@ -9,18 +9,15 @@ import java.util.function.BiFunction;
  * Instead it returns a new immutable copy of the original model element that has the
  * specified field updated to the new value.
  *
- * @param <M>
- *            the generic type of the model.
+ * @param <M> the generic type of the model.
  */
 @FunctionalInterface
 public interface ListImmutableSetter<M, E> extends BiFunction<M, List<E>, M> {
 
-	/**
-	 * @param model
-	 *            the model instance.
-	 * @param newElements
-	 *            the new elements of this list field.
-	 */
-	@Override
-	M apply(M model, List<E> newElements);
+    /**
+     * @param model       the model instance.
+     * @param newElements the new elements of this list field.
+     */
+    @Override
+    M apply(M model, List<E> newElements);
 }

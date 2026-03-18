@@ -9,19 +9,21 @@ import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 菜单对话框视图模型
@@ -50,36 +52,34 @@ public class MenuFromViewModel extends BaseViewModel {
     public void updateMenu(ConfirmDialog dialog) {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).updateMenu(menuSaveVO).getCheckedData();
-        }).thenAcceptAsync(result -> {// 订阅成功
-            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuSaveVO.getId()));// 发布更新菜单列表事件
-            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));// 发布更新侧边菜单事件
-            EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));// 发布成功消息事件
-            dialog.close();// 关闭对话框
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(MenuApi.class).updateMenu(menuSaveVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuSaveVO.getId()));
+                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
+                    EventBusCenter.get().post(new MessageEvent("修改成功", MessageType.SUCCESS));
+                    dialog.close();
+                }, DefaultExceptionHandler::handle);
 
     }
 
     public void createMenu(ConfirmDialog dialog) {
         wrapper.commit();
         MenuSaveVO menuSaveVO = wrapper.get();
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).createMenu(menuSaveVO).getCheckedData();
-        }).thenAcceptAsync(menuId -> {
-
-            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuId));
-            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
-            EventBusCenter.get().post(new MessageEvent("添加成功", MessageType.SUCCESS));
-            dialog.close();
-
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(MenuApi.class).createMenu(menuSaveVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(menuId -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表", menuId));
+                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
+                    EventBusCenter.get().post(new MessageEvent("添加成功", MessageType.SUCCESS));
+                    dialog.close();
+                }, DefaultExceptionHandler::handle);
 
     }
 
@@ -90,9 +90,12 @@ public class MenuFromViewModel extends BaseViewModel {
         BeanUtil.copyProperties(sysMenu, saveVO);
         setMenuRespVO(saveVO);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData();
-        }).thenAcceptAsync(listCommonResult -> {
+        Single
+                .fromCallable(() -> Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(listCommonResult -> {
 
             MenuSimpleRespVO respVO = new MenuSimpleRespVO();
             respVO.setId(0L);
@@ -133,10 +136,9 @@ public class MenuFromViewModel extends BaseViewModel {
             }
 
 
-        }, Platform::runLater).exceptionally(throwable -> {
+        }, throwable -> {
             DefaultExceptionHandler.handle(throwable);
             setMenuRespVO(new MenuSaveVO());
-            return null;
         });
 
 
@@ -215,8 +217,4 @@ public class MenuFromViewModel extends BaseViewModel {
     }
 
 
-    @Override
-    public void dispose() {
-        super.dispose();
-    }
 }

@@ -30,18 +30,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
 import static javax.swing.JOptionPane.*;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class LoginlogManagementPanel extends JPanel {
+public class LoginlogManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"日志编号", "操作类型", "用户名称", "登录地址", "浏览器", "登录结果", "登录日期", "操作"};
     private static final int COL_LOG_ID = 0;
     private static final int COL_LOG_OBJECT = COLUMN_ID.length - 1;
@@ -62,7 +64,7 @@ public class LoginlogManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -218,7 +220,8 @@ public class LoginlogManagementPanel extends JPanel {
         JButton del = new JButton("删除");
         del.setIcon(new FlatSVGIcon("icons/delte.svg", 15, 15));
         del.addActionListener(e -> delMenu());
-        del.setForeground(UIManager.getColor("App.danger.color"));        optBar.add(Box.createGlue());
+        del.setForeground(UIManager.getColor("App.danger.color"));
+        optBar.add(Box.createGlue());
         optBar.add(viewBut);
         optBar.add(del);
         optBar.add(Box.createGlue());
@@ -301,7 +304,16 @@ public class LoginlogManagementPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(LoginLogApi.class).deleteLoginLog(logId).getCheckedData(), result -> updateData());
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(LoginLogApi.class).deleteLoginLog(logId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> updateData(), SwingExceptionHandler::handle);
 
 
     }
@@ -313,7 +325,16 @@ public class LoginlogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        executeAsync(() -> Forest.client(LoginLogApi.class).clearLoginLog().getCheckedData(), result -> updateData());
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(LoginLogApi.class).clearLoginLog().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> updateData(), SwingExceptionHandler::handle);
 
 
     }
@@ -334,59 +355,82 @@ public class LoginlogManagementPanel extends JPanel {
         queryMap.put("status", stautsComboBox.getSelectedIndex() == 0 ? null : (stautsComboBox.getSelectedIndex() == 1 ? true : false));
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            java.lang.String sd= DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
             java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("createTime", ListUtil.of(sd, ed));
         }
         queryMap.values().removeIf(Objects::isNull);
-        executeAsync(() -> Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getId());
-                rowV.add(roleRespVO.getLogType());
-                rowV.add(roleRespVO.getUsername());
-                rowV.add(roleRespVO.getUserIp());
-                rowV.add(roleRespVO.getUserAgent());
-                rowV.add(roleRespVO.getResult());
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(LoginLogApi.class).getLoginLogPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 日志查询期间先禁用搜索按钮，避免重复点击叠加多个相同请求。
+                     * doOnSubscribe 的线程不固定，因此通过 EDT 再去修改 Swing 按钮状态。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询完成后无条件恢复按钮，确保异常场景下页面也能继续操作。
+                     * doFinally 可能跑在后台线程，所以恢复动作同样放到 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getId());
+                        rowV.add(roleRespVO.getLogType());
+                        rowV.add(roleRespVO.getUsername());
+                        rowV.add(roleRespVO.getUserIp());
+                        rowV.add(roleRespVO.getUserAgent());
+                        rowV.add(roleRespVO.getResult());
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
 
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("登录结果").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_RESULT, value);
+                    table.getColumn("登录结果").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_RESULT, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            table.getColumn("操作类型").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_TYPE, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    table.getColumn("操作类型").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_LOGIN_TYPE, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            paginationPane.setTotal(result.getTotal());
-        });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -416,16 +460,6 @@ public class LoginlogManagementPanel extends JPanel {
         return Convert.toStr(table.getValueAt(selectedRow, 2));
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

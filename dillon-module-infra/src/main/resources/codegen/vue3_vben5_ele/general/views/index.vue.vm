@@ -15,192 +15,195 @@
   import ${simpleClassName}Form from './modules/form.vue';
 
       ## 特殊：主子表专属逻辑
-#if ( $table.templateType == 11 || $table.templateType == 12 )
-    #foreach ($subSimpleClassName in $subSimpleClassNames)
-    #set ($index = $foreach.count - 1)
-    #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
-    #end
-#end
+      #if ( $table.templateType == 11 || $table.templateType == 12 )
+          #foreach ($subSimpleClassName in $subSimpleClassNames)
+              #set ($index = $foreach.count - 1)
+              #set ($subSimpleClassName_strikeCase = $subSimpleClassName_strikeCases.get($index))
+          #end
+      #end
 
-#if (${table.templateType} == 2)## 树表接口
-#else## 标准表接口
-#end
+      #if (${table.templateType} == 2)## 树表接口
+      #else## 标准表接口
+      #end
 
-#if ($table.templateType == 12 || $table.templateType == 11) ## 内嵌和erp情况
-/** 子表的列表 */
-const subTabsName = ref('$subClassNameVars.get(0)')
-#if ($table.templateType == 11)
-const select${simpleClassName} = ref<${simpleClassName}Api.${simpleClassName}>();
-async function onCellClick({ row }: { row: ${simpleClassName}Api.${simpleClassName} }) {
-  select${simpleClassName}.value = row
-}
-#end
-#end
+      #if ($table.templateType == 12 || $table.templateType == 11) ## 内嵌和erp情况
+      /** 子表的列表 */
+      const subTabsName = ref('$subClassNameVars.get(0)')
+          #if ($table.templateType == 11)
+          const select${simpleClassName} = ref<${simpleClassName}Api.${simpleClassName}>();
 
-const loading = ref(true) // 列表的加载中
-#if ( $table.templateType == 2 )
-const list = ref<any[]>([]) // 树列表的数据
-#else
-const list = ref<${simpleClassName}Api.${simpleClassName}[]>([]) // 列表的数据
-#end
+          async function onCellClick({row}: { row: ${simpleClassName}Api.${simpleClassName} }) {
+            select${simpleClassName}.value = row
+          }
+          #end
+      #end
 
-## 特殊：树表专属逻辑（树不需要分页接口）
-#if ( $table.templateType != 2 )
-const total = ref(0) // 列表的总页数
-#end
-const queryParams = reactive({
-## 特殊：树表专属逻辑（树不需要分页接口）
-#if ( $table.templateType != 2 )
-  pageNo: 1,
-  pageSize: 10,
-#end
-#foreach ($column in $columns)
-    #if ($column.listOperation)
-        #if ($column.listOperationCondition != 'BETWEEN')
-                $column.javaField: undefined,
-        #end
-        #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
-                $column.javaField: undefined,
-        #end
-    #end
-#end
-})
-const queryFormRef = ref() // 搜索的表单
-const exportLoading = ref(false) // 导出的加载中
+  const loading = ref(true) // 列表的加载中
+      #if ( $table.templateType == 2 )
+      const list = ref<any[]>([]) // 树列表的数据
+      #else
+      const list = ref<${simpleClassName}Api.${simpleClassName}[]>([]) // 列表的数据
+      #end
 
-/** 查询列表 */
-const getList = async () => {
-  loading.value = true
-  try {
-    const params = cloneDeep(queryParams) as any;
+      ## 特殊：树表专属逻辑（树不需要分页接口）
+      #if ( $table.templateType != 2 )
+      const total = ref(0) // 列表的总页数
+      #end
+  const queryParams = reactive({
+      ## 特殊：树表专属逻辑（树不需要分页接口）
+      #if ( $table.templateType != 2 )
+        pageNo: 1,
+        pageSize: 10,
+      #end
       #foreach ($column in $columns)
           #if ($column.listOperation)
+              #if ($column.listOperationCondition != 'BETWEEN')
+                      $column.javaField: undefined,
+              #end
               #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
-                if (params.${column.javaField} && Array.isArray(params.${column.javaField})) {
-                  params.${column.javaField} = (params.${column.javaField} as string[]).join(',');
-                }
+                      $column.javaField: undefined,
               #end
           #end
       #end
-      ## 特殊：树表专属逻辑（树不需要分页接口）
-      #if ( $table.templateType == 2 )
-        list.value = await get${simpleClassName}List(params);
-      #else
-        const data = await get${simpleClassName}Page(params)
-        list.value = data.list
-        total.value = data.total
+  })
+  const queryFormRef = ref() // 搜索的表单
+  const exportLoading = ref(false) // 导出的加载中
+
+  /** 查询列表 */
+  const getList = async () => {
+    loading.value = true
+    try {
+      const params = cloneDeep(queryParams) as any;
+        #foreach ($column in $columns)
+            #if ($column.listOperation)
+                #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
+                  if (params.${column.javaField} && Array.isArray(params.${column.javaField})) {
+                    params.${column.javaField} = (params.${column.javaField} as string[]).join(',');
+                  }
+                #end
+            #end
+        #end
+        ## 特殊：树表专属逻辑（树不需要分页接口）
+        #if ( $table.templateType == 2 )
+          list.value = await get${simpleClassName}List(params);
+        #else
+          const data = await get${simpleClassName}Page(params)
+          list.value = data.list
+          total.value = data.total
+        #end
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 搜索按钮操作 */
+  function handleQuery() {
+      #if ( $table.templateType != 2 )
+        queryParams.pageNo = 1
       #end
-  } finally {
-    loading.value = false
+    getList()
   }
-}
 
-/** 搜索按钮操作 */
-function handleQuery() {
-#if ( $table.templateType != 2 )
-  queryParams.pageNo = 1
-#end
-  getList()
-}
+  /** 重置按钮操作 */
+  function resetQuery() {
+    queryFormRef.value.resetFields()
+    handleQuery()
+  }
 
-/** 重置按钮操作 */
-function resetQuery() {
-  queryFormRef.value.resetFields()
-  handleQuery()
-}
-
-const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: ${simpleClassName}Form,
-  destroyOnClose: true,
-});
-
-/** 创建${table.classComment} */
-function handleCreate() {
-  formModalApi.setData(null).open();
-}
-
-/** 编辑${table.classComment} */
-function handleEdit(row: ${simpleClassName}Api.${simpleClassName}) {
-  formModalApi.setData(row).open();
-}
-
-#if (${table.templateType} == 2)## 树表特有：新增下级
-/** 新增下级${table.classComment} */
-function handleAppend(row: ${simpleClassName}Api.${simpleClassName}) {
-  formModalApi.setData({ ${treeParentColumn.javaField}: row.id }).open();
-}
-#end
-
-/** 删除${table.classComment} */
-async function handleDelete(row: ${simpleClassName}Api.${simpleClassName}) {
-  const loadingInstance = ElLoading.service({
-    text: $t('ui.actionMessage.deleting', [row.id]),
+  const [FormModal, formModalApi] = useVbenModal({
+    connectedComponent: ${simpleClassName}Form,
+    destroyOnClose: true,
   });
-  try {
-    await delete${simpleClassName}(row.id as number);
-    ElMessage.success($t('ui.actionMessage.deleteSuccess', [row.id]));
-    await getList();
-  } finally {
-    loadingInstance.close();
-  }
-}
 
-#if ($table.templateType != 2 && $deleteBatchEnable)
-/** 批量删除${table.classComment} */
-async function handleDeleteBatch() {
-  const loadingInstance = ElLoading.service({
-    text: $t('ui.actionMessage.deleting'),
+  /** 创建${table.classComment} */
+  function handleCreate() {
+    formModalApi.setData(null).open();
+  }
+
+  /** 编辑${table.classComment} */
+  function handleEdit(row: ${simpleClassName}Api.${simpleClassName}) {
+    formModalApi.setData(row).open();
+  }
+
+      #if (${table.templateType} == 2)## 树表特有：新增下级
+      /** 新增下级${table.classComment} */
+      function handleAppend(row: ${simpleClassName}Api.${simpleClassName}) {
+        formModalApi.setData({${treeParentColumn.javaField}: row.id}).open();
+      }
+      #end
+
+  /** 删除${table.classComment} */
+  async function handleDelete(row: ${simpleClassName}Api.${simpleClassName}) {
+    const loadingInstance = ElLoading.service({
+      text: $t('ui.actionMessage.deleting', [row.id]),
+    });
+    try {
+      await delete${simpleClassName}(row.id as number);
+      ElMessage.success($t('ui.actionMessage.deleteSuccess', [row.id]));
+      await getList();
+    } finally {
+      loadingInstance.close();
+    }
+  }
+
+      #if ($table.templateType != 2 && $deleteBatchEnable)
+      /** 批量删除${table.classComment} */
+      async function handleDeleteBatch() {
+        const loadingInstance = ElLoading.service({
+          text: $t('ui.actionMessage.deleting'),
+        });
+        try {
+          await delete${simpleClassName}List(checkedIds.value);
+          checkedIds.value = [];
+          ElMessage.success($t('ui.actionMessage.deleteSuccess'));
+          await getList();
+        } finally {
+          loadingInstance.close();
+        }
+      }
+
+      const checkedIds = ref<number[]>([])
+
+      function handleRowCheckboxChange({
+                                         records,
+                                       }: {
+        records: ${simpleClassName}Api.${simpleClassName}[];
+      }) {
+        checkedIds.value = records.map((item) => item.id!);
+      }
+      #end
+
+  /** 导出表格 */
+  async function handleExport() {
+    try {
+      exportLoading.value = true;
+      const data = await export${simpleClassName}(queryParams);
+      downloadFileFromBlobPart({fileName: '${table.classComment}.xls', source: data});
+    } finally {
+      exportLoading.value = false;
+    }
+  }
+
+      #if (${table.templateType} == 2)
+      /** 切换树形展开/收缩状态 */
+      const isExpanded = ref(true);
+
+      function handleExpand() {
+        isExpanded.value = !isExpanded.value;
+        tableRef.value?.setAllTreeExpand(isExpanded.value);
+      }
+      #end
+
+  /** 初始化 */
+  const {hiddenSearchBar, tableToolbarRef, tableRef} = useTableToolbar();
+  onMounted(() => {
+    getList();
   });
-  try {
-    await delete${simpleClassName}List(checkedIds.value);
-    checkedIds.value = [];
-    ElMessage.success($t('ui.actionMessage.deleteSuccess'));
-    await getList();
-  } finally {
-    loadingInstance.close();
-  }
-}
-
-const checkedIds = ref<number[]>([])
-function handleRowCheckboxChange({
-  records,
-}: {
-  records: ${simpleClassName}Api.${simpleClassName}[];
-}) {
-  checkedIds.value = records.map((item) => item.id!);
-}
-#end
-
-/** 导出表格 */
-async function handleExport() {
-try {
-  exportLoading.value = true;
-  const data = await export${simpleClassName}(queryParams);
-  downloadFileFromBlobPart({ fileName: '${table.classComment}.xls', source: data });
-}finally {
-  exportLoading.value = false;
-}
-}
-
-#if (${table.templateType} == 2)
-/** 切换树形展开/收缩状态 */
-const isExpanded = ref(true);
-function handleExpand() {
-  isExpanded.value = !isExpanded.value;
-  tableRef.value?.setAllTreeExpand(isExpanded.value);
-}
-#end
-
-/** 初始化 */
-const { hiddenSearchBar, tableToolbarRef, tableRef } = useTableToolbar();
-onMounted(() => {
-  getList();
-});
 </script>
 
 <template>
   <Page auto-content-height>
-    <FormModal @success="getList" />
+    <FormModal @success="getList"/>
 
     <ContentWrap v-if="!hiddenSearchBar">
       <!-- 搜索工作栏 -->
@@ -229,16 +232,17 @@ onMounted(() => {
                           placeholder="请输入${comment}"
                           clearable
                           @keyup.enter="handleQuery"
-                           class="!w-[240px]"
+                          class="!w-[240px]"
                       />
                     </el-form-item>
-                  #elseif ($column.htmlType == "select" || $column.htmlType == "radio" || $column.htmlType == "checkbox")
+                  #elseif ($column.htmlType == "select" || $column.htmlType == "radio" || $column.htmlType ==
+                      "checkbox")
                     <el-form-item label="${comment}">
                       <el-select
                           v-model="queryParams.${javaField}"
                           placeholder="请选择${comment}"
                           clearable
-                           class="!w-[240px]"
+                          class="!w-[240px]"
                       >
                           #if ("" != $dictType)## 设置了 dictType 数据字典的情况
                             <el-option
@@ -248,7 +252,7 @@ onMounted(() => {
                                 :label="dict.label"
                             />
                           #else## 未设置 dictType 数据字典的情况
-                            <el-option label="请选择字典生成" value="" />
+                            <el-option label="请选择字典生成" value=""/>
                           #end
                       </el-select>
                     </el-form-item>
@@ -260,7 +264,7 @@ onMounted(() => {
                               value-format="YYYY-MM-DD"
                               placeholder="选择${comment}"
                               clearable
-                               class="!w-[240px]"
+                              class="!w-[240px]"
                           />
                         </el-form-item>
                       #else## 范围
@@ -280,7 +284,7 @@ onMounted(() => {
               #end
           #end
         <el-form-item>
-          <el-button class="ml-2" @click="resetQuery"> 重置 </el-button>
+          <el-button class="ml-2" @click="resetQuery"> 重置</el-button>
           <el-button class="ml-2" @click="handleQuery" type="primary">
             搜索
           </el-button>
@@ -295,11 +299,11 @@ onMounted(() => {
             ref="tableToolbarRef"
             v-model:hidden-search="hiddenSearchBar"
         >
-        #if (${table.templateType} == 2)
-          <el-button @click="handleExpand" class="mr-2">
-            {{ isExpanded ? '收缩' : '展开' }}
-          </el-button>
-        #end
+            #if (${table.templateType} == 2)
+              <el-button @click="handleExpand" class="mr-2">
+                {{ isExpanded ? '收缩' : '展开' }}
+              </el-button>
+            #end
           <el-button
               class="ml-2"
               :icon="h(Plus)"
@@ -319,50 +323,50 @@ onMounted(() => {
           >
             {{ $t('ui.actionTitle.export') }}
           </el-button>
-        #if ($table.templateType != 2 && $deleteBatchEnable)
-          <el-button
-              :icon="h(Trash2)"
-              type="danger"
-              class="ml-2"
-              :disabled="isEmpty(checkedIds)"
-              @click="handleDeleteBatch"
-              v-access:code="['${table.moduleName}:${simpleClassName_strikeCase}:delete']"
-          >
-            批量删除
-          </el-button>
-        #end
+            #if ($table.templateType != 2 && $deleteBatchEnable)
+              <el-button
+                  :icon="h(Trash2)"
+                  type="danger"
+                  class="ml-2"
+                  :disabled="isEmpty(checkedIds)"
+                  @click="handleDeleteBatch"
+                  v-access:code="['${table.moduleName}:${simpleClassName_strikeCase}:delete']"
+              >
+                批量删除
+              </el-button>
+            #end
         </TableToolbar>
       </template>
       <vxe-table
           ref="tableRef"
           :data="list"
-        #if ( $table.templateType == 2 )
+          #if ( $table.templateType == 2 )
           :tree-config="{
-          parentField: '${treeParentColumn.javaField}',
-          rowField: 'id',
-          transform: true,
-          expandAll: true,
-          reserve: true,
-        }"
-        #end
-#if ($table.templateType == 11) ## erp情况
+              parentField: '${treeParentColumn.javaField}',
+              rowField: 'id',
+              transform: true,
+              expandAll: true,
+              reserve: true,
+              }"
+          #end
+          #if ($table.templateType == 11) ## erp情况
           @cell-click="onCellClick"
           :row-config="{
             keyField: 'id',
             isHover: true,
             isCurrent: true,
           }"
-#end
+          #end
           show-overflow
           :loading="loading"
-#if ($table.templateType != 2 && $deleteBatchEnable)
+          #if ($table.templateType != 2 && $deleteBatchEnable)
           @checkboxAll="handleRowCheckboxChange"
           @checkboxChange="handleRowCheckboxChange"
-#end
+          #end
       >
-#if ($table.templateType != 2 && $deleteBatchEnable)
-        <vxe-column type="checkbox" width="40"></vxe-column>
-#end
+          #if ($table.templateType != 2 && $deleteBatchEnable)
+            <vxe-column type="checkbox" width="40"></vxe-column>
+          #end
           ## 特殊：主子表专属逻辑
           #if ( $table.templateType == 12 && $subTables && $subTables.size() > 0 )
             <!-- 子表的列表 -->
@@ -376,7 +380,7 @@ onMounted(() => {
                         #set ($subSimpleClassName = $subSimpleClassNames.get($index))
                         #set ($subJoinColumn_strikeCase = $subJoinColumn_strikeCases.get($index))
                       <el-tab-pane name="$subClassNameVar" label="${subTable.classComment}">
-                        <${subSimpleClassName}List :${subJoinColumn_strikeCase}="row?.id" />
+                        <${subSimpleClassName}List :${subJoinColumn_strikeCase}="row?.id"/>
                       </el-tab-pane>
                     #end
                 </el-tabs>
@@ -398,29 +402,29 @@ onMounted(() => {
                   #elseif($column.dictType && "" != $column.dictType)## 数据字典
                     <vxe-column field="${javaField}" title="${comment}" align="center">
                       <template #default="{row}">
-                        <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}" />
+                        <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}"/>
                       </template>
                     </vxe-column>
                   #elseif ($table.templateType == 2 && $javaField == $treeNameColumn.javaField)
-                    <vxe-column field="${javaField}" title="${comment}" align="center"  tree-node/>
+                    <vxe-column field="${javaField}" title="${comment}" align="center" tree-node/>
                   #else
-                    <vxe-column field="${javaField}" title="${comment}" align="center" />
+                    <vxe-column field="${javaField}" title="${comment}" align="center"/>
                   #end
               #end
           #end
         <vxe-column field="operation" title="操作" align="center">
           <template #default="{row}">
-#if ( $table.templateType == 2 )
-  <el-button
-      size="small"
-      type="primary"
-      link
-      @click="handleAppend(row as any)"
-      v-access:code="['${permissionPrefix}:create']"
-  >
-    新增下级
-  </el-button>
-#end
+              #if ( $table.templateType == 2 )
+                <el-button
+                    size="small"
+                    type="primary"
+                    link
+                    @click="handleAppend(row as any)"
+                    v-access:code="['${permissionPrefix}:create']"
+                >
+                  新增下级
+                </el-button>
+              #end
             <el-button
                 size="small"
                 type="primary"
@@ -446,36 +450,36 @@ onMounted(() => {
           </template>
         </vxe-column>
       </vxe-table>
-#if ( $table.templateType != 2 )
-      <!-- 分页 -->
-      <div class="mt-2 flex justify-end">
-        <el-pagination
-            :total="total"
-            v-model:current-page="queryParams.pageNo"
-            v-model:page-size="queryParams.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="getList"
-            @current-change="getList"
-        />
-      </div>
-#end
-    </ContentWrap>
-#if ($table.templateType == 11) ## erp情况
-  <ContentWrap>
-    <!-- 子表的表单 -->
-    <el-tabs v-model="subTabsName">
-        #foreach ($subTable in $subTables)
-            #set ($index = $foreach.count - 1)
-            #set ($subClassNameVar = $subClassNameVars.get($index))
-            #set ($subSimpleClassName = $subSimpleClassNames.get($index))
-            #set ($subJoinColumn_strikeCase = $subJoinColumn_strikeCases.get($index))
-          <el-tab-pane name="$subClassNameVar" label="${subTable.classComment}">
-            <${subSimpleClassName}List :${subJoinColumn_strikeCase}="select${simpleClassName}?.id" />
-          </el-tab-pane>
+        #if ( $table.templateType != 2 )
+          <!-- 分页 -->
+          <div class="mt-2 flex justify-end">
+            <el-pagination
+                :total="total"
+                v-model:current-page="queryParams.pageNo"
+                v-model:page-size="queryParams.pageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="getList"
+                @current-change="getList"
+            />
+          </div>
         #end
-    </el-tabs>
-  </ContentWrap>
-#end
+    </ContentWrap>
+      #if ($table.templateType == 11) ## erp情况
+        <ContentWrap>
+          <!-- 子表的表单 -->
+          <el-tabs v-model="subTabsName">
+              #foreach ($subTable in $subTables)
+                  #set ($index = $foreach.count - 1)
+                  #set ($subClassNameVar = $subClassNameVars.get($index))
+                  #set ($subSimpleClassName = $subSimpleClassNames.get($index))
+                  #set ($subJoinColumn_strikeCase = $subJoinColumn_strikeCases.get($index))
+                <el-tab-pane name="$subClassNameVar" label="${subTable.classComment}">
+                  <${subSimpleClassName}List :${subJoinColumn_strikeCase}="select${simpleClassName}?.id"/>
+                </el-tab-pane>
+              #end
+          </el-tabs>
+        </ContentWrap>
+      #end
   </Page>
 </template>

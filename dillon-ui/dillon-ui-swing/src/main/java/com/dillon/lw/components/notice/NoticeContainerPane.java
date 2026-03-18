@@ -114,9 +114,9 @@ public class NoticeContainerPane extends JPanel {
         Insets insets = getInsets();
         Dimension size = getParent().getSize();
         if (size.width <= 0) {
-            size=Toolkit.getDefaultToolkit().getScreenSize();
+            size = Toolkit.getDefaultToolkit().getScreenSize();
         }
-        int width = size.width ;
+        int width = size.width;
         int height = insets.top + offset;
         Point startP = new Point(0, 0);
         Point endP = new Point(0, 0);
@@ -131,7 +131,7 @@ public class NoticeContainerPane extends JPanel {
                     height += m.getSize().height + centerLayout.getGap();
                 }
             }
-            startP = new Point((width - messagePane.getWidth()) / 2, height -  centerLayout.getGap()-messagePane.getHeight());
+            startP = new Point((width - messagePane.getWidth()) / 2, height - centerLayout.getGap() - messagePane.getHeight());
             endP = new Point((width - messagePane.getWidth()) / 2, height);
         }
 

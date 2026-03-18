@@ -19,7 +19,8 @@ public final class SwingExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(SwingExceptionHandler.class);
 
-    private SwingExceptionHandler() {}
+    private SwingExceptionHandler() {
+    }
 
     /**
      * 统一异常入口：

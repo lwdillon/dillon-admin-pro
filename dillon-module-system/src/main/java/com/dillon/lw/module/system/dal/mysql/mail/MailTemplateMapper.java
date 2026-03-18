@@ -10,8 +10,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface MailTemplateMapper extends BaseMapperX<MailTemplateDO> {
 
-    default PageResult<MailTemplateDO> selectPage(MailTemplatePageReqVO pageReqVO){
-        return selectPage(pageReqVO , new LambdaQueryWrapperX<MailTemplateDO>()
+    default PageResult<MailTemplateDO> selectPage(MailTemplatePageReqVO pageReqVO) {
+        return selectPage(pageReqVO, new LambdaQueryWrapperX<MailTemplateDO>()
                 .eqIfPresent(MailTemplateDO::getStatus, pageReqVO.getStatus())
                 .likeIfPresent(MailTemplateDO::getCode, pageReqVO.getCode())
                 .likeIfPresent(MailTemplateDO::getName, pageReqVO.getName())

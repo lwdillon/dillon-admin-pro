@@ -20,62 +20,61 @@ import java.util.function.Supplier;
  * method for the field.
  *
  * @param <T>
- * @param <E>
- *            the type of the list elements.
+ * @param <E> the type of the list elements.
  */
 class BeanListPropertyField<M, E, T extends ObservableList<E>, R extends Property<T>>
-		implements PropertyField<T, M, R> {
+        implements PropertyField<T, M, R> {
 
-	private final ListGetter<M, E> getter;
-	private final ListSetter<M, E> setter;
+    private final ListGetter<M, E> getter;
+    private final ListSetter<M, E> setter;
 
-	private List<E> defaultValue;
-	private final ListProperty<E> targetProperty;
+    private List<E> defaultValue;
+    private final ListProperty<E> targetProperty;
 
-	public BeanListPropertyField(SideEffect updateFunction, ListGetter<M, E> getter, ListSetter<M, E> setter, Supplier<ListProperty<E>> propertySupplier) {
-		this(updateFunction, getter, setter, propertySupplier, Collections.emptyList());
-	}
+    public BeanListPropertyField(SideEffect updateFunction, ListGetter<M, E> getter, ListSetter<M, E> setter, Supplier<ListProperty<E>> propertySupplier) {
+        this(updateFunction, getter, setter, propertySupplier, Collections.emptyList());
+    }
 
-	public BeanListPropertyField(SideEffect updateFunction, ListGetter<M, E> getter, ListSetter<M, E> setter, Supplier<ListProperty<E>> propertySupplier, List<E> defaultValue) {
-		this.defaultValue = defaultValue;
-		this.getter = getter;
-		this.setter = setter;
-		this.targetProperty = propertySupplier.get();
-		this.targetProperty.setValue(FXCollections.observableArrayList());
+    public BeanListPropertyField(SideEffect updateFunction, ListGetter<M, E> getter, ListSetter<M, E> setter, Supplier<ListProperty<E>> propertySupplier, List<E> defaultValue) {
+        this.defaultValue = defaultValue;
+        this.getter = getter;
+        this.setter = setter;
+        this.targetProperty = propertySupplier.get();
+        this.targetProperty.setValue(FXCollections.observableArrayList());
 
-		this.targetProperty.addListener((ListChangeListener<E>) change -> updateFunction.call());
-	}
+        this.targetProperty.addListener((ListChangeListener<E>) change -> updateFunction.call());
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		setter.accept(wrappedObject, targetProperty.getValue());
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        setter.accept(wrappedObject, targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		targetProperty.setAll(getter.apply(wrappedObject));
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        targetProperty.setAll(getter.apply(wrappedObject));
+    }
 
-	@Override
-	public void resetToDefault() {
-		targetProperty.setAll(defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        targetProperty.setAll(defaultValue);
+    }
 
-	@Override
-	public void updateDefault(final M wrappedObject) {
-		defaultValue = new ArrayList<>(getter.apply(wrappedObject));
-	}
+    @Override
+    public void updateDefault(final M wrappedObject) {
+        defaultValue = new ArrayList<>(getter.apply(wrappedObject));
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final List<E> modelValue = getter.apply(wrappedObject);
-		final List<E> wrapperValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final List<E> modelValue = getter.apply(wrappedObject);
+        final List<E> wrapperValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrapperValue);
-	}
+        return !Objects.equals(modelValue, wrapperValue);
+    }
 }

@@ -23,7 +23,7 @@ public interface CodegenColumnMapper extends BaseMapperX<CodegenColumnDO> {
 
     default void deleteListByTableId(Collection<Long> tableIds) {
         delete(new LambdaQueryWrapperX<CodegenColumnDO>()
-               .in(CodegenColumnDO::getTableId, tableIds));
+                .in(CodegenColumnDO::getTableId, tableIds));
     }
 
 }

@@ -25,9 +25,9 @@ public interface SmsClient {
     /**
      * 发送消息
      *
-     * @param logId 日志编号
-     * @param mobile 手机号
-     * @param apiTemplateId 短信 API 的模板编号
+     * @param logId          日志编号
+     * @param mobile         手机号
+     * @param apiTemplateId  短信 API 的模板编号
      * @param templateParams 短信模板参数。通过 List 数组，保证参数的顺序
      * @return 短信发送结果
      */
@@ -45,7 +45,7 @@ public interface SmsClient {
 
     /**
      * 查询指定的短信模板
-     *
+     * <p>
      * 如果查询失败，则返回 null 空
      *
      * @param apiTemplateId 短信 API 的模板编号

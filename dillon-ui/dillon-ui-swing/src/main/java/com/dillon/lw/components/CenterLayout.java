@@ -24,7 +24,7 @@ public class CenterLayout extends VerticalLayout {
     public void layoutContainer(Container parent) {
         Insets insets = parent.getInsets();
         Dimension size = parent.getSize();
-        int width = size.width ;
+        int width = size.width;
         int height = insets.top + offset;
 
         for (int i = 0, c = parent.getComponentCount(); i < c; i++) {

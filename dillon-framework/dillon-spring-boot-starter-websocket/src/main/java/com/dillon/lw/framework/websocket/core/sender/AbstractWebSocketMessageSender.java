@@ -44,10 +44,10 @@ public abstract class AbstractWebSocketMessageSender implements WebSocketMessage
     /**
      * 发送消息
      *
-     * @param sessionId Session 编号
-     * @param userType 用户类型
-     * @param userId 用户编号
-     * @param messageType 消息类型
+     * @param sessionId      Session 编号
+     * @param userType       用户类型
+     * @param userId         用户编号
+     * @param messageType    消息类型
      * @param messageContent 消息内容
      */
     public void send(String sessionId, Integer userType, Long userId, String messageType, String messageContent) {
@@ -76,8 +76,8 @@ public abstract class AbstractWebSocketMessageSender implements WebSocketMessage
     /**
      * 发送消息的具体实现
      *
-     * @param sessions Session 列表
-     * @param messageType 消息类型
+     * @param sessions       Session 列表
+     * @param messageType    消息类型
      * @param messageContent 消息内容
      */
     public void doSend(Collection<WebSocketSession> sessions, String messageType, String messageContent) {

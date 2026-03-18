@@ -12,16 +12,19 @@ import com.dillon.lw.config.UserHistory;
 import com.dillon.lw.config.UserHistoryService;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.LoginEvent;
+import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginReqVO;
-import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.store.AppStore;
-import com.dillon.lw.utils.ExecuteUtils;
 import com.dillon.lw.view.frame.MainFrame;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatButton;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -32,6 +35,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 登录页面板（Swing 版本）。
@@ -55,6 +59,15 @@ public class LoginPane extends JPanel {
      * 左侧功能卡片轮播定时器。
      */
     private Timer timer;
+    /**
+     * 当前登录请求的订阅句柄。
+     * <p>
+     * 登录页只允许同时存在一个有效登录请求：
+     * 1. 防止用户连续点击造成重复登录；
+     * 2. 在页面被移除时可以主动 dispose，避免旧页面收到回调。
+     * </p>
+     */
+    private final AtomicReference<Disposable> currentLoginDisposable = new AtomicReference<Disposable>();
 
     public LoginPane() {
         initComponents();
@@ -351,40 +364,77 @@ public class LoginPane extends JPanel {
      * 2. 登录获取 Token
      * 3. 拉取权限菜单
      * 4. 切换主界面并按需记录历史
+     * <p>
+     * 这里使用 RxJava 的原因是把“后台调用”和“回到 EDT 更新界面”拆得很清楚：
+     * 1. `subscribeOn(Schedulers.io())` 负责把网络请求放到 IO 线程；
+     * 2. `observeOn(SwingSchedulers.edt())` 之后的 UI 状态恢复、成功提示都固定运行在 EDT；
+     * 3. `Disposable` 让页面销毁时能安全取消回调链。
+     * </p>
      */
     private void login() {
         if (!validateCredentials()) {
             return;
         }
 
-        AuthLoginReqVO loginRequest = createLoginRequest();
+        if (isLoginRunning()) {
+            return;
+        }
 
-        updateUiBeforeRequest();
-        ExecuteUtils.execute(
-                () -> {
-                    AuthApi authApi = Forest.client(AuthApi.class);
-                    AuthLoginRespVO authLoginRespVO = authApi.login(loginRequest).getCheckedData();
-                    AppStore.setAuthLoginRespVO(authLoginRespVO);
-                    return authApi.getPermissionInfo().getCheckedData();
-                },
-                authPermissionInfo -> {
-                    handleSuccess(authPermissionInfo);
-                    if (rememberCheckBox.isSelected()) {
-                        UserHistoryService.recordLogin(
-                                new UserHistory(
-                                        String.valueOf(authPermissionInfo.getUser().getId()),
-                                        authPermissionInfo.getUser().getUsername(),
-                                        loginRequest.getPassword()
-                                ),
-                                true
-                        );
-                    } else {
-                        UserHistoryService.removeUser(String.valueOf(authPermissionInfo.getUser().getId()));
-                    }
-                },
-                this::resetUiAfterRequest
-        );
+        final AuthLoginReqVO loginRequest = createLoginRequest();
+        final AtomicReference<Disposable> loginDisposableRef = new AtomicReference<Disposable>();
+        Single
+                /*
+                 * 第一步：登录接口本身是同步 HTTP 调用，用 fromCallable 包装后，
+                 * 可以把它交给 RxJava 放到后台线程执行，并自动把异常转换成 onError。
+                 */
+                .fromCallable(() -> Forest.client(AuthApi.class).login(loginRequest).getCheckedData())
+                /*
+                 * 登录成功后先把 token 写入全局状态。
+                 * 这样下面串行请求权限信息时，会天然使用这次最新的登录态。
+                 */
+                .doOnSuccess(AppStore::setAuthLoginRespVO)
+                /*
+                 * 第二步：串行拉取权限信息。
+                 * 这里继续用 fromCallable 包同步调用，保持整条链的写法一致。
+                 */
+                .flatMap(ignored -> Single.fromCallable(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())//后续切到UI线程中运行
+                .doOnSubscribe(disposable -> {
+                    loginDisposableRef.set(disposable);
+                    currentLoginDisposable.set(disposable);
+                    /*
+                     * doOnSubscribe 不保证天然发生在 EDT，所以按钮和进度条状态要显式切回 UI 线程。
+                     */
+                    SwingSchedulers.runOnEdt(this::updateUiBeforeRequest);
+                })
+                .doFinally(() -> {
+                    clearLoginDisposable(loginDisposableRef.get());
+                    /*
+                     * doFinally 也可能出现在 dispose/异常等非 EDT 路径，
+                     * 因此统一用 SwingSchedulers.runOnEdt(...) 恢复界面状态。
+                     */
+                    SwingSchedulers.runOnEdt(this::resetUiAfterRequest);
+                })
+                .subscribe(
+                        permission -> handleLoginSuccess(permission, loginRequest),
+                        SwingExceptionHandler::handle
+                );
+    }
 
+    private boolean isLoginRunning() {
+        Disposable runningDisposable = currentLoginDisposable.get();
+        return runningDisposable != null && !runningDisposable.isDisposed();
+    }
+
+    /**
+     * 清理当前登录句柄。
+     * <p>
+     * 使用 compare-and-set 是为了避免“旧请求完成时把新请求句柄误清空”。
+     * </p>
+     */
+    private void clearLoginDisposable(Disposable disposable) {
+        currentLoginDisposable.compareAndSet(disposable, null);
     }
 
     private AuthLoginReqVO createLoginRequest() {
@@ -416,10 +466,11 @@ public class LoginPane extends JPanel {
         loginButton.setEnabled(false);
         progressBar.setIndeterminate(true);
         progressBar.setVisible(true);
-
     }
 
-
+    /**
+     * 无论成功还是失败，都要把按钮和进度条恢复到初始状态。
+     */
     private void resetUiAfterRequest() {
         loginButton.setEnabled(true);
         loginButton.setText(LOGIN_BUTTON_TEXT);
@@ -427,15 +478,36 @@ public class LoginPane extends JPanel {
         progressBar.setIndeterminate(false);
     }
 
-    private void handleSuccess(AuthPermissionInfoRespVO authPermissionInfo) {
+    /**
+     * 登录成功后的统一处理：
+     * 1. 缓存权限信息
+     * 2. 停止登录页轮播
+     * 3. 异步加载字典
+     * 4. 发布登录成功事件
+     * 5. 根据“记住密码”设置维护历史账号
+     */
+    private void handleLoginSuccess(AuthPermissionInfoRespVO authPermissionInfo, AuthLoginReqVO loginRequest) {
         AppStore.setAuthPermissionInfoRespVO(authPermissionInfo);
         timer.stop();
         AppStore.loadDictData();
-
         EventBusCenter.get().post(new LoginEvent(LoginEvent.LOGIN_SUCCESS));
+
+        if (rememberCheckBox.isSelected()) {
+            UserHistoryService.recordLogin(
+                    new UserHistory(
+                            String.valueOf(authPermissionInfo.getUser().getId()),
+                            authPermissionInfo.getUser().getUsername(),
+                            loginRequest.getPassword()
+                    ),
+                    true
+            );
+            return;
+        }
+
+        UserHistoryService.removeUser(String.valueOf(authPermissionInfo.getUser().getId()));
     }
 
-    public void startLogoInfo(){
+    public void startLogoInfo() {
         if (!timer.isRunning()) {
             timer.start();
         }
@@ -470,6 +542,10 @@ public class LoginPane extends JPanel {
 
     @Override
     public void removeNotify() {
+        Disposable loginDisposable = currentLoginDisposable.getAndSet(null);
+        if (loginDisposable != null && !loginDisposable.isDisposed()) {
+            loginDisposable.dispose();
+        }
         timer.stop();
         super.removeNotify();
     }

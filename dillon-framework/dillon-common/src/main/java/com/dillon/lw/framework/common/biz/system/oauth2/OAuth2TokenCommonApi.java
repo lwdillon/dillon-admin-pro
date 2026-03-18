@@ -41,7 +41,7 @@ public interface OAuth2TokenCommonApi {
      * 刷新访问令牌
      *
      * @param refreshToken 刷新令牌
-     * @param clientId 客户端编号
+     * @param clientId     客户端编号
      * @return 访问令牌的信息
      */
     OAuth2AccessTokenRespDTO refreshAccessToken(String refreshToken, String clientId);

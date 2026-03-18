@@ -21,7 +21,7 @@ public class TranslateUtils {
 
     /**
      * 数据翻译
-     *
+     * <p>
      * 使用场景：无法使用 @TransMethodResult 注解的场景，只能通过手动触发翻译
      *
      * @param data 数据

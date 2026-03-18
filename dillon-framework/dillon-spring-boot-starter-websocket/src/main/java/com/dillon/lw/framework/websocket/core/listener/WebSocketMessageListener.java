@@ -5,7 +5,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 /**
  * WebSocket 消息监听器接口
- *
+ * <p>
  * 目的：前端发送消息给后端后，处理对应 {@link #getType()} 类型的消息
  *
  * @param <T> 泛型，消息类型
@@ -23,8 +23,8 @@ public interface WebSocketMessageListener<T> {
     /**
      * 获得消息类型
      *
-     * @see JsonWebSocketMessage#getType()
      * @return 消息类型
+     * @see JsonWebSocketMessage#getType()
      */
     String getType();
 

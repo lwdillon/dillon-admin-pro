@@ -184,11 +184,11 @@ public class FileListView extends BaseView<FileListViewModel> implements Initial
                                     modalImage.requestFocus();
                                 });
                                 VBox vBox = new VBox(view);
-                                vBox.setPadding(new Insets(10,10,10,10));
+                                vBox.setPadding(new Insets(10, 10, 10, 10));
                                 vBox.setAlignment(Pos.CENTER);
                                 setGraphic(vBox);
 
-                            }else {
+                            } else {
                                 Hyperlink hyperlink = new Hyperlink("下载");
                                 hyperlink.setOnAction(event -> {
                                     try {

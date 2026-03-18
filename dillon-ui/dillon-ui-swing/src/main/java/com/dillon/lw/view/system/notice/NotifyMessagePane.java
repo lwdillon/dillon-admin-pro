@@ -31,18 +31,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.*;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class NotifyMessagePane extends JPanel {
+public class NotifyMessagePane extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"编号", "用户类型", "用户编号", "模板编码", "发送人名称", "模版内容", "模版类型", "是否已读", "阅读时间", "创建时间", "操作"};
     private static final int COL_MESSAGE_OBJECT = COLUMN_ID.length - 1;
     private static final String WARN_SELECT_MESSAGE_FIRST = "请先选择站内信记录！";
@@ -60,13 +62,13 @@ public class NotifyMessagePane extends JPanel {
     private void initComponents() {
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
             }
         });
-       
+
         toolPane = new WPanel();
         label7 = new JLabel();
         userIdTextField = new JTextField(10);
@@ -340,77 +342,98 @@ public class NotifyMessagePane extends JPanel {
 
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            java.lang.String sd= DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-            java.lang.String ed= DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(NotifyMessageApi.class).getNotifyMessagePage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(NotifyMessageApi.class).getNotifyMessagePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 消息列表查询时先禁用搜索按钮，避免用户连续点击造成多次相同分页请求。
+                     * doOnSubscribe 线程不固定，因此按钮状态修改显式切回 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后恢复按钮，确保异常场景下也能再次发起查询。
+                     * doFinally 同样不保证运行在 EDT，所以恢复动作继续通过 SwingSchedulers 处理。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
 
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getId());
-                rowV.add(roleRespVO.getUserType());
-                rowV.add(roleRespVO.getUserId());
-                rowV.add(roleRespVO.getTemplateCode());
-                rowV.add(roleRespVO.getTemplateNickname());
-                rowV.add(roleRespVO.getTemplateContent());
-                rowV.add(roleRespVO.getTemplateType());
-                rowV.add(roleRespVO.getReadStatus());
-                rowV.add(DateUtil.format(roleRespVO.getReadTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getId());
+                        rowV.add(roleRespVO.getUserType());
+                        rowV.add(roleRespVO.getUserId());
+                        rowV.add(roleRespVO.getTemplateCode());
+                        rowV.add(roleRespVO.getTemplateNickname());
+                        rowV.add(roleRespVO.getTemplateContent());
+                        rowV.add(roleRespVO.getTemplateType());
+                        rowV.add(roleRespVO.getReadStatus());
+                        rowV.add(DateUtil.format(roleRespVO.getReadTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("是否已读").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                    table.getColumn("是否已读").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            table.getColumn("模版类型").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_NOTIFY_TEMPLATE_TYPE, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                    table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    table.getColumn("模版类型").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_NOTIFY_TEMPLATE_TYPE, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            paginationPane.setTotal(result.getTotal());
-        });
-
-
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -424,16 +447,6 @@ public class NotifyMessagePane extends JPanel {
         return (NotifyMessageRespVO) table.getValueAt(selectedRow, COL_MESSAGE_OBJECT);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

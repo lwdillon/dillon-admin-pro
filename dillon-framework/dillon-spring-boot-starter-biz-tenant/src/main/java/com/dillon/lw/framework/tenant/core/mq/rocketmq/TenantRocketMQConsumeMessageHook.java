@@ -14,7 +14,7 @@ import static com.dillon.lw.framework.web.core.util.WebFrameworkUtils.HEADER_TEN
 
 /**
  * RocketMQ 消息队列的多租户 {@link ConsumeMessageHook} 实现类
- *
+ * <p>
  * Consumer 消费消息时，将消息的 Header 的租户编号，添加到 {@link TenantContextHolder} 中，通过 {@link InvocableHandlerMethod} 实现
  *
  * @author liwen

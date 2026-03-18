@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 /**
  * 依赖内存 Redis 的单元测试
- *
+ * <p>
  * 相比 {@link BaseDbUnitTest} 来说，从内存 DB 改成了内存 Redis
  *
  * @author liwen

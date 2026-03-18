@@ -69,8 +69,8 @@ public class MyBatisUtils {
                     orderBy.append(", ");
                 }
                 orderBy.append(StrUtil.toUnderlineCase(sortingField.getField()))
-                       .append(" ")
-                       .append(SortingField.ORDER_ASC.equals(sortingField.getOrder()) ? "ASC" : "DESC");
+                        .append(" ")
+                        .append(SortingField.ORDER_ASC.equals(sortingField.getOrder()) ? "ASC" : "DESC");
             }
             lambdaQuery.last("ORDER BY " + orderBy);
             // 另外个思路：https://blog.csdn.net/m0_59084856/article/details/138450913
@@ -141,7 +141,7 @@ public class MyBatisUtils {
 
     /**
      * 将驼峰命名转换为下划线命名
-     *
+     * <p>
      * 使用场景：
      * 1. <a href="https://gitee.com/zhijiantianya/ruoyi-vue-pro/pulls/1357/files">fix:修复"商品统计聚合函数的别名与排序字段不符"导致的 SQL 异常</a>
      *

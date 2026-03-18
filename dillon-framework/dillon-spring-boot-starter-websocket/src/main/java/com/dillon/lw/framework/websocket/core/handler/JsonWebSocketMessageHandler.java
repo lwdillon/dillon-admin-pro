@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 /**
  * JSON 格式 {@link WebSocketHandler} 实现类
- *
+ * <p>
  * 基于 {@link JsonWebSocketMessage#getType()} 消息类型，调度到对应的 {@link WebSocketMessageListener} 监听器。
  *
  * @author liwen

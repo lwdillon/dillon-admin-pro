@@ -22,6 +22,7 @@ import java.util.List;
 public class WTable extends JTable {
     private static final Type DATA_TYPE = new TypeToken<List<Cell>>() {
     }.getType();
+
     public WTable() {
         this(null);
     }
@@ -110,7 +111,6 @@ public class WTable extends JTable {
     }
 
     protected void fixedValueStuff(Double fv) {
-
 
 
         List<Cell> cellList = getSelectCellIndex();

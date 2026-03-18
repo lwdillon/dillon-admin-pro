@@ -26,13 +26,13 @@ public class UserPostDO extends BaseDO {
     private Long id;
     /**
      * 用户 ID
-     *
+     * <p>
      * 关联 {@link AdminUserDO#getId()}
      */
     private Long userId;
     /**
      * 角色 ID
-     *
+     * <p>
      * 关联 {@link PostDO#getId()}
      */
     private Long postId;

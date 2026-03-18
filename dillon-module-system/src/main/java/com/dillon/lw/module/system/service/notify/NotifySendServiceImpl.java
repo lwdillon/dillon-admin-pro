@@ -72,7 +72,7 @@ public class NotifySendServiceImpl implements NotifySendService {
     /**
      * 校验站内信模版参数是否确实
      *
-     * @param template 邮箱模板
+     * @param template       邮箱模板
      * @param templateParams 参数列表
      */
     @VisibleForTesting

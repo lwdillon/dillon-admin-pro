@@ -36,13 +36,13 @@ public class OAuth2RefreshTokenDO extends TenantBaseDO {
     private Long userId;
     /**
      * 用户类型
-     *
+     * <p>
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;
     /**
      * 客户端编号
-     *
+     * <p>
      * 关联 {@link OAuth2ClientDO#getId()}
      */
     private String clientId;

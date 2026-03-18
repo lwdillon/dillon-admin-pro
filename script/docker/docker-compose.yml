@@ -39,9 +39,9 @@ services:
       SPRING_PROFILES_ACTIVE: local
       JAVA_OPTS:
         ${JAVA_OPTS:-
-          -Xms512m
-          -Xmx512m
-          -Djava.security.egd=file:/dev/./urandom
+        -Xms512m
+        -Xmx512m
+        -Djava.security.egd=file:/dev/./urandom
         }
       ARGS:
         --spring.datasource.dynamic.datasource.master.url=${MASTER_DATASOURCE_URL:-jdbc:mysql://dillon-mysql:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true}

@@ -20,7 +20,8 @@ import static com.dillon.lw.framework.web.config.DillonWebAutoConfiguration.crea
 
 @AutoConfiguration
 @EnableConfigurationProperties(XssProperties.class)
-@ConditionalOnProperty(prefix = "dillon.xss", name = "enable", havingValue = "true", matchIfMissing = true) // 设置为 false 时，禁用
+@ConditionalOnProperty(prefix = "dillon.xss", name = "enable", havingValue = "true", matchIfMissing = true)
+// 设置为 false 时，禁用
 public class DillonXssAutoConfiguration implements WebMvcConfigurer {
 
     /**

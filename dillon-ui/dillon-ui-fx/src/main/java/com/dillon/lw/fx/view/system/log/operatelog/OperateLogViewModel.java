@@ -10,23 +10,25 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.logger.vo.operatelog.OperateLogRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class OperateLogViewModel extends BaseViewModel {
 
@@ -56,14 +58,16 @@ public class OperateLogViewModel extends BaseViewModel {
     public void initData() {
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
-        }).thenAcceptAsync(listCommonResult -> {
-            userSimpleRespVOObservableItems.setAll(listCommonResult);
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 操作日志页面的用户下拉数据先在 IO 线程加载，
+                 * 回到 JavaFX UI 线程后再填充下拉选项。
+                 */
+                .fromCallable(() -> Forest.client(UserApi.class).getSimpleUserList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(listCommonResult -> userSimpleRespVOObservableItems.setAll(listCommonResult), DefaultExceptionHandler::handle);
 
 
     }
@@ -90,34 +94,37 @@ public class OperateLogViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData();
-        }).thenAcceptAsync(listCommonResult -> {
-            ObservableList<OperateLogRespVO> userRespVOS = FXCollections.observableArrayList();
-            userRespVOS.addAll(listCommonResult.getList());
-            tableItems.set(userRespVOS);
-            totalProperty().set(listCommonResult.getTotal().intValue());
-
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 操作日志分页查询改成标准 RxJava 链，
+                 * 后台线程负责请求，JavaFX UI 线程负责回填表格和分页总数。
+                 */
+                .fromCallable(() -> Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(listCommonResult -> {
+                    ObservableList<OperateLogRespVO> userRespVOS = FXCollections.observableArrayList();
+                    userRespVOS.addAll(listCommonResult.getList());
+                    tableItems.set(userRespVOS);
+                    totalProperty().set(listCommonResult.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void deleteOperateLog(Long operateLogId, ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(OperateLogApi.class).deleteOperateLog(operateLogId).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新操作日志列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(OperateLogApi.class).deleteOperateLog(operateLogId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新操作日志列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public ObjectProperty<ObservableList<OperateLogRespVO>> tableItemsProperty() {
@@ -221,12 +228,12 @@ public class OperateLogViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新操作日志列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }

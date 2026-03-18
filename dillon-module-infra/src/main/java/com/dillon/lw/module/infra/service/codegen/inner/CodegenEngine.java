@@ -51,7 +51,7 @@ import static cn.hutool.core.text.CharSequenceUtil.*;
 /**
  * 代码生成的引擎，用于具体生成代码
  * 目前基于 {@link org.apache.velocity.app.Velocity} 模板引擎实现
- *
+ * <p>
  * 考虑到 Java 模板引擎的框架非常多，Freemarker、Velocity、Thymeleaf 等等，所以我们采用 hutool 封装的 {@link cn.hutool.extra.template.Template} 抽象
  *
  * @author liwen
@@ -61,7 +61,7 @@ public class CodegenEngine {
 
     /**
      * 后端的模板配置
-     *
+     * <p>
      * key：模板在 resources 的地址
      * value：生成的路径
      */
@@ -97,7 +97,7 @@ public class CodegenEngine {
 
     /**
      * 后端的配置模版
-     *
+     * <p>
      * key1：UI 模版的类型 {@link CodegenFrontTypeEnum#getType()}
      * key2：模板在 resources 的地址
      * value：生成的路径
@@ -225,7 +225,7 @@ public class CodegenEngine {
 
     /**
      * 是否使用 jakarta 包，用于解决 Spring Boot 2.X 和 3.X 的兼容性问题
-     *
+     * <p>
      * true  - 使用 jakarta.validation.constraints.*
      * false - 使用 javax.validation.constraints.*
      */
@@ -234,7 +234,7 @@ public class CodegenEngine {
 
     /**
      * 是否为 dillon-cloud 项目，用于解决 Boot 和 Cloud 的 api 模块兼容性问题
-     *
+     * <p>
      * true  - 需要有 dillon-module-xxx-api 模块
      * false - 不需要有，使用 api、enum 包即可
      */
@@ -378,12 +378,12 @@ public class CodegenEngine {
 
     /**
      * 格式化生成后的代码
-     *
+     * <p>
      * 因为尽量让 vm 模版简单，所以统一的处理都在这个方法。
      * 如果不处理，Vue 的 Pretty 格式校验可能会报错
      *
      * @param content 格式化前的代码
-     * @param vmPath 模板路径
+     * @param vmPath  模板路径
      * @return 格式化后的代码
      */
     private String prettyCode(String content, String vmPath) {

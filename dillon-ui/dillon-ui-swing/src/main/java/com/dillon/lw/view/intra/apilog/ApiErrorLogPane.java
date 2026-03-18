@@ -31,17 +31,21 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_API_ERROR_LOG_PROCESS_STATUS;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class ApiErrorLogPane extends JPanel {
+public class ApiErrorLogPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private String[] COLUMN_ID = {"日志编号", "用户编号", "用户类型", "应用名", "请求方法", "请求地址", "异常发生时间", "异常名", "处理状态", "操作"};
 
     private DefaultTableModel tableModel;
@@ -59,7 +63,7 @@ public class ApiErrorLogPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -343,17 +347,19 @@ public class ApiErrorLogPane extends JPanel {
 
     private void processErrorLog(Long id, Integer processStatus) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 处理状态更新属于写操作，先放到后台执行，
+                 * 成功提示和刷新列表则统一回到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(ApiErrorLogApi.class).updateApiErrorLogProcess(id, processStatus).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
 
@@ -390,56 +396,72 @@ public class ApiErrorLogPane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            paginationPane.setTotal(result.getTotal());
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(respVO -> {
-                Vector rowV = new Vector();
-                rowV.add(respVO.getId());
-                rowV.add(respVO.getUserId());
-                rowV.add(respVO.getUserType());
-                rowV.add(respVO.getApplicationName());
-                rowV.add(respVO.getRequestMethod());
-                rowV.add(respVO.getRequestUrl());
-                rowV.add(DateUtil.format(respVO.getExceptionTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(respVO.getExceptionName());
-                rowV.add(respVO.getProcessStatus());
-                rowV.add(respVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellEditor(new OptButtonTableCellEditor(creatBar()));
-            table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
-                    panel.add(BadgeLabelUtil.getBadgeLabel(USER_TYPE, value));
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            table.getColumnModel().getColumn(8).setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
-                    panel.add(BadgeLabelUtil.getBadgeLabel(INFRA_API_ERROR_LOG_PROCESS_STATUS, value));
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 错误日志分页查询会重新构建整张表格，因此把网络 IO 和 UI 绘制明确拆开：
+                 * 上游只负责取数据，下游专注于更新分页和渲染器。
+                 */
+                .fromCallable(() -> Forest.client(ApiErrorLogApi.class).getApiErrorLogPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询一旦开始就先禁用搜索按钮，避免用户重复点击造成多次错误日志查询并发。
+                     * doOnSubscribe 不保证在 EDT 执行，因此按钮状态变更显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 无论查询成功还是失败，都要把按钮恢复回来，保持页面可继续操作。
+                     * doFinally 线程不固定，所以恢复动作同样交给 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    paginationPane.setTotal(result.getTotal());
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(respVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(respVO.getId());
+                        rowV.add(respVO.getUserId());
+                        rowV.add(respVO.getUserType());
+                        rowV.add(respVO.getApplicationName());
+                        rowV.add(respVO.getRequestMethod());
+                        rowV.add(respVO.getRequestUrl());
+                        rowV.add(DateUtil.format(respVO.getExceptionTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(respVO.getExceptionName());
+                        rowV.add(respVO.getProcessStatus());
+                        rowV.add(respVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                    table.getColumnModel().getColumn(COLUMN_ID.length - 1).setCellEditor(new OptButtonTableCellEditor(creatBar()));
+                    table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                            panel.add(BadgeLabelUtil.getBadgeLabel(USER_TYPE, value));
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    table.getColumnModel().getColumn(8).setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+                            panel.add(BadgeLabelUtil.getBadgeLabel(INFRA_API_ERROR_LOG_PROCESS_STATUS, value));
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                }, SwingExceptionHandler::handle);
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

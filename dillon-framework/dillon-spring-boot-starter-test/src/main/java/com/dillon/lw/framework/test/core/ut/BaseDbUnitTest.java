@@ -16,7 +16,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 /**
  * 依赖内存 DB 的单元测试
- *
+ * <p>
  * 注意，Service 层同样适用。对于 Service 层的单元测试，我们针对自己模块的 Mapper 走的是 H2 内存数据库，针对别的模块的 Service 走的是 Mock 方法
  *
  * @author liwen

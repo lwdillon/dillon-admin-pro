@@ -20,9 +20,9 @@ public class ArrayUtils {
     /**
      * 将 object 和 newElements 合并成一个数组
      *
-     * @param object 对象
+     * @param object      对象
      * @param newElements 数组
-     * @param <T> 泛型
+     * @param <T>         泛型
      * @return 结果数组
      */
     @SafeVarargs

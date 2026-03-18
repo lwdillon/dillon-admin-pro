@@ -60,7 +60,7 @@ public class JobFormView extends BaseView<JobFormViewModel> implements Initializ
         cronExpressionField.textProperty().bindBidirectional(viewModel.cronExpressionProperty());
         handlerNameField.textProperty().bindBidirectional(viewModel.handlerNameProperty());
         handlerParamField.textProperty().bindBidirectional(viewModel.handlerParamProperty());
-        StringConverter stringConverter=   new StringConverter<Number>() {
+        StringConverter stringConverter = new StringConverter<Number>() {
             @Override
             public String toString(Number object) {
                 return object == null ? "" : object.toString();
@@ -78,13 +78,12 @@ public class JobFormView extends BaseView<JobFormViewModel> implements Initializ
                 }
             }
         };
-        Bindings.bindBidirectional(retryIntervalFiled.textProperty(), viewModel.retryIntervalProperty(),stringConverter );
-        Bindings.bindBidirectional(monitorTimeoutFiled.textProperty(), viewModel.monitorTimeoutProperty(),stringConverter );
-        Bindings.bindBidirectional(retryCountField.textProperty(), viewModel.retryCountProperty(),stringConverter );
+        Bindings.bindBidirectional(retryIntervalFiled.textProperty(), viewModel.retryIntervalProperty(), stringConverter);
+        Bindings.bindBidirectional(monitorTimeoutFiled.textProperty(), viewModel.monitorTimeoutProperty(), stringConverter);
+        Bindings.bindBidirectional(retryCountField.textProperty(), viewModel.retryCountProperty(), stringConverter);
 
 
     }
-
 
 
 }

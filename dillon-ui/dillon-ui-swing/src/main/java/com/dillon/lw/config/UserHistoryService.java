@@ -13,7 +13,8 @@ public final class UserHistoryService {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final int MAX_USERS = 10;
 
-    private UserHistoryService() {}
+    private UserHistoryService() {
+    }
 
     /* ---------- 读取 ---------- */
 
@@ -23,7 +24,8 @@ public final class UserHistoryService {
 
         try {
             return MAPPER.readValue(json,
-                    new TypeReference<List<UserHistory>>() {});
+                    new TypeReference<List<UserHistory>>() {
+                    });
         } catch (Exception e) {
             return new ArrayList<>();
         }

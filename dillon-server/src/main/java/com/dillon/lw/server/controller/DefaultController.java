@@ -33,9 +33,9 @@ public class DefaultController {
                 "[微信公众号 dillon-module-mp - 已禁用][参考 https://doc.iocoder.cn/mp/build/ 开启]");
     }
 
-    @RequestMapping(value = { "/admin-api/product/**", // 商品中心
+    @RequestMapping(value = {"/admin-api/product/**", // 商品中心
             "/admin-api/trade/**", // 交易中心
-            "/admin-api/promotion/**" }) // 营销中心
+            "/admin-api/promotion/**"}) // 营销中心
     public CommonResult<Boolean> mall404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[商城系统 dillon-module-mall - 已禁用][参考 https://doc.iocoder.cn/mall/build/ 开启]");
@@ -53,25 +53,25 @@ public class DefaultController {
                 "[CRM 模块 dillon-module-crm - 已禁用][参考 https://doc.iocoder.cn/crm/build/ 开启]");
     }
 
-    @RequestMapping(value = { "/admin-api/report/**"})
+    @RequestMapping(value = {"/admin-api/report/**"})
     public CommonResult<Boolean> report404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[报表模块 dillon-module-report - 已禁用][参考 https://doc.iocoder.cn/report/ 开启]");
     }
 
-    @RequestMapping(value = { "/admin-api/pay/**"})
+    @RequestMapping(value = {"/admin-api/pay/**"})
     public CommonResult<Boolean> pay404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[支付模块 dillon-module-pay - 已禁用][参考 https://doc.iocoder.cn/pay/build/ 开启]");
     }
 
-    @RequestMapping(value = { "/admin-api/ai/**"})
+    @RequestMapping(value = {"/admin-api/ai/**"})
     public CommonResult<Boolean> ai404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[AI 大模型 dillon-module-ai - 已禁用][参考 https://doc.iocoder.cn/ai/build/ 开启]");
     }
 
-    @RequestMapping(value = { "/admin-api/iot/**"})
+    @RequestMapping(value = {"/admin-api/iot/**"})
     public CommonResult<Boolean> iot404() {
         return CommonResult.error(NOT_IMPLEMENTED.getCode(),
                 "[IoT 物联网 dillon-module-iot - 已禁用][参考 https://doc.iocoder.cn/iot/build/ 开启]");
@@ -80,7 +80,7 @@ public class DefaultController {
     /**
      * 测试接口：打印 query、header、body
      */
-    @RequestMapping(value = { "/test" })
+    @RequestMapping(value = {"/test"})
     @PermitAll
     public CommonResult<Boolean> test(HttpServletRequest request) {
         // 打印查询参数

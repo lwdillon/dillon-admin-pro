@@ -16,12 +16,16 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class RoleEditPane extends JPanel {
+public class RoleEditPane extends com.dillon.lw.components.AbstractDisposablePanel {
 
     private Long id;
 
@@ -129,16 +133,15 @@ public class RoleEditPane extends JPanel {
             return;
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).getRole(id).getCheckedData();
-        }).thenAcceptAsync(roleRespVO -> {
-            setValue(roleRespVO);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 角色详情查询走 IO 线程，返回后再更新表单组件。
+                 */
+                .fromCallable(() -> Forest.client(RoleApi.class).getRole(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::setValue, SwingExceptionHandler::handle);
     }
 
     private void setValue(RoleRespVO roleRespVO) {
@@ -165,6 +168,7 @@ public class RoleEditPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {

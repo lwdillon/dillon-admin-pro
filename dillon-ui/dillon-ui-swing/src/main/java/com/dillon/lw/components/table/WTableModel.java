@@ -17,6 +17,7 @@ public class WTableModel extends DefaultTableModel {
 
     /**
      * 设置可编辑的列索引（通常是最后的操作列）
+     *
      * @param column 列索引，-1表示没有可编辑列
      */
     public void setEditableColumn(int column) {

@@ -14,13 +14,18 @@ import com.dtflys.forest.Forest;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class JobFormPane extends JPanel {
+public class JobFormPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
+
     public JobFormPane() {
         initComponents();
     }
@@ -94,16 +99,17 @@ public class JobFormPane extends JPanel {
         add(monitorTimeoutField, "cell 1 6");
         // JFormDesigner - End of component initialization  //GEN-END:initComponents  @formatter:on
 
-       
+
     }
+
     private void setValue(JobRespVO respVO) {
         nameField.setText(respVO.getName());
         handlerNameField.setText(respVO.getHandlerName());
         handlerParamField.setText(respVO.getHandlerParam());
         cronExpressionField.setText(respVO.getCronExpression());
-        retryCountField.setText(respVO.getRetryCount()+"");
-        retryIntervalFiled.setText(respVO.getRetryInterval()+"");
-        monitorTimeoutField.setText(respVO.getMonitorTimeout()+"");
+        retryCountField.setText(respVO.getRetryCount() + "");
+        retryIntervalFiled.setText(respVO.getRetryInterval() + "");
+        monitorTimeoutField.setText(respVO.getMonitorTimeout() + "");
 
     }
 
@@ -114,14 +120,15 @@ public class JobFormPane extends JPanel {
         reqVO.setHandlerName(handlerNameField.getText());
         reqVO.setHandlerParam(handlerParamField.getText());
         reqVO.setCronExpression(cronExpressionField.getText());
-        reqVO.setRetryCount(Convert.toInt(retryCountField.getText(),0));
-        reqVO.setRetryInterval(Convert.toInt(retryIntervalFiled.getText(),0));
-        reqVO.setMonitorTimeout(Convert.toInt(monitorTimeoutField.getText(),0));
+        reqVO.setRetryCount(Convert.toInt(retryCountField.getText(), 0));
+        reqVO.setRetryInterval(Convert.toInt(retryIntervalFiled.getText(), 0));
+        reqVO.setMonitorTimeout(Convert.toInt(monitorTimeoutField.getText(), 0));
         return reqVO;
     }
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -141,17 +148,17 @@ public class JobFormPane extends JPanel {
     public void updateData(Long id) {
         this.id = id;
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJob(id).getCheckedData();
-        }).thenAcceptAsync(jobRespVO -> {
-            setValue(jobRespVO);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 编辑任务时先异步读取任务详情，避免同步接口阻塞当前 EDT。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).getJob(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::setValue, SwingExceptionHandler::handle);
     }
+
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license
     private JLabel label1;

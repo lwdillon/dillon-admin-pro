@@ -27,17 +27,19 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class ClientPanel extends JPanel {
-    private static final String[] COLUMN_ID = {"客户端编号", "客户端密钥","应用名","应用图标", "状态", "访问令牌的有效期","刷新令牌的有效期","授权类型", "创建时间", "操作"};
+public class ClientPanel extends com.dillon.lw.components.AbstractDisposablePanel {
+    private static final String[] COLUMN_ID = {"客户端编号", "客户端密钥", "应用名", "应用图标", "状态", "访问令牌的有效期", "刷新令牌的有效期", "授权类型", "创建时间", "操作"};
     private static final int COL_CLIENT_OBJECT = COLUMN_ID.length - 1;
     private static final String WARN_SELECT_CLIENT_FIRST = "请先选择客户端！";
 
@@ -56,13 +58,13 @@ public class ClientPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
             }
         });
-       
+
         toolPane = new WPanel();
         label7 = new JLabel();
         nameTextField = new JTextField();
@@ -77,7 +79,6 @@ public class ClientPanel extends JPanel {
         //======== this ========
         setOpaque(false);
         setLayout(new BorderLayout(10, 10));
-
 
 
         //======== centerPane ========
@@ -236,22 +237,39 @@ public class ClientPanel extends JPanel {
     }
 
 
-
     /**
      * 添加
      */
     private void add(OAuth2ClientSaveReqVO saveReqVO) {
-        executeAsync(() -> Forest.client(OAuth2ClientApi.class).createOAuth2Client(saveReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2ClientApi.class).createOAuth2Client(saveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void edit(OAuth2ClientSaveReqVO saveReqVO) {
-        executeAsync(() -> Forest.client(OAuth2ClientApi.class).updateOAuth2Client(saveReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2ClientApi.class).updateOAuth2Client(saveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void del() {
@@ -267,10 +285,19 @@ public class ClientPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(OAuth2ClientApi.class).deleteOAuth2Client(selectedClient.getId()).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2ClientApi.class).deleteOAuth2Client(selectedClient.getId()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     @Override
@@ -298,46 +325,69 @@ public class ClientPanel extends JPanel {
 
 
         queryMap.values().removeIf(Objects::isNull);
-        executeAsync(() -> Forest.client(OAuth2ClientApi.class).getOAuth2ClientPage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getClientId());
-                rowV.add(roleRespVO.getSecret());
-                rowV.add(roleRespVO.getName());
-                rowV.add(roleRespVO.getLogo());
-                rowV.add(roleRespVO.getStatus());
-                rowV.add(roleRespVO.getAccessTokenValiditySeconds());
-                rowV.add(roleRespVO.getRefreshTokenValiditySeconds());
-                rowV.add(roleRespVO.getAuthorizedGrantTypes());
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2ClientApi.class).getOAuth2ClientPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 客户端查询期间先禁用搜索按钮，避免同一条件被连续点击触发重复请求。
+                     * doOnSubscribe 不保证运行在 EDT，因此按钮状态切换显式回到 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询链结束后恢复按钮，让失败或取消场景下页面仍然可继续操作。
+                     * doFinally 线程不固定，所以恢复动作同样交给 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getClientId());
+                        rowV.add(roleRespVO.getSecret());
+                        rowV.add(roleRespVO.getName());
+                        rowV.add(roleRespVO.getLogo());
+                        rowV.add(roleRespVO.getStatus());
+                        rowV.add(roleRespVO.getAccessTokenValiditySeconds());
+                        rowV.add(roleRespVO.getRefreshTokenValiditySeconds());
+                        rowV.add(roleRespVO.getAuthorizedGrantTypes());
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                        return label.getForeground();
-                    }));
-                    label.setIcon(icon);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            paginationPane.setTotal(result.getTotal());
-        });
+                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                                return label.getForeground();
+                            }));
+                            label.setIcon(icon);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -350,16 +400,6 @@ public class ClientPanel extends JPanel {
         return (OAuth2ClientRespVO) table.getValueAt(selectedRow, COL_CLIENT_OBJECT);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

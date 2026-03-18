@@ -52,7 +52,8 @@ import java.util.Set;
 import static com.dillon.lw.framework.common.util.collection.CollectionUtils.convertList;
 
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "dillon.tenant", value = "enable", matchIfMissing = true) // 允许使用 dillon.tenant.enable=false 禁用多租户
+@ConditionalOnProperty(prefix = "dillon.tenant", value = "enable", matchIfMissing = true)
+// 允许使用 dillon.tenant.enable=false 禁用多租户
 @EnableConfigurationProperties(TenantProperties.class)
 public class DillonTenantAutoConfiguration {
 
@@ -141,7 +142,7 @@ public class DillonTenantAutoConfiguration {
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethodMap.entrySet()) {
             HandlerMethod handlerMethod = entry.getValue();
             if (!handlerMethod.hasMethodAnnotation(TenantIgnore.class) // 方法级
-                && !handlerMethod.getBeanType().isAnnotationPresent(TenantIgnore.class)) { // 接口级
+                    && !handlerMethod.getBeanType().isAnnotationPresent(TenantIgnore.class)) { // 接口级
                 continue;
             }
             // 添加到忽略的 URL 中

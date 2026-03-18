@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-public class NotifyMessageVo  {
-    private SimpleBooleanProperty selectd=new SimpleBooleanProperty();
+public class NotifyMessageVo {
+    private SimpleBooleanProperty selectd = new SimpleBooleanProperty();
 
     private Long id;
 

@@ -41,7 +41,7 @@ public class DictTypeDO extends BaseDO {
     private String type;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

@@ -8,16 +8,17 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.StringProperty;
-
-import java.util.concurrent.CompletableFuture;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PostFormViewModel extends BaseViewModel {
 
@@ -45,16 +46,16 @@ public class PostFormViewModel extends BaseViewModel {
         if (id == null) {
             return;
         }
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).getPost(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            PostSaveReqVO reqVO = new PostSaveReqVO();
-            BeanUtil.copyProperties(result, reqVO);
-            setPost(reqVO);
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PostApi.class).getPost(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    PostSaveReqVO reqVO = new PostSaveReqVO();
+                    BeanUtil.copyProperties(result, reqVO);
+                    setPost(reqVO);
+                }, DefaultExceptionHandler::handle);
     }
 
     /**
@@ -69,30 +70,30 @@ public class PostFormViewModel extends BaseViewModel {
 
     public void updatePost(ConfirmDialog dialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).updatePost(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            EventBusCenter.get().post(new MessageEvent("更新岗位成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-            dialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PostApi.class).updatePost(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    EventBusCenter.get().post(new MessageEvent("更新岗位成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+                    dialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void createPost(ConfirmDialog dialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).createPost(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            EventBusCenter.get().post(new MessageEvent("创建岗位成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-            dialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PostApi.class).createPost(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    EventBusCenter.get().post(new MessageEvent("创建岗位成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+                    dialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public String getName() {
@@ -143,4 +144,3 @@ public class PostFormViewModel extends BaseViewModel {
         return id;
     }
 }
-

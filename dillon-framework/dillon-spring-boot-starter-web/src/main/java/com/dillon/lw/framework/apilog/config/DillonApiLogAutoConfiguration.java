@@ -23,7 +23,8 @@ public class DillonApiLogAutoConfiguration implements WebMvcConfigurer {
      * 创建 ApiAccessLogFilter Bean，记录 API 请求日志
      */
     @Bean
-    @ConditionalOnProperty(prefix = "dillon.access-log", value = "enable", matchIfMissing = true) // 允许使用 dillon.access-log.enable=false 禁用访问日志
+    @ConditionalOnProperty(prefix = "dillon.access-log", value = "enable", matchIfMissing = true)
+    // 允许使用 dillon.access-log.enable=false 禁用访问日志
     public FilterRegistrationBean<ApiAccessLogFilter> apiAccessLogFilter(WebProperties webProperties,
                                                                          @Value("${spring.application.name}") String applicationName,
                                                                          ApiAccessLogCommonApi apiAccessLogApi) {

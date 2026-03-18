@@ -50,7 +50,7 @@ public class FtpFileClientConfig implements FileClientConfig {
     private String password;
     /**
      * 连接模式
-     *
+     * <p>
      * 使用 {@link  cn.hutool.extra.ftp.FtpMode} 对应的字符串
      */
     @NotEmpty(message = "连接模式不能为空")

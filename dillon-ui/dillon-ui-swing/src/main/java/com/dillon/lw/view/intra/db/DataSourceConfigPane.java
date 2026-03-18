@@ -26,13 +26,15 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * 数据库监控 - 数据源配置管理面板。
@@ -44,7 +46,7 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
  * - 删除：/infra/data-source-config/delete
  * </p>
  */
-public class DataSourceConfigPane extends JPanel {
+public class DataSourceConfigPane extends com.dillon.lw.components.AbstractDisposablePanel {
 
     private static final String[] COLUMN_ID = {"主键", "数据源名称", "数据源连接", "用户名", "创建时间", "操作"};
     private static final int COL_OBJECT = 5;
@@ -168,10 +170,19 @@ public class DataSourceConfigPane extends JPanel {
             return;
         }
         DataSourceConfigSaveReqVO saveReqVO = formPane.getValue();
-        executeAsync(() -> Forest.client(DataSourceConfigApi.class).createDataSourceConfig(saveReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "新增成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 新增动作对应一次同步 HTTP 请求，这里显式切到 IO 线程执行，
+                 * 成功后再回到 EDT 弹提示并刷新表格，避免对话框确认时阻塞界面。
+                 */
+                .fromCallable(() -> Forest.client(DataSourceConfigApi.class).createDataSourceConfig(saveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "新增成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void showEditDialog() {
@@ -194,10 +205,19 @@ public class DataSourceConfigPane extends JPanel {
             return;
         }
         DataSourceConfigSaveReqVO saveReqVO = formPane.getValue();
-        executeAsync(() -> Forest.client(DataSourceConfigApi.class).updateDataSourceConfig(saveReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 修改数据源仍然是阻塞式接口调用，因此保持同样的线程语义：
+                 * 请求在线程池执行，UI 提示和列表刷新在 EDT 完成。
+                 */
+                .fromCallable(() -> Forest.client(DataSourceConfigApi.class).updateDataSourceConfig(saveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void del() {
@@ -217,10 +237,19 @@ public class DataSourceConfigPane extends JPanel {
         if (opt != 0) {
             return;
         }
-        executeAsync(() -> Forest.client(DataSourceConfigApi.class).deleteDataSourceConfig(selected.getId()).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 删除成功后页面要立即重新查询列表，所以把成功回调切回 EDT，
+                 * 统一处理消息提示和刷新动作。
+                 */
+                .fromCallable(() -> Forest.client(DataSourceConfigApi.class).deleteDataSourceConfig(selected.getId()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     /**
@@ -230,7 +259,30 @@ public class DataSourceConfigPane extends JPanel {
      * </p>
      */
     public void updateData() {
-        executeAsync(() -> Forest.client(DataSourceConfigApi.class).getDataSourceConfigList().getCheckedData(), this::updateTable);
+        Single
+                /*
+                 * 列表查询只负责后台取数；真正的过滤和表格模型更新都在 EDT 中执行，
+                 * 保证下游所有 Swing 组件访问都线程安全。
+                 */
+                .fromCallable(() -> Forest.client(DataSourceConfigApi.class).getDataSourceConfigList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询开始后先禁用搜索按钮，避免同一批筛选条件被连续点击触发多次请求。
+                     * 这里显式回到 EDT，是为了保证 Swing 组件状态修改线程安全。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后统一恢复按钮，不区分成功、失败或取消场景。
+                     * doFinally 可能运行在后台线程，因此恢复动作也交给 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::updateTable, SwingExceptionHandler::handle);
     }
 
     private void updateTable(List<DataSourceConfigRespVO> list) {
@@ -269,14 +321,4 @@ public class DataSourceConfigPane extends JPanel {
         return ObjectUtil.equals(selected.getId(), MASTER_ID);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 全局异常处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 }

@@ -4,6 +4,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.dillon.lw.api.system.AuthApi;
+import com.dillon.lw.components.SwingLifecycleUtils;
 import com.dillon.lw.components.WPanel;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
@@ -37,7 +38,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 
 /**
  * 主应用界面面板 (MainPane)
@@ -290,12 +294,19 @@ public class MainPane extends JPanel {
      * 刷新菜单数据 (异步获取)
      */
     public void updateNavBarData() {
-        CompletableFuture.supplyAsync(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData())
-                .thenAcceptAsync(this::refreshMenuTree, SwingUtilities::invokeLater)
-                .exceptionally(ex -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(ex));
-                    return null;
-                });
+        Single
+                /*
+                 * 权限信息接口仍然是同步调用，这里用 fromCallable 包装成懒执行任务，
+                 * 让真正的网络请求在订阅时才发生，并切到 IO 线程执行。
+                 */
+                .fromCallable(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                /*
+                 * refreshMenuTree 会更新树表和折叠菜单，属于标准 Swing UI 操作，
+                 * 因此在进入消费逻辑前统一切回 EDT，避免后台线程直接碰组件。
+                 */
+                .observeOn(SwingSchedulers.edt())
+                .subscribe(this::refreshMenuTree, SwingExceptionHandler::handle);
     }
 
     private void refreshMenuTree(AuthPermissionInfoRespVO authPermissionInfo) {
@@ -467,7 +478,7 @@ public class MainPane extends JPanel {
         };
         bar.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         bar.setOpaque(false);
-        menuToggleBut = createToolbarButton("icons/bars.svg","折叠/展开菜单栏",e -> toggleNavBarState());
+        menuToggleBut = createToolbarButton("icons/bars.svg", "折叠/展开菜单栏", e -> toggleNavBarState());
 
         JButton refreshBut = createToolbarButton("icons/refresh.svg", "刷新", e -> EventBusCenter.get().post(new RefreshDataEvent()));
 
@@ -495,13 +506,17 @@ public class MainPane extends JPanel {
 
         JPopupMenu menu = new JPopupMenu();
         menu.add(createMenuItem("关闭当前", () -> {
-            if (tabbedPane.isTabClosableAt(index)) tabbedPane.removeTabAt(index);
+            if (tabbedPane.isTabClosableAt(index)) {
+                closeTabAt(index);
+            }
         }));
         menu.addSeparator();
         menu.add(createMenuItem("关闭其它", () -> {
             String title = tabbedPane.getTitleAt(index);
             for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
-                if (tabbedPane.isTabClosableAt(i) && !tabbedPane.getTitleAt(i).equals(title)) tabbedPane.removeTabAt(i);
+                if (tabbedPane.isTabClosableAt(i) && !tabbedPane.getTitleAt(i).equals(title)) {
+                    closeTabAt(i);
+                }
             }
         }));
         menu.add(createMenuItem("关闭所有", () -> {
@@ -512,8 +527,16 @@ public class MainPane extends JPanel {
 
     public void closeAllTab() {
         for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
-            if (tabbedPane.isTabClosableAt(i)) tabbedPane.removeTabAt(i);
+            if (tabbedPane.isTabClosableAt(i)) {
+                closeTabAt(i);
+            }
         }
+    }
+
+    private void closeTabAt(int index) {
+        Component tabComponent = tabbedPane.getComponentAt(index);
+        SwingLifecycleUtils.disposeComponentTree(tabComponent);
+        tabbedPane.removeTabAt(index);
     }
 
     // ===================================================================================

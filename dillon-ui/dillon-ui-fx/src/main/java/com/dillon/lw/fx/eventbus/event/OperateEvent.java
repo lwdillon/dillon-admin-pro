@@ -4,7 +4,7 @@ public class OperateEvent {
     private String data;
     private Integer code;
 
-    public OperateEvent(Integer code,String message) {
+    public OperateEvent(Integer code, String message) {
         this.data = data;
         this.code = code;
     }

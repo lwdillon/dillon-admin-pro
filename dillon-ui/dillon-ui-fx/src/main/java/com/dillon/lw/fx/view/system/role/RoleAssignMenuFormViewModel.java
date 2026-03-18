@@ -7,24 +7,26 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignRoleMenuReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public class RoleAssignMenuFormViewModel extends BaseViewModel {
     private StringProperty name = new SimpleStringProperty();
@@ -39,16 +41,28 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         code.set(roleRespVO.getCode());
         roleId.set(roleRespVO.getId());
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).getRoleMenuList(roleRespVO.getId()).getCheckedData();
-        }).thenAcceptAsync(data -> {
+        Single
+                /*
+                 * 角色已有菜单和完整菜单树互不依赖，直接并行加载，
+                 * 最后统一回到 JavaFX UI 线程构建勾选树。
+                 */
+                .zip(
+                        Single.fromCallable(() -> Forest.client(PermissionApi.class).getRoleMenuList(roleRespVO.getId()).getCheckedData()),
+                        Single.fromCallable(() -> Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData()),
+                        (assignedMenuIds, menuList) -> {
+                            Map<String, Object> result = new HashMap<String, Object>();
+                            result.put("menuIds", assignedMenuIds);
+                            result.put("menuList", menuList);
+                            return result;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
             menuIds.clear();
-            menuIds.addAll(data);
-        }, Platform::runLater).thenComposeAsync(data -> {
-            return CompletableFuture.supplyAsync(() -> {
-                return Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData();
-            });
-        }).thenAcceptAsync(menuList -> {
+            menuIds.addAll((java.util.Set<Long>) result.get("menuIds"));
+            java.util.List<MenuSimpleRespVO> menuList = (java.util.List<MenuSimpleRespVO>) result.get("menuList");
             MenuSimpleRespVO respVO = new MenuSimpleRespVO();
             respVO.setId(0L);
             respVO.setName("主类目");
@@ -79,10 +93,7 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
 
             menuTreeRoot.set(root);
 
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        }, DefaultExceptionHandler::handle);
 
     }
 
@@ -94,16 +105,16 @@ public class RoleAssignMenuFormViewModel extends BaseViewModel {
         findSelectedItems(menuTreeRoot.get(), selMenuIds);
         permissionAssignRoleMenuReqVO.setMenuIds(selMenuIds);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-            EventBusCenter.get().post(new MessageEvent("分配成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+                    EventBusCenter.get().post(new MessageEvent("分配成功", MessageType.SUCCESS));
+                }, DefaultExceptionHandler::handle);
     }
 
     public String getName() {

@@ -37,7 +37,7 @@ public class DateRangePickerDemo extends Application {
         CalendarPicker calendarPicker = new CalendarPicker();
         calendarPicker.setMaxWidth(Double.MAX_VALUE);
 
-        VBox root = new VBox(12, picker,datePicker,calendarPicker );
+        VBox root = new VBox(12, picker, datePicker, calendarPicker);
         root.setPadding(new Insets(20));
 
         Scene scene = new Scene(root, 420, 200);

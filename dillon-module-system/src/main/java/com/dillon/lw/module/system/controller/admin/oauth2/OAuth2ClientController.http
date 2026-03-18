@@ -13,11 +13,21 @@ tenant-id: {{adminTenantId}}
   "status": 0,
   "accessTokenValiditySeconds": 180,
   "refreshTokenValiditySeconds": 8640,
-  "redirectUris": ["https://www.iocoder.cn"],
+  "redirectUris": [
+    "https://www.iocoder.cn"
+  ],
   "autoApprove": true,
-  "authorizedGrantTypes": ["password"],
-  "scopes": ["user_info"],
-  "authorities": ["system:user:query"],
-  "resource_ids": ["1024"],
+  "authorizedGrantTypes": [
+    "password"
+  ],
+  "scopes": [
+    "user_info"
+  ],
+  "authorities": [
+    "system:user:query"
+  ],
+  "resource_ids": [
+    "1024"
+  ],
   "additionalInformation": "{}"
 }

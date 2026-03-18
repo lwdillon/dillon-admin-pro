@@ -292,3 +292,7 @@
 .table-view .column-header .label, .tree-table-view .column-header .label {
     -fx-alignment: center; /* 水平居中 */
 }
+
+.tab-center-pane{
+    -fx-padding: 10px;
+}

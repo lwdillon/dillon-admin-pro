@@ -35,7 +35,7 @@ public class JobDO extends BaseDO {
     private String name;
     /**
      * 任务状态
-     *
+     * <p>
      * 枚举 {@link JobStatusEnum}
      */
     private Integer status;
@@ -68,7 +68,7 @@ public class JobDO extends BaseDO {
     /**
      * 监控超时时间，单位：毫秒
      * 为空时，表示不监控
-     *
+     * <p>
      * 注意，这里的超时的目的，不是进行任务的取消，而是告警任务的执行时间过长
      */
     private Integer monitorTimeout;

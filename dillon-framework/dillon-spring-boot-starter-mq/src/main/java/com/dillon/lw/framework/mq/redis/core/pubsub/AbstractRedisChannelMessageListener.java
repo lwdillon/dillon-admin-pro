@@ -17,7 +17,6 @@ import java.util.List;
  * Redis Pub/Sub 监听器抽象类，用于实现广播消费
  *
  * @param <T> 消息类型。一定要填写噢，不然会报错
- *
  * @author liwen
  */
 public abstract class AbstractRedisChannelMessageListener<T extends AbstractRedisChannelMessage> implements MessageListener {

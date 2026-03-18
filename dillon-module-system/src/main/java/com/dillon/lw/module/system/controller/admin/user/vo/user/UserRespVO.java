@@ -14,7 +14,7 @@ import java.util.Set;
 @Schema(description = "管理后台 - 用户信息 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class UserRespVO{
+public class UserRespVO {
 
     @Schema(description = "用户编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("用户编号")

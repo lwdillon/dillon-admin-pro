@@ -11,7 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 
 /**
- *  Request Body 缓存 Wrapper
+ * Request Body 缓存 Wrapper
  *
  * @author liwen
  */
@@ -64,7 +64,8 @@ public class CacheRequestBodyWrapper extends HttpServletRequestWrapper {
             }
 
             @Override
-            public void setReadListener(ReadListener readListener) {}
+            public void setReadListener(ReadListener readListener) {
+            }
 
             @Override
             public int available() {

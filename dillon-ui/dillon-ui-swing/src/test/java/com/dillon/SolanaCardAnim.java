@@ -43,8 +43,15 @@ public class SolanaCardAnim extends JPanel {
         timer.start();
 
         addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { isMouseInside = true; }
-            @Override public void mouseExited(MouseEvent e) { isMouseInside = false; }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                isMouseInside = true;
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                isMouseInside = false;
+            }
         });
     }
 
@@ -70,12 +77,12 @@ public class SolanaCardAnim extends JPanel {
             float radius = h * 0.8f;
             float[] dist = {0.0f, 1.0f};
             Color[] colors = {
-                new Color(1f, 1f, 1f, 0.15f * glowAlpha), // 中心点颜色 (淡白)
-                new Color(1f, 1f, 1f, 0f)                 // 边缘透明
+                    new Color(1f, 1f, 1f, 0.15f * glowAlpha), // 中心点颜色 (淡白)
+                    new Color(1f, 1f, 1f, 0f)                 // 边缘透明
             };
             RadialGradientPaint rgp = new RadialGradientPaint(
-                new Point2D.Float(w / 2f, 0), radius, dist, colors);
-            
+                    new Point2D.Float(w / 2f, 0), radius, dist, colors);
+
             g2.setPaint(rgp);
             // 剪裁区域限制在圆角矩形内
             g2.setClip(new RoundRectangle2D.Float(0, 0, w, h, 40, 40));
@@ -93,7 +100,7 @@ public class SolanaCardAnim extends JPanel {
         // Logo
         g2.setColor(Color.WHITE);
         g2.fillRoundRect(80, 40, 60, 60, 20, 20);
-        
+
         // 文字
         g2.setColor(TEXT_GRAY);
         g2.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -120,7 +127,7 @@ public class SolanaCardAnim extends JPanel {
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("SansSerif", Font.BOLD, 14));
         g2.drawString(text, x + 25, y + 20);
-        g2.fillPolygon(new int[]{x+8, x+13, x+18}, new int[]{y+12, y+22, y+12}, 3);
+        g2.fillPolygon(new int[]{x + 8, x + 13, x + 18}, new int[]{y + 12, y + 22, y + 12}, 3);
     }
 
     private void drawChart(Graphics2D g2) {
@@ -132,10 +139,10 @@ public class SolanaCardAnim extends JPanel {
         g2.setColor(CHART_RED);
         path.moveTo(0, chartY);
         for (int i = 0; i < points.length - 1; i++) {
-            double x1 = i * (getWidth() / (double)points.length);
+            double x1 = i * (getWidth() / (double) points.length);
             double y1 = chartY + (points[i] * chartHeight);
-            double x2 = (i + 1) * (getWidth() / (double)points.length);
-            double y2 = chartY + (points[i+1] * chartHeight);
+            double x2 = (i + 1) * (getWidth() / (double) points.length);
+            double y2 = chartY + (points[i + 1] * chartHeight);
             path.curveTo(x1 + 10, y1, x2 - 10, y2, x2, y2);
         }
         g2.draw(path);

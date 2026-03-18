@@ -3,13 +3,13 @@ package com.dillon.lw.fx.view.system.notice;
 import atlantafx.base.theme.Styles;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.dillon.lw.api.system.NotifyMessageApi;
+import com.dillon.lw.fx.rx.FxSchedulers;
 import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.notify.vo.message.NotifyMessageRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,10 +21,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 我的消息页面（轻量版）。
@@ -102,19 +103,21 @@ public class MyNotifyMessagePane extends BorderPane {
     }
 
     private void loadMyMessages() {
-        refreshButton.setDisable(true);
         Map<String, Object> pageVO = new HashMap<>();
         pageVO.put("pageNo", DEFAULT_PAGE_NO);
         pageVO.put("pageSize", DEFAULT_PAGE_SIZE);
 
-        CompletableFuture
-                .supplyAsync(() -> Forest.client(NotifyMessageApi.class).getMyMyNotifyMessagePage(pageVO).getCheckedData())
-                .thenAcceptAsync(this::renderPageResult, Platform::runLater)
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> EventBusCenter.get().post(new MessageEvent("加载我的消息失败", MessageType.DANGER)));
-                    return null;
-                })
-                .whenComplete((unused, ex) -> Platform.runLater(() -> refreshButton.setDisable(false)));
+        Single
+                /*
+                 * 我的消息分页查询走固定的 RxJava 模式：
+                 * 后台线程请求分页数据，结果、错误提示和按钮状态统一回到 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(NotifyMessageApi.class).getMyMyNotifyMessagePage(pageVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .doOnSubscribe(disposable -> FxSchedulers.runOnFx(() -> refreshButton.setDisable(true)))
+                .doFinally(() -> FxSchedulers.runOnFx(() -> refreshButton.setDisable(false)))
+                .subscribe(this::renderPageResult, ex -> EventBusCenter.get().post(new MessageEvent("加载我的消息失败", MessageType.DANGER)));
     }
 
     private void renderPageResult(PageResult<NotifyMessageRespVO> pageResult) {
@@ -123,22 +126,20 @@ public class MyNotifyMessagePane extends BorderPane {
     }
 
     private void markAllRead() {
-        markAllReadButton.setDisable(true);
-        CompletableFuture
-                .supplyAsync(() -> Forest.client(NotifyMessageApi.class).updateAllNotifyMessageRead().getCheckedData())
-                .thenAcceptAsync(success -> {
+        Single
+                .fromCallable(() -> Forest.client(NotifyMessageApi.class).updateAllNotifyMessageRead().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .doOnSubscribe(disposable -> FxSchedulers.runOnFx(() -> markAllReadButton.setDisable(true)))
+                .doFinally(() -> FxSchedulers.runOnFx(() -> markAllReadButton.setDisable(false)))
+                .subscribe(success -> {
                     if (Boolean.TRUE.equals(success)) {
                         EventBusCenter.get().post(new MessageEvent("全部标记为已读", MessageType.SUCCESS));
                         loadMyMessages();
                     } else {
                         EventBusCenter.get().post(new MessageEvent("全部已读操作失败", MessageType.WARNING));
                     }
-                }, Platform::runLater)
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> EventBusCenter.get().post(new MessageEvent("全部已读操作失败", MessageType.DANGER)));
-                    return null;
-                })
-                .whenComplete((unused, ex) -> Platform.runLater(() -> markAllReadButton.setDisable(false)));
+                }, ex -> EventBusCenter.get().post(new MessageEvent("全部已读操作失败", MessageType.DANGER)));
     }
 
     private String formatDateTime(java.time.LocalDateTime time) {

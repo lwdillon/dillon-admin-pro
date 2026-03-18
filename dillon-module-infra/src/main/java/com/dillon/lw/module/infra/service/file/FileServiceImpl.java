@@ -36,13 +36,13 @@ public class FileServiceImpl implements FileService {
 
     /**
      * 上传文件的前缀，是否包含日期（yyyyMMdd）
-     *
+     * <p>
      * 目的：按照日期，进行分目录
      */
     static boolean PATH_PREFIX_DATE_ENABLE = true;
     /**
      * 上传文件的后缀，是否包含时间戳
-     *
+     * <p>
      * 目的：保证文件的唯一性，避免覆盖
      * 定制：可按需调整成 UUID、或者其他方式
      */

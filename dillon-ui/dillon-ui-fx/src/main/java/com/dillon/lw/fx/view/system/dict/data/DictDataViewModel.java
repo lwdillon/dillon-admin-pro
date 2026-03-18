@@ -10,23 +10,25 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSimpleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class DictDataViewModel extends BaseViewModel {
 
@@ -50,22 +52,26 @@ public class DictDataViewModel extends BaseViewModel {
     public void loadDictTypeData(String dictType) {
         dictTypeSimpleRespVOItems.clear();
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).getSimpleDictTypeList().getCheckedData();
-        }).thenAcceptAsync(data -> {
-            dictTypeSimpleRespVOItems.setAll(data);
-            if (ObjectUtil.isNotEmpty(dictType)) {
-                for (DictTypeSimpleRespVO item : data) {
-                    if (dictType.equals(item.getType())) {
-                        selDictTypeSimpleRespVOProperty().set(item);
-                        break;
+        Single
+                /*
+                 * 字典类型下拉数据先在 IO 线程加载，
+                 * 回到 JavaFX UI 线程后再填充下拉项并恢复选中值。
+                 */
+                .fromCallable(() -> Forest.client(DictTypeApi.class).getSimpleDictTypeList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    dictTypeSimpleRespVOItems.setAll(data);
+                    if (ObjectUtil.isNotEmpty(dictType)) {
+                        for (DictTypeSimpleRespVO item : data) {
+                            if (dictType.equals(item.getType())) {
+                                selDictTypeSimpleRespVOProperty().set(item);
+                                break;
+                            }
+                        }
                     }
-                }
-            }
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+                }, DefaultExceptionHandler::handle);
 
 
     }
@@ -90,17 +96,21 @@ public class DictDataViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).getDictTypePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            ObservableList<DictDataRespVO> userRespVOS = FXCollections.observableArrayList();
-            userRespVOS.addAll(data.getList());
-            tableItems.set(userRespVOS);
-            totalProperty().set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 字典数据分页查询走统一的 RxJava 线程模型：
+                 * 同步接口在 IO 线程执行，表格和分页更新回到 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getDictTypePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    ObservableList<DictDataRespVO> userRespVOS = FXCollections.observableArrayList();
+                    userRespVOS.addAll(data.getList());
+                    tableItems.set(userRespVOS);
+                    totalProperty().set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
     }
 
@@ -108,21 +118,25 @@ public class DictDataViewModel extends BaseViewModel {
         if (id == null) {
             return;
         }
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).deleteDictData(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 删除字典数据成功后要立刻刷新列表并关闭确认框，
+                 * 所以成功回调统一回到 JavaFX UI 线程执行。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).deleteDictData(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新字典数据列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }
@@ -130,10 +144,9 @@ public class DictDataViewModel extends BaseViewModel {
     }
 
 
-
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
 

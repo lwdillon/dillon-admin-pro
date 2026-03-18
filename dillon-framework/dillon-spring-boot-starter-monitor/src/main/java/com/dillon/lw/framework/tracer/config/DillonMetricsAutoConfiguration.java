@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 @ConditionalOnClass({MeterRegistryCustomizer.class})
-@ConditionalOnProperty(prefix = "dillon.metrics", value = "enable", matchIfMissing = true) // 允许使用 dillon.metrics.enable=false 禁用 Metrics
+@ConditionalOnProperty(prefix = "dillon.metrics", value = "enable", matchIfMissing = true)
+// 允许使用 dillon.metrics.enable=false 禁用 Metrics
 public class DillonMetricsAutoConfiguration {
 
     @Bean

@@ -10,9 +10,10 @@ import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.LoginEvent;
+import com.dillon.lw.exception.SwingExceptionHandler;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.theme.ThemeType;
-import com.dillon.lw.utils.ExecuteUtils;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.system.notice.MyNotifyMessagePane;
 import com.dillon.lw.view.system.user.PersonalCenterPanel;
@@ -23,6 +24,8 @@ import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatButton;
 import com.formdev.flatlaf.util.LoggingFacade;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -243,16 +246,30 @@ public class TitlePanel extends JPanel {
             }
 
             logoutItem.setEnabled(false);
-            ExecuteUtils.execute(
-                    () -> Forest.client(AuthApi.class).logout(),
-                    result -> {
-                        if (result == null || !result.isSuccess()) {
-                            WMessage.showMessageWarning(MainFrame.getInstance(), "服务端退出失败，已本地退出");
-                        }
-                        doLocalLogout();
-                    },
-                    () -> logoutItem.setEnabled(true)
-            );
+            Single
+                    /*
+                     * 退出接口是同步调用，这里直接包成 Single，
+                     * 让 IO 线程去执行网络请求，EDT 只负责菜单项状态和后续 UI 反馈。
+                     */
+                    .fromCallable(() -> Forest.client(AuthApi.class).logout())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(SwingSchedulers.edt())
+                    .doFinally(() ->
+                            /*
+                             * doFinally 可能来自异常、成功或 dispose 路径，
+                             * 因此恢复菜单项状态时显式切回 EDT。
+                             */
+                            SwingSchedulers.runOnEdt(() -> logoutItem.setEnabled(true))
+                    )
+                    .subscribe(
+                            result -> {
+                                if (result == null || !result.isSuccess()) {
+                                    WMessage.showMessageWarning(MainFrame.getInstance(), "服务端退出失败，已本地退出");
+                                }
+                                doLocalLogout();
+                            },
+                            SwingExceptionHandler::handle
+                    );
         });
 //        logoutItem.addActionListener(e -> MainFrame.getInstance().showLogin());
         popupMenu.add(logoutItem);

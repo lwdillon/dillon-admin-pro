@@ -8,15 +8,16 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
-
-import java.util.concurrent.CompletableFuture;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class DictDataFormViewModel extends BaseViewModel {
 
@@ -32,7 +33,9 @@ public class DictDataFormViewModel extends BaseViewModel {
     }
 
     public DictDataSaveReqVO getDictDataSave() {
-        colorTypeProperty().set(selDictDataSimpleRespVO.getValue().getValue());
+        if (selDictDataSimpleRespVO.getValue() != null) {
+            colorTypeProperty().set(selDictDataSimpleRespVO.getValue().getValue());
+        }
         wrapper.commit();
         return wrapper.get();
     }
@@ -49,16 +52,20 @@ public class DictDataFormViewModel extends BaseViewModel {
             }
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).getDictData(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            DictDataSaveReqVO dictDataSaveReqVO = new DictDataSaveReqVO();
-            BeanUtil.copyProperties(data, dictDataSaveReqVO);
-            setDictData(dictDataSaveReqVO);
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                /*
+                 * 字典数据编辑页只需要在后台线程取详情，
+                 * 取回后回到 JavaFX UI 线程回填表单模型。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getDictData(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    DictDataSaveReqVO dictDataSaveReqVO = new DictDataSaveReqVO();
+                    BeanUtil.copyProperties(data, dictDataSaveReqVO);
+                    setDictData(dictDataSaveReqVO);
+                }, DefaultExceptionHandler::handle);
     }
 
     /**
@@ -73,29 +80,29 @@ public class DictDataFormViewModel extends BaseViewModel {
 
     public void addDictData(ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).createDictData(getDictDataSave()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
-            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DictDataApi.class).createDictData(getDictDataSave()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
+                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void updateDictData(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictDataApi.class).updateDictData(getDictDataSave()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DictDataApi.class).updateDictData(getDictDataSave()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新字典数据列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public LongProperty idProperty() {
@@ -160,4 +167,3 @@ public class DictDataFormViewModel extends BaseViewModel {
 
 
 }
-

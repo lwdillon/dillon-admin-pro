@@ -13,7 +13,7 @@ import java.util.Set;
 
 /**
  * 多租户的 {@link RedisCacheManager} 实现类
- *
+ * <p>
  * 操作指定 name 的 {@link Cache} 时，自动拼接租户后缀，格式为 name + ":" + tenantId + 后缀
  *
  * @author airhead
@@ -34,8 +34,8 @@ public class TenantRedisCacheManager extends TimeoutRedisCacheManager {
     public Cache getCache(String name) {
         // 如果开启多租户，则 name 拼接租户后缀
         if (!TenantContextHolder.isIgnore()
-            && TenantContextHolder.getTenantId() != null
-            && !CollUtil.contains(ignoreCaches, name)) {
+                && TenantContextHolder.getTenantId() != null
+                && !CollUtil.contains(ignoreCaches, name)) {
             name = name + ":" + TenantContextHolder.getTenantId();
         }
 

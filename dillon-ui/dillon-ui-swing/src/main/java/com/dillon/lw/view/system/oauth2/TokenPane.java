@@ -28,18 +28,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
 import static javax.swing.JOptionPane.WARNING_MESSAGE;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class TokenPane extends JPanel {
+public class TokenPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"访问令牌", "刷新令牌", "用户编号", "用户类型", "过期时间", "创建时间", "操作"};
     private static final int COL_ACCESS_TOKEN = 0;
     private static final String WARN_SELECT_TOKEN_FIRST = "请先选择访问令牌！";
@@ -59,13 +61,13 @@ public class TokenPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
             }
         });
-       
+
         toolPane = new WPanel();
         label7 = new JLabel();
         userIdField = new JTextField();
@@ -190,7 +192,8 @@ public class TokenPane extends JPanel {
         JButton del = new JButton("强退");
         del.setIcon(new FlatSVGIcon("icons/logout.svg", 15, 15));
         del.addActionListener(e -> del());
-        del.setForeground(UIManager.getColor("App.danger.color"));        optBar.add(Box.createGlue());
+        del.setForeground(UIManager.getColor("App.danger.color"));
+        optBar.add(Box.createGlue());
         optBar.add(del);
         optBar.add(Box.createGlue());
         return optBar;
@@ -225,7 +228,16 @@ public class TokenPane extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(OAuth2TokenApi.class).deleteAccessToken(accessToken).getCheckedData(), result -> updateData());
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2TokenApi.class).deleteAccessToken(accessToken).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> updateData(), SwingExceptionHandler::handle);
     }
 
 
@@ -247,40 +259,63 @@ public class TokenPane extends JPanel {
         }
 
         queryMap.values().removeIf(Objects::isNull);
-        executeAsync(() -> Forest.client(OAuth2TokenApi.class).getAccessTokenPage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getAccessToken());
-                rowV.add(roleRespVO.getRefreshToken());
-                rowV.add(roleRespVO.getUserId());
-                rowV.add(roleRespVO.getUserType());
-                rowV.add(DateUtil.format(roleRespVO.getExpiresTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OAuth2TokenApi.class).getAccessTokenPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * Token 查询期间先禁用搜索按钮，避免连续点击生成多个相同分页请求。
+                     * doOnSubscribe 不保证在 EDT 执行，因此按钮更新显式投递回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后恢复按钮，保证失败和取消场景下也能继续发起筛选。
+                     * doFinally 线程不固定，所以恢复动作同样通过 EDT 执行。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getAccessToken());
+                        rowV.add(roleRespVO.getRefreshToken());
+                        rowV.add(roleRespVO.getUserId());
+                        rowV.add(roleRespVO.getUserType());
+                        rowV.add(DateUtil.format(roleRespVO.getExpiresTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
 
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
+                    table.getColumn("用户类型").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            paginationPane.setTotal(result.getTotal());
-        });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
     }
 
     private String getSelectedAccessToken() {
@@ -291,16 +326,6 @@ public class TokenPane extends JPanel {
         return Convert.toStr(table.getValueAt(selectedRow, COL_ACCESS_TOKEN));
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

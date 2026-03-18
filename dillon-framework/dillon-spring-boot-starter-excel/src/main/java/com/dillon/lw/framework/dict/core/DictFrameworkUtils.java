@@ -60,7 +60,7 @@ public class DictFrameworkUtils {
     public static String parseDictDataLabel(String dictType, String value) {
         List<DictDataRespDTO> dictDatas = GET_DICT_DATA_CACHE.get(dictType);
         DictDataRespDTO dictData = CollUtil.findOne(dictDatas, data -> Objects.equals(data.getValue(), value));
-        return dictData != null ? dictData.getLabel(): null;
+        return dictData != null ? dictData.getLabel() : null;
     }
 
     @SneakyThrows
@@ -73,7 +73,7 @@ public class DictFrameworkUtils {
     public static String parseDictDataValue(String dictType, String label) {
         List<DictDataRespDTO> dictDatas = GET_DICT_DATA_CACHE.get(dictType);
         DictDataRespDTO dictData = CollUtil.findOne(dictDatas, data -> Objects.equals(data.getLabel(), label));
-        return dictData!= null ? dictData.getValue(): null;
+        return dictData != null ? dictData.getValue() : null;
     }
 
     @SneakyThrows

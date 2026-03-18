@@ -23,7 +23,7 @@ public class AdminUserRespDTO {
     private String nickname;
     /**
      * 帐号状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

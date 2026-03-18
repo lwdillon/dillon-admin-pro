@@ -56,7 +56,7 @@ public class FileTypeUtils {
 
     /**
      * 根据 mineType 获得文件后缀
-     *
+     * <p>
      * 注意：如果获取不到，或者发生异常，都返回 null
      *
      * @param mineType 类型

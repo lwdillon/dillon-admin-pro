@@ -41,7 +41,7 @@ import static com.dillon.lw.framework.common.util.json.JsonUtils.toJsonString;
 
 /**
  * API 访问日志 Filter
- *
+ * <p>
  * 目的：记录 API 访问日志到数据库中
  *
  * @author liwen
@@ -242,7 +242,7 @@ public class ApiAccessLogFilter extends ApiRequestFilter {
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
             if (ArrayUtil.contains(sanitizeKeys, entry.getKey())
-                || ArrayUtil.contains(SANITIZE_KEYS, entry.getKey())) {
+                    || ArrayUtil.contains(SANITIZE_KEYS, entry.getKey())) {
                 iterator.remove();
                 continue;
             }

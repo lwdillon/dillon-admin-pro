@@ -30,14 +30,14 @@ public @interface PasswordDesensitize {
 
     /**
      * 替换规则，密码;
-     *
+     * <p>
      * 比如：123456 脱敏之后为 ******
      */
     String replacer() default "*";
 
     /**
      * 是否禁用脱敏
-     *
+     * <p>
      * 支持 Spring EL 表达式，如果返回 true 则跳过脱敏
      */
     String disable() default "";

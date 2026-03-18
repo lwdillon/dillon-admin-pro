@@ -27,7 +27,7 @@ public class FlatLafCustomFrame {
             settingsBtn.setToolTipText("打开设置");
             // 消除按钮边框，使其更符合标题栏风格
             settingsBtn.putClientProperty("JButton.buttonType", "toolBarButton");
-            
+
             settingsBtn.addActionListener(e -> {
                 JOptionPane.showMessageDialog(frame, "设置按钮被点击了！");
             });

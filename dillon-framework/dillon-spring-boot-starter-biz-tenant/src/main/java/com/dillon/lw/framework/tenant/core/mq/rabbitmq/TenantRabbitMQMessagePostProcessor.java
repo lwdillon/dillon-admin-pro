@@ -11,7 +11,7 @@ import static com.dillon.lw.framework.web.core.util.WebFrameworkUtils.HEADER_TEN
 
 /**
  * RabbitMQ 消息队列的多租户 {@link ProducerInterceptor} 实现类
- *
+ * <p>
  * 1. Producer 发送消息时，将 {@link TenantContextHolder} 租户编号，添加到消息的 Header 中
  * 2. Consumer 消费消息时，将消息的 Header 的租户编号，添加到 {@link TenantContextHolder} 中，通过 {@link InvocableHandlerMethod} 实现
  *

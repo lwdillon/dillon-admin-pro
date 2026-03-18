@@ -50,19 +50,20 @@ public class TreeUtils {
     /***
      * 展开选中节点的所有子节点
      */
-    public static void expandTreeNode(JTree tree,DefaultMutableTreeNode selectedNode){
-        if(selectedNode.isLeaf()){
+    public static void expandTreeNode(JTree tree, DefaultMutableTreeNode selectedNode) {
+        if (selectedNode.isLeaf()) {
             return;
         }
         tree.expandPath(new TreePath(selectedNode.getPath()));
         for (int i = 0; i < selectedNode.getChildCount(); i++) {
-            expandTreeNode(tree,(DefaultMutableTreeNode)selectedNode.getChildAt(i));
+            expandTreeNode(tree, (DefaultMutableTreeNode) selectedNode.getChildAt(i));
         }
     }
 
 
     /**
      * 设置树的展开状态，使其默认只展开二级节点。该方法会遍历树的节点，展开根节点的子节点，并折叠子节点的子节点，从而实现只展开二级节点的效果。
+     *
      * @param tree
      * @param root
      */

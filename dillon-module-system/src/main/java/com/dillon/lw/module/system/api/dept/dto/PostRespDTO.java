@@ -29,7 +29,7 @@ public class PostRespDTO {
     private Integer sort;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

@@ -56,7 +56,7 @@ public interface PostService {
     /**
      * 获得符合条件的岗位列表
      *
-     * @param ids 岗位编号数组。如果为空，不进行筛选
+     * @param ids      岗位编号数组。如果为空，不进行筛选
      * @param statuses 状态数组。如果为空，不进行筛选
      * @return 部门列表
      */

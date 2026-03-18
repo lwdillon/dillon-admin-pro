@@ -110,7 +110,7 @@ public class WPaginationPane extends JPanel {
         });
         pageButBar = new JToolBar();
         pageButBar.setOpaque(false);
-        pageButBar.setBackground(new Color(0,0,0,0));
+        pageButBar.setBackground(new Color(0, 0, 0, 0));
         pageButBar.setLayout(new HorizontalLayout(5));
         pageButBar.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 

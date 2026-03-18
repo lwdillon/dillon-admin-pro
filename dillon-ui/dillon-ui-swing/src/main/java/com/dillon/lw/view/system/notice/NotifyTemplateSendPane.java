@@ -15,6 +15,7 @@ import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSimpleRespV
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
+import io.reactivex.rxjava3.core.Single;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -22,12 +23,15 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class NotifyTemplateSendPane extends JPanel {
+public class NotifyTemplateSendPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
     private String code;
     private Map<String, JTextField> paramTextFieldMap = new HashMap<>();
@@ -107,7 +111,7 @@ public class NotifyTemplateSendPane extends JPanel {
         for (DictDataSimpleRespVO dictDataSimpleRespVO : dictDataSimpleRespVOList) {
             userTypeComboBox.addItem(dictDataSimpleRespVO);
         }
-        userComboBox.setRenderer(new DefaultListCellRenderer(){
+        userComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 if (value instanceof UserSimpleRespVO) {
@@ -166,29 +170,30 @@ public class NotifyTemplateSendPane extends JPanel {
         this.id = respVO.getId();
         this.code = respVO.getCode();
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            setValue(result);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
-        }).thenAcceptAsync(result -> {
-            for (UserSimpleRespVO userSimpleRespVO : result) {
-                userComboBox.addItem(userSimpleRespVO);
-            }
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 发送面板需要同时准备模板详情和用户候选列表，
+                 * 用 zip 并行发起两个同步请求，减少等待时间。
+                 */
+                .zip(
+                        Single.fromCallable(() -> Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> Forest.client(UserApi.class).getSimpleUserList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        (template, users) -> new Object[]{template, users}
+                )
+                /*
+                 * zip 后会立刻回填模板内容和下拉框选项，必须切回 EDT。
+                 */
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    setValue((NotifyTemplateRespVO) result[0]);
+                    userComboBox.removeAllItems();
+                    for (UserSimpleRespVO userSimpleRespVO : (List<UserSimpleRespVO>) result[1]) {
+                        userComboBox.addItem(userSimpleRespVO);
+                    }
+                }, SwingExceptionHandler::handle);
 
 
     }

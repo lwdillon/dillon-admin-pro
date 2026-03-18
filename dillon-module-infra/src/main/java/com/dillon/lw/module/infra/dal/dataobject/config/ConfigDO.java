@@ -38,7 +38,7 @@ public class ConfigDO extends BaseDO {
     private String name;
     /**
      * 参数键名
-     *
+     * <p>
      * 支持多 DB 类型时，无法直接使用 key + @TableField("config_key") 来实现转换，原因是 "config_key" AS key 而存在报错
      */
     private String configKey;
@@ -48,13 +48,13 @@ public class ConfigDO extends BaseDO {
     private String value;
     /**
      * 参数类型
-     *
+     * <p>
      * 枚举 {@link ConfigTypeEnum}
      */
     private Integer type;
     /**
      * 是否可见
-     *
+     * <p>
      * 不可见的参数，一般是敏感参数，前端不可获取
      */
     private Boolean visible;

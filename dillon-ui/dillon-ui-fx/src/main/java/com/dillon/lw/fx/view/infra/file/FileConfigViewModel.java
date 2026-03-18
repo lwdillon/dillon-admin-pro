@@ -10,16 +10,19 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class FileConfigViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -67,60 +69,66 @@ public class FileConfigViewModel extends BaseViewModel {
         tableItems.clear();
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).getFileConfigPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            List<Map<String, Object>> list = data.getList();
-            for (Map<String, Object> map : list) {
-                FileConfigRespVO fileConfigRespVO = new FileConfigRespVO();
-                fileConfigRespVO.setId(Convert.toLong(map.get("id")));
-                fileConfigRespVO.setName(Convert.toStr(map.get("name")));
-                fileConfigRespVO.setStorage(Convert.toInt(map.get("storage")));
-                fileConfigRespVO.setRemark(Convert.toStr(map.get("remark")));
-                fileConfigRespVO.setMaster(Convert.toBool(map.get("master")));
-                fileConfigRespVO.setCreateTime(Convert.toLocalDateTime(map.get("createTime")));
-                tableItems.add(fileConfigRespVO);
-            }
-            totalProperty().set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            total.set(0);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).getFileConfigPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    List<Map<String, Object>> list = data.getList();
+                    for (Map<String, Object> map : list) {
+                        FileConfigRespVO fileConfigRespVO = new FileConfigRespVO();
+                        fileConfigRespVO.setId(Convert.toLong(map.get("id")));
+                        fileConfigRespVO.setName(Convert.toStr(map.get("name")));
+                        fileConfigRespVO.setStorage(Convert.toInt(map.get("storage")));
+                        fileConfigRespVO.setRemark(Convert.toStr(map.get("remark")));
+                        fileConfigRespVO.setMaster(Convert.toBool(map.get("master")));
+                        fileConfigRespVO.setCreateTime(Convert.toLocalDateTime(map.get("createTime")));
+                        tableItems.add(fileConfigRespVO);
+                    }
+                    totalProperty().set(data.getTotal().intValue());
+                }, e -> {
+                    DefaultExceptionHandler.handle(e);
+                    total.set(0);
+                });
 
     }
 
     public void updateFileConfigMaster(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).updateFileConfigMaster(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            EventBusCenter.get().post(new MessageEvent("更新失败", MessageType.DANGER));
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).updateFileConfigMaster(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                }, e -> {
+                    DefaultExceptionHandler.handle(e);
+                    EventBusCenter.get().post(new MessageEvent("更新失败", MessageType.DANGER));
+                });
     }
 
     public void deleteFileConfig(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).deleteFileConfig(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            EventBusCenter.get().post(new MessageEvent("删除失败", MessageType.DANGER));
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).deleteFileConfig(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                }, e -> {
+                    DefaultExceptionHandler.handle(e);
+                    EventBusCenter.get().post(new MessageEvent("删除失败", MessageType.DANGER));
+                });
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新文件配置列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }
@@ -130,7 +138,7 @@ public class FileConfigViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
     public int getTotal() {

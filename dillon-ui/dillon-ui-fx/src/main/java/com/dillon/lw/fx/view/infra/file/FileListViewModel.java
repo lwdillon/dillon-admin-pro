@@ -8,14 +8,17 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -23,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class FileListViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -58,45 +60,49 @@ public class FileListViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileApi.class).getFilePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            tableItems.setAll(data.getList());
-            total.set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                /*
+                 * 文件分页查询统一走 RxJava：
+                 * 同步接口在 IO 线程执行，文件列表和分页信息回到 JavaFX UI 线程更新。
+                 */
+                .fromCallable(() -> Forest.client(FileApi.class).getFilePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    tableItems.setAll(data.getList());
+                    total.set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void uploadFile(String path, File file) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileApi.class).uploadFile(path, file).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
-            EventBusCenter.get().post(new MessageEvent("上传成功", MessageType.SUCCESS));
-            loadTableData();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileApi.class).uploadFile(path, file).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
+                    EventBusCenter.get().post(new MessageEvent("上传成功", MessageType.SUCCESS));
+                    loadTableData();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void deleteFile(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileApi.class).deleteFile(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-            confirmDialog.close();
-            loadTableData();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileApi.class).deleteFile(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件列表"));
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                    loadTableData();
+                }, DefaultExceptionHandler::handle);
     }
 
     public int getTotal() {

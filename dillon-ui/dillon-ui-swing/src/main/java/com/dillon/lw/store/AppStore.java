@@ -5,18 +5,20 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 @Slf4j
 public class AppStore {
@@ -173,16 +175,18 @@ public class AppStore {
 
 
     public static void loadDictData() {
-        CompletableFuture
-                .supplyAsync(() -> Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData())
-                .thenAcceptAsync(result -> {
+        Single
+                /*
+                 * 字典数据是全局缓存，但接口调用本身仍是同步请求，
+                 * 因此这里用 RxJava 把它切到 IO 线程，再回到 EDT 写入全局状态。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getSimpleDictDataList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .subscribe(result -> {
                     Map<String, List<DictDataSimpleRespVO>> groupedByType = result.stream()
                             .collect(Collectors.groupingBy(DictDataSimpleRespVO::getDictType));
                     setDictDataListMap(groupedByType);
-                }, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
+                }, SwingExceptionHandler::handle);
     }
 }

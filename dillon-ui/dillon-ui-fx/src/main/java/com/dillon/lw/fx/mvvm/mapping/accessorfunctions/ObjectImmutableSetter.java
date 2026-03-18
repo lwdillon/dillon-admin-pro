@@ -14,12 +14,10 @@ import java.util.function.BiFunction;
 @FunctionalInterface
 public interface ObjectImmutableSetter<M, T> extends BiFunction<M, T, M> {
 
-	/**
-	 * @param model
-	 *            the model instance.
-	 * @param newValue
-	 *            the new value to be set.
-	 */
-	@Override
-	M apply(M model, T newValue);
+    /**
+     * @param model    the model instance.
+     * @param newValue the new value to be set.
+     */
+    @Override
+    M apply(M model, T newValue);
 }

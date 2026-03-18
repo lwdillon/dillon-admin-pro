@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * 在 MyBatis Plus 的 BaseMapper 的基础上拓展，提供更多的能力
- *
+ * <p>
  * 1. {@link BaseMapper} 为 MyBatis Plus 的基础接口，提供基础的 CRUD 能力
  * 2. {@link MPJBaseMapper} 为 MyBatis Plus Join 的基础接口，提供连表 Join 能力
  */
@@ -98,7 +98,7 @@ public interface BaseMapperX<T> extends MPJBaseMapper<T> {
 
     /**
      * 获取满足条件的第 1 条记录
-     *
+     * <p>
      * 目的：解决并发场景下，插入多条记录后，使用 selectOne 会报错的问题
      *
      * @param field 字段名
@@ -116,8 +116,8 @@ public interface BaseMapperX<T> extends MPJBaseMapper<T> {
         return CollUtil.getFirst(list);
     }
 
-    default T selectFirstOne(SFunction<T,?> field1, Object value1, SFunction<T,?> field2, Object value2,
-                             SFunction<T,?> field3, Object value3) {
+    default T selectFirstOne(SFunction<T, ?> field1, Object value1, SFunction<T, ?> field2, Object value2,
+                             SFunction<T, ?> field3, Object value3) {
         List<T> list = selectList(new LambdaQueryWrapper<T>().eq(field1, value1).eq(field2, value2).eq(field3, value3));
         return CollUtil.getFirst(list);
     }

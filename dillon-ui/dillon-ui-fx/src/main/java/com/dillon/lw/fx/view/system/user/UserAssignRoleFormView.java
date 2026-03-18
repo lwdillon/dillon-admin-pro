@@ -45,7 +45,7 @@ public class UserAssignRoleFormView extends BaseView<UserAssignRoleFormViewModel
 
         viewModel.getSelRoleItems().addListener((ListChangeListener<RoleRespVO>) change -> {
             while (change.next()) {
-                if (change.wasAdded()||change.wasRemoved()) {
+                if (change.wasAdded() || change.wasRemoved()) {
                     List<RoleRespVO> selectedPosts = viewModel.getSelRoleItems();
                     String names = selectedPosts.stream()
                             .map(RoleRespVO::getName)

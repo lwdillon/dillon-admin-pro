@@ -33,67 +33,67 @@ import static com.dillon.lw.fx.mvvm.mapping.BeanSetPropertyField.setAll;
 
 class ImmutableSetPropertyField<M, E, T extends ObservableSet<E>, R extends Property<T>> implements ImmutablePropertyField<T, M, R> {
 
-	private final SetGetter<M, E> getter;
+    private final SetGetter<M, E> getter;
 
-	private final SetImmutableSetter<M, E> immutableSetter;
+    private final SetImmutableSetter<M, E> immutableSetter;
 
-	private Set<E> defaultValue;
+    private Set<E> defaultValue;
 
-	private final SetProperty<E> targetProperty;
+    private final SetProperty<E> targetProperty;
 
-	public ImmutableSetPropertyField(
-			SideEffect updateFunction,
-			SetGetter<M, E> getter, SetImmutableSetter<M, E> immutableSetter,
-			Supplier<SetProperty<E>> propertySupplier) {
-		this(updateFunction, getter, immutableSetter, propertySupplier, Collections.emptySet());
-	}
+    public ImmutableSetPropertyField(
+            SideEffect updateFunction,
+            SetGetter<M, E> getter, SetImmutableSetter<M, E> immutableSetter,
+            Supplier<SetProperty<E>> propertySupplier) {
+        this(updateFunction, getter, immutableSetter, propertySupplier, Collections.emptySet());
+    }
 
-	public ImmutableSetPropertyField(SideEffect updateFunction,
-			SetGetter<M, E> getter, SetImmutableSetter<M, E> immutableSetter,
-			Supplier<SetProperty<E>> propertySupplier, Set<E> defaultValue) {
-		this.defaultValue = defaultValue;
-		this.getter = getter;
-		this.immutableSetter = immutableSetter;
-		this.targetProperty = propertySupplier.get();
-		this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
-		this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
-	}
+    public ImmutableSetPropertyField(SideEffect updateFunction,
+                                     SetGetter<M, E> getter, SetImmutableSetter<M, E> immutableSetter,
+                                     Supplier<SetProperty<E>> propertySupplier, Set<E> defaultValue) {
+        this.defaultValue = defaultValue;
+        this.getter = getter;
+        this.immutableSetter = immutableSetter;
+        this.targetProperty = propertySupplier.get();
+        this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
+        this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		// commit is not supported because the model instance is immutable.
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        // commit is not supported because the model instance is immutable.
+    }
 
-	@Override
-	public M commitImmutable(M wrappedObject) {
-		return immutableSetter.apply(wrappedObject, targetProperty.getValue());
-	}
+    @Override
+    public M commitImmutable(M wrappedObject) {
+        return immutableSetter.apply(wrappedObject, targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		setAll(targetProperty, getter.apply(wrappedObject));
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        setAll(targetProperty, getter.apply(wrappedObject));
+    }
 
-	@Override
-	public void resetToDefault() {
-		setAll(targetProperty, defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        setAll(targetProperty, defaultValue);
+    }
 
-	@Override
-	public void updateDefault(M wrappedObject) {
-		defaultValue = new HashSet<>(getter.apply(wrappedObject));
-	}
+    @Override
+    public void updateDefault(M wrappedObject) {
+        defaultValue = new HashSet<>(getter.apply(wrappedObject));
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final Set<E> modelValue = getter.apply(wrappedObject);
-		final Set<E> wrappedValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final Set<E> modelValue = getter.apply(wrappedObject);
+        final Set<E> wrappedValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrappedValue);
-	}
+        return !Objects.equals(modelValue, wrappedValue);
+    }
 }

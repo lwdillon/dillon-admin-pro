@@ -21,13 +21,13 @@ jobs:
 
     strategy:
       matrix:
-        node_version: [14.x, 16.x]
+        node_version: [ 14.x, 16.x ]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
       - name: Checkout # 步骤1
         uses: actions/checkout@v2 # 使用的动作。格式：userName/repoName。作用：检出仓库，获取源码。 官方actions库：https://github.com/actions
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2.0.1
         with:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Build
         run: yarn build:prod
-  
+
       # 查看 workflow 的文档来获取更多信息
       # @see https://github.com/crazy-max/ghaction-github-pages
 

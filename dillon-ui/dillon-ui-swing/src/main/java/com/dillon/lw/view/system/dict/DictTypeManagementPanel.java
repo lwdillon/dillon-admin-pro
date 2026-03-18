@@ -31,16 +31,18 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DictTypeManagementPanel extends JPanel {
+public class DictTypeManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"字典编号", "字典名称", "字典类型", "状态", "备注", "创建时间", "操作"};
     private static final int COL_DICT_ID = 0;
     private static final int COL_DICT_NAME = 1;
@@ -63,7 +65,7 @@ public class DictTypeManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -323,10 +325,19 @@ public class DictTypeManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        executeAsync(() -> Forest.client(DictTypeApi.class).deleteDictType(id).getCheckedData(), aLong -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
-            updateData();
-        });
+        Single
+                /*
+                 * 删除字典类型是同步接口调用，这里把请求放到 IO 线程，
+                 * 删除完成后再回到 EDT 弹提示并刷新分页表格。
+                 */
+                .fromCallable(() -> Forest.client(DictTypeApi.class).deleteDictType(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(aLong -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
+                    updateData();
+                }, SwingExceptionHandler::handle);
 
     }
 
@@ -346,13 +357,36 @@ public class DictTypeManagementPanel extends JPanel {
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
             java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
-           java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData(), this::updateTableData);
+        Single
+                /*
+                 * 分页查询放到后台线程执行，表格和分页组件的更新统一回到 EDT，
+                 * 这样筛选条件变化时不会阻塞 Swing 主线程。
+                 */
+                .fromCallable(() -> Forest.client(DictTypeApi.class).pageDictTypes(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 用户点击搜索后立即禁用按钮，避免同一批查询条件重复触发分页请求。
+                     * 由于 doOnSubscribe 不一定运行在 EDT，所以按钮状态更新显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询结束时恢复按钮，保证失败或取消时也不会把界面锁死。
+                     * doFinally 同样没有 EDT 保证，因此继续通过 SwingSchedulers 安全更新 UI。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::updateTableData, SwingExceptionHandler::handle);
 
 
     }
@@ -421,17 +455,6 @@ public class DictTypeManagementPanel extends JPanel {
             return null;
         }
         return (DictTypeRespVO) table.getValueAt(selectedRow, COL_DICT_OBJECT);
-    }
-
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
     }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off

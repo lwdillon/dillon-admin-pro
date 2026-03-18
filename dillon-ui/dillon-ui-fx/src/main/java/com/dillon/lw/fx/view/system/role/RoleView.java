@@ -272,7 +272,7 @@ public class RoleView extends BaseView<RoleViewModel> implements Initializable {
                 .width(450)
                 .height(650)
                 .onConfirm(d -> {
-                   view.getViewModel().assignRoleMenu(d);
+                    view.getViewModel().assignRoleMenu(d);
                 })
                 .onCancel(ConfirmDialog::close)
                 .build()

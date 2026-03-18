@@ -17,16 +17,16 @@
         <module>dillon-module-infra</module>
         <module>dillon-ui</module>
         <!--        <module>dillon-module-member</module>-->
-<!--        <module>dillon-module-bpm</module>-->
-<!--        <module>dillon-module-report</module>-->
-<!--        <module>dillon-module-mp</module>-->
-<!--        <module>dillon-module-pay</module>-->
-<!--        <module>dillon-module-mall</module>-->
-<!--        <module>dillon-module-crm</module>-->
-<!--        <module>dillon-module-erp</module>-->
-<!--        <module>dillon-module-iot</module>-->
+        <!--        <module>dillon-module-bpm</module>-->
+        <!--        <module>dillon-module-report</module>-->
+        <!--        <module>dillon-module-mp</module>-->
+        <!--        <module>dillon-module-pay</module>-->
+        <!--        <module>dillon-module-mall</module>-->
+        <!--        <module>dillon-module-crm</module>-->
+        <!--        <module>dillon-module-erp</module>-->
+        <!--        <module>dillon-module-iot</module>-->
         <!-- AI 大模型的开启，请参考 https://doc.iocoder.cn/ai/build/ 文档，对 JDK 版本要要求！ -->
-<!--        <module>dillon-module-ai</module>-->
+        <!--        <module>dillon-module-ai</module>-->
     </modules>
 
     <name>${project.artifactId}</name>

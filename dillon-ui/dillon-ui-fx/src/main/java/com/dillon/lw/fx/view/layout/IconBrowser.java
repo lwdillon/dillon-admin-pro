@@ -46,7 +46,6 @@ public class IconBrowser extends TableView<List<Ikon>> {
         updateData(null);
 
 
-
     }
 
     public SimpleStringProperty filterProperty() {
@@ -102,9 +101,9 @@ public class IconBrowser extends TableView<List<Ikon>> {
         return s1.toLowerCase(Locale.ROOT).contains(s2.toLowerCase(Locale.ROOT));
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////
 
-     class FontIconCell extends TableCell<List<Ikon>, Ikon> {
+    class FontIconCell extends TableCell<List<Ikon>, Ikon> {
 
         private final Label root = new Label();
         private final FontIcon fontIcon = new FontIcon();

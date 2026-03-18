@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 
 /**
  * SQL 初始化的测试 Configuration
- *
+ * <p>
  * 为什么不使用 org.springframework.boot.autoconfigure.sql.init.DataSourceInitializationConfiguration 呢？
  * 因为我们在单元测试会使用 spring.main.lazy-initialization 为 true，开启延迟加载。此时，会导致 DataSourceInitializationConfiguration 初始化
  * 不过呢，当前类的实现代码，基本是复制 DataSourceInitializationConfiguration 的哈！
@@ -31,22 +31,22 @@ import javax.sql.DataSource;
 @EnableConfigurationProperties(SqlInitializationProperties.class)
 public class SqlInitializationTestConfiguration {
 
-	@Bean
-	public DataSourceScriptDatabaseInitializer dataSourceScriptDatabaseInitializer(DataSource dataSource,
-																				   SqlInitializationProperties initializationProperties) {
-		DatabaseInitializationSettings settings = createFrom(initializationProperties);
-		return new DataSourceScriptDatabaseInitializer(dataSource, settings);
-	}
+    @Bean
+    public DataSourceScriptDatabaseInitializer dataSourceScriptDatabaseInitializer(DataSource dataSource,
+                                                                                   SqlInitializationProperties initializationProperties) {
+        DatabaseInitializationSettings settings = createFrom(initializationProperties);
+        return new DataSourceScriptDatabaseInitializer(dataSource, settings);
+    }
 
-	static DatabaseInitializationSettings createFrom(SqlInitializationProperties properties) {
-		DatabaseInitializationSettings settings = new DatabaseInitializationSettings();
-		settings.setSchemaLocations(properties.getSchemaLocations());
-		settings.setDataLocations(properties.getDataLocations());
-		settings.setContinueOnError(properties.isContinueOnError());
-		settings.setSeparator(properties.getSeparator());
-		settings.setEncoding(properties.getEncoding());
-		settings.setMode(properties.getMode());
-		return settings;
-	}
+    static DatabaseInitializationSettings createFrom(SqlInitializationProperties properties) {
+        DatabaseInitializationSettings settings = new DatabaseInitializationSettings();
+        settings.setSchemaLocations(properties.getSchemaLocations());
+        settings.setDataLocations(properties.getDataLocations());
+        settings.setContinueOnError(properties.isContinueOnError());
+        settings.setSeparator(properties.getSeparator());
+        settings.setEncoding(properties.getEncoding());
+        settings.setMode(properties.getMode());
+        return settings;
+    }
 
 }

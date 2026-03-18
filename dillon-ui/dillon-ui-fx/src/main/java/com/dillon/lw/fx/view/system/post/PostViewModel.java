@@ -9,22 +9,24 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class PostViewModel extends BaseViewModel {
 
@@ -62,33 +64,41 @@ public class PostViewModel extends BaseViewModel {
         }
         queryMap.values().removeAll(Collections.singleton(null));
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).getPostPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            ObservableList<PostRespVO> userRespVOS = FXCollections.observableArrayList();
-            userRespVOS.addAll(data.getList());
-            tableItems.set(userRespVOS);
-            totalProperty().set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 岗位分页查询统一改成 RxJava 链：
+                 * 请求在 IO 线程执行，表格和分页属性更新切回 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(PostApi.class).getPostPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    ObservableList<PostRespVO> userRespVOS = FXCollections.observableArrayList();
+                    userRespVOS.addAll(data.getList());
+                    tableItems.set(userRespVOS);
+                    totalProperty().set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void deletePost(Long postId, ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PostApi.class).deletePost(postId).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 删除岗位后需要同步关闭确认框并刷新列表，
+                 * 这些 UI 动作统一放到 JavaFX UI 线程执行。
+                 */
+                .fromCallable(() -> Forest.client(PostApi.class).deletePost(postId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新岗位列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
 
@@ -163,12 +173,12 @@ public class PostViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新岗位列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }

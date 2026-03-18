@@ -8,21 +8,23 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class RoleViewModel extends BaseViewModel {
 
@@ -62,37 +64,44 @@ public class RoleViewModel extends BaseViewModel {
 
         queryMap.values().removeAll(Collections.singleton(null));
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            ObservableList<RoleRespVO> roleRespVOS = FXCollections.observableArrayList();
-            roleRespVOS.addAll(data.getList());
-            tableItems.set(roleRespVOS);
-            totalProperty().set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 角色分页查询统一走 RxJava：
+                 * 网络请求切到 IO 线程，表格和分页属性更新切回 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    ObservableList<RoleRespVO> roleRespVOS = FXCollections.observableArrayList();
+                    roleRespVOS.addAll(data.getList());
+                    tableItems.set(roleRespVOS);
+                    totalProperty().set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void delRole(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).deleteRole(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 删除角色请求放到后台线程执行，成功后的弹窗关闭和列表刷新事件回到 UI 线程处理。
+                 */
+                .fromCallable(() -> Forest.client(RoleApi.class).deleteRole(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+                }, DefaultExceptionHandler::handle);
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
-            if("更新角色列表".equals(menuEvent.getMessage())) {
+        FxSchedulers.runOnFx(() -> {
+            if ("更新角色列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }
         });
@@ -100,7 +109,7 @@ public class RoleViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
     public ObjectProperty<ObservableList<RoleRespVO>> tableItemsProperty() {

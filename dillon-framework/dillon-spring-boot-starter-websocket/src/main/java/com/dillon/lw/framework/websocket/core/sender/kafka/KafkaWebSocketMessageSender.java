@@ -46,10 +46,10 @@ public class KafkaWebSocketMessageSender extends AbstractWebSocketMessageSender 
     /**
      * 通过 Kafka 广播消息
      *
-     * @param sessionId Session 编号
-     * @param userId 用户编号
-     * @param userType 用户类型
-     * @param messageType 消息类型
+     * @param sessionId      Session 编号
+     * @param userId         用户编号
+     * @param userType       用户类型
+     * @param messageType    消息类型
      * @param messageContent 消息内容
      */
     private void sendKafkaMessage(String sessionId, Long userId, Integer userType,

@@ -29,7 +29,7 @@ public class NoticeDO extends BaseDO {
     private String title;
     /**
      * 公告类型
-     *
+     * <p>
      * 枚举 {@link NoticeTypeEnum}
      */
     private Integer type;
@@ -39,7 +39,7 @@ public class NoticeDO extends BaseDO {
     private String content;
     /**
      * 公告状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

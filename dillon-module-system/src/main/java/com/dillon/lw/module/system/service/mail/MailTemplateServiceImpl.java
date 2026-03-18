@@ -65,7 +65,7 @@ public class MailTemplateServiceImpl implements MailTemplateService {
         // 校验是否存在
         validateMailTemplateExists(updateReqVO.getId());
         // 校验 code 是否唯一
-        validateCodeUnique(updateReqVO.getId(),updateReqVO.getCode());
+        validateCodeUnique(updateReqVO.getId(), updateReqVO.getCode());
 
         // 更新
         MailTemplateDO updateObj = BeanUtils.toBean(updateReqVO, MailTemplateDO.class)
@@ -111,7 +111,9 @@ public class MailTemplateServiceImpl implements MailTemplateService {
     }
 
     @Override
-    public MailTemplateDO getMailTemplate(Long id) {return mailTemplateMapper.selectById(id);}
+    public MailTemplateDO getMailTemplate(Long id) {
+        return mailTemplateMapper.selectById(id);
+    }
 
     @Override
     @Cacheable(value = RedisKeyConstants.MAIL_TEMPLATE, key = "#code", unless = "#result == null")
@@ -125,7 +127,9 @@ public class MailTemplateServiceImpl implements MailTemplateService {
     }
 
     @Override
-    public List<MailTemplateDO> getMailTemplateList() {return mailTemplateMapper.selectList();}
+    public List<MailTemplateDO> getMailTemplateList() {
+        return mailTemplateMapper.selectList();
+    }
 
     @Override
     public String formatMailTemplateContent(String content, Map<String, Object> params) {

@@ -100,7 +100,7 @@ public class ConfirmDialog {
         scale.setToX(1);
         scale.setToY(1);
 
-        new ParallelTransition(mpFade,fade, scale).play();
+        new ParallelTransition(mpFade, fade, scale).play();
     }
 
     public void close() {
@@ -118,7 +118,7 @@ public class ConfirmDialog {
         scale.setToX(0.75);
         scale.setToY(0.75);
 
-        ParallelTransition transition = new ParallelTransition(mpFade,fade, scale);
+        ParallelTransition transition = new ParallelTransition(mpFade, fade, scale);
         transition.setOnFinished(e -> {
             modalPane.hide();
             modalPane.setPersistent(false);

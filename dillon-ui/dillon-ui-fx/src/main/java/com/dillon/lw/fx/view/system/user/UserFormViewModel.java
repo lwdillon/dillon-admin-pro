@@ -10,23 +10,25 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dept.vo.dept.DeptSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSimpleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserSaveReqVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public class UserFormViewModel extends BaseViewModel {
 
@@ -34,7 +36,7 @@ public class UserFormViewModel extends BaseViewModel {
     private ObjectProperty<TreeItem<DeptSimpleRespVO>> selectTreeItem = new SimpleObjectProperty<>();
     private ObjectProperty<ObservableList<PostSimpleRespVO>> postItems = new SimpleObjectProperty<>();
     private ObservableList<PostSimpleRespVO> selectPostItems = FXCollections.observableArrayList();
-    private ObjectProperty<Boolean> isAdd= new SimpleObjectProperty<>(false);
+    private ObjectProperty<Boolean> isAdd = new SimpleObjectProperty<>(false);
 
     private ModelWrapper<UserSaveReqVO> wrapper = new ModelWrapper<>();
 
@@ -49,119 +51,107 @@ public class UserFormViewModel extends BaseViewModel {
         if (id == null) {
             setIsAdd(true);
             setUser(new UserSaveReqVO());
-            CompletableFuture.supplyAsync(() -> {
-                return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-            }).thenAcceptAsync(deptList -> {
-                DeptSimpleRespVO rootVO = new DeptSimpleRespVO();
-                rootVO.setId(0L);
-                rootVO.setName("主类目");
-
-                TreeItem<DeptSimpleRespVO> root = new TreeItem<>(rootVO);
-                root.setExpanded(true);
-
-                Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
-                nodeMap.put(0L, root);
-                for (DeptSimpleRespVO vo : deptList) {
-                    nodeMap.put(vo.getId(), new TreeItem<>(vo));
-                }
-
-                for (DeptSimpleRespVO vo : deptList) {
-                    TreeItem<DeptSimpleRespVO> parent = nodeMap.get(vo.getParentId());
-                    TreeItem<DeptSimpleRespVO> child = nodeMap.get(vo.getId());
-                    if (parent != null) {
-                        parent.getChildren().add(child);
-                    }
-                }
-
-                TreeItem<DeptSimpleRespVO> selected = nodeMap.getOrDefault(deptIdProperty().get(), root);
-                selectTreeItem.setValue(selected);
-                deptTreeRoot.set(root);
-
-            }, Platform::runLater).thenComposeAsync(v -> {
-                return CompletableFuture.supplyAsync(() -> {
-                    return Forest.client(PostApi.class).getSimplePostList().getCheckedData();
-                });
-            }).thenAcceptAsync(postList -> {
-                ObservableList<PostSimpleRespVO> list = FXCollections.observableArrayList(postList);
-                Set<Long> postIds = wrapper.get().getPostIds();
-                if (postIds != null) {
-                    for (PostSimpleRespVO respVO : list) {
-                        if (postIds.contains(respVO.getId())) {
-                            selectPostItems.add(respVO);
-                        }
-                    }
-                }
-
-                postItems.set(list);
-            }, Platform::runLater).exceptionally(throwable -> {
-                DefaultExceptionHandler.handle(throwable);
-                return null;
-            });
+            Single
+                    /*
+                     * 新增用户表单初始化依赖部门树和岗位列表两份数据，
+                     * 这里直接并行拉取，再在 JavaFX UI 线程一次性回填两个选择器。
+                     */
+                    .zip(
+                            Single.fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData()),
+                            Single.fromCallable(() -> Forest.client(PostApi.class).getSimplePostList().getCheckedData()),
+                            (deptList, postList) -> {
+                                Map<String, Object> result = new HashMap<String, Object>();
+                                result.put("depts", deptList);
+                                result.put("posts", postList);
+                                return result;
+                            }
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(FxSchedulers.fx())
+                    .compose(FxRx.bindTo(this))
+                    .subscribe(result -> {
+                        java.util.List<DeptSimpleRespVO> deptList = (java.util.List<DeptSimpleRespVO>) result.get("depts");
+                        java.util.List<PostSimpleRespVO> postList = (java.util.List<PostSimpleRespVO>) result.get("posts");
+                        fillDeptTree(deptList);
+                        fillPostItems(postList);
+                    }, DefaultExceptionHandler::handle);
         } else {
             setIsAdd(false);
-
-            CompletableFuture.supplyAsync(() -> {
-                return Forest.client(UserApi.class).getUser(id).getCheckedData();
-            }).thenAcceptAsync(user -> {
-                if (user == null) {
-                    setUser(new UserSaveReqVO());
-                } else {
-                    UserSaveReqVO reqVO = new UserSaveReqVO();
-                    BeanUtil.copyProperties(user, reqVO);
-                    setUser(reqVO);
-                }
-            }, Platform::runLater).thenComposeAsync(v -> {
-                return CompletableFuture.supplyAsync(() -> {
-                    return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-                });
-            }).thenAcceptAsync(deptList -> {
-                DeptSimpleRespVO rootVO = new DeptSimpleRespVO();
-                rootVO.setId(0L);
-                rootVO.setName("主类目");
-
-                TreeItem<DeptSimpleRespVO> root = new TreeItem<>(rootVO);
-                root.setExpanded(true);
-
-                Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
-                nodeMap.put(0L, root);
-                for (DeptSimpleRespVO vo : deptList) {
-                    nodeMap.put(vo.getId(), new TreeItem<>(vo));
-                }
-
-                for (DeptSimpleRespVO vo : deptList) {
-                    TreeItem<DeptSimpleRespVO> parent = nodeMap.get(vo.getParentId());
-                    TreeItem<DeptSimpleRespVO> child = nodeMap.get(vo.getId());
-                    if (parent != null) {
-                        parent.getChildren().add(child);
-                    }
-                }
-
-                TreeItem<DeptSimpleRespVO> selected = nodeMap.getOrDefault(deptIdProperty().get(), root);
-                selectTreeItem.setValue(selected);
-                deptTreeRoot.set(root);
-
-            }, Platform::runLater).thenComposeAsync(v -> {
-                return CompletableFuture.supplyAsync(() -> {
-                    return Forest.client(PostApi.class).getSimplePostList().getCheckedData();
-                });
-            }).thenAcceptAsync(postList -> {
-                ObservableList<PostSimpleRespVO> list = FXCollections.observableArrayList(postList);
-                Set<Long> postIds = wrapper.get().getPostIds();
-                if (postIds != null) {
-                    for (PostSimpleRespVO respVO : list) {
-                        if (postIds.contains(respVO.getId())) {
-                            selectPostItems.add(respVO);
+            Single
+                    /*
+                     * 编辑用户时需要三份数据：用户详情、部门树、岗位列表。
+                     * 用 zip 并行后统一回到 JavaFX UI 线程填表，避免 thenCompose 链层层嵌套。
+                     */
+                    .zip(
+                            Single.fromCallable(() -> Forest.client(UserApi.class).getUser(id).getCheckedData()),
+                            Single.fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData()),
+                            Single.fromCallable(() -> Forest.client(PostApi.class).getSimplePostList().getCheckedData()),
+                            (user, deptList, postList) -> {
+                                Map<String, Object> result = new HashMap<String, Object>();
+                                result.put("user", user);
+                                result.put("depts", deptList);
+                                result.put("posts", postList);
+                                return result;
+                            }
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(FxSchedulers.fx())
+                    .compose(FxRx.bindTo(this))
+                    .subscribe(result -> {
+                        Object user = result.get("user");
+                        if (user == null) {
+                            setUser(new UserSaveReqVO());
+                        } else {
+                            UserSaveReqVO reqVO = new UserSaveReqVO();
+                            BeanUtil.copyProperties(user, reqVO);
+                            setUser(reqVO);
                         }
-                    }
-                }
-
-                postItems.set(list);
-            }, Platform::runLater).exceptionally(throwable -> {
-                DefaultExceptionHandler.handle(throwable);
-                return null;
-            });
+                        fillDeptTree((java.util.List<DeptSimpleRespVO>) result.get("depts"));
+                        fillPostItems((java.util.List<PostSimpleRespVO>) result.get("posts"));
+                    }, DefaultExceptionHandler::handle);
 
         }
+    }
+
+    private void fillDeptTree(java.util.List<DeptSimpleRespVO> deptList) {
+        DeptSimpleRespVO rootVO = new DeptSimpleRespVO();
+        rootVO.setId(0L);
+        rootVO.setName("主类目");
+
+        TreeItem<DeptSimpleRespVO> root = new TreeItem<>(rootVO);
+        root.setExpanded(true);
+
+        Map<Long, TreeItem<DeptSimpleRespVO>> nodeMap = new HashMap<>();
+        nodeMap.put(0L, root);
+        for (DeptSimpleRespVO vo : deptList) {
+            nodeMap.put(vo.getId(), new TreeItem<>(vo));
+        }
+
+        for (DeptSimpleRespVO vo : deptList) {
+            TreeItem<DeptSimpleRespVO> parent = nodeMap.get(vo.getParentId());
+            TreeItem<DeptSimpleRespVO> child = nodeMap.get(vo.getId());
+            if (parent != null) {
+                parent.getChildren().add(child);
+            }
+        }
+
+        TreeItem<DeptSimpleRespVO> selected = nodeMap.getOrDefault(deptIdProperty().get(), root);
+        selectTreeItem.setValue(selected);
+        deptTreeRoot.set(root);
+    }
+
+    private void fillPostItems(java.util.List<PostSimpleRespVO> postList) {
+        ObservableList<PostSimpleRespVO> list = FXCollections.observableArrayList(postList);
+        selectPostItems.clear();
+        Set<Long> postIds = wrapper.get().getPostIds();
+        if (postIds != null) {
+            for (PostSimpleRespVO respVO : list) {
+                if (postIds.contains(respVO.getId())) {
+                    selectPostItems.add(respVO);
+                }
+            }
+        }
+        postItems.set(list);
     }
 
     /**
@@ -188,7 +178,6 @@ public class UserFormViewModel extends BaseViewModel {
         if (selectTreeItem != null) {
             saveReqVO.setDeptId(selectTreeItem.getValue().getValue().getId());
         }
-
 
 
         return saveReqVO;
@@ -226,30 +215,30 @@ public class UserFormViewModel extends BaseViewModel {
     public void addUser(ConfirmDialog confirmDialog) {
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).createUser(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(UserApi.class).createUser(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void updateUser(ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).updateUser(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(UserApi.class).updateUser(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public StringProperty usernameProperty() {

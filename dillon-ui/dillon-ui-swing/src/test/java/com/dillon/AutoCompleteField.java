@@ -19,16 +19,24 @@ public class AutoCompleteField extends JTextField {
         this.history = historyData;
         this.popupMenu = new JPopupMenu();
         this.list = new JList<>();
-        
+
         // 设置弹出菜单样式
         popupMenu.setFocusable(false);
         popupMenu.add(new JScrollPane(list));
 
         // 1. 监听文本变化
         this.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { updateSuggestions(); }
-            public void removeUpdate(DocumentEvent e) { updateSuggestions(); }
-            public void changedUpdate(DocumentEvent e) { updateSuggestions(); }
+            public void insertUpdate(DocumentEvent e) {
+                updateSuggestions();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                updateSuggestions();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+                updateSuggestions();
+            }
         });
 
         // 2. 监听列表点击选择
@@ -99,7 +107,7 @@ public class AutoCompleteField extends JTextField {
         if (!suggestions.isEmpty()) {
             list.setListData(suggestions.toArray(new String[0]));
             list.setSelectedIndex(0); // 默认选中第一项
-            
+
             // 确保弹出菜单宽度与输入框一致
             popupMenu.setPreferredSize(new Dimension(getWidth(), Math.min(suggestions.size() * 25, 150)));
             popupMenu.show(this, 0, getHeight());

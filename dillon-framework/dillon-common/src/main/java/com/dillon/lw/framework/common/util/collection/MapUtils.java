@@ -24,7 +24,7 @@ public class MapUtils {
      * 从哈希表表中，获得 keys 对应的所有 value 数组
      *
      * @param multimap 哈希表
-     * @param keys keys
+     * @param keys     keys
      * @return value 数组
      */
     public static <K, V> List<V> getList(Multimap<K, V> multimap, Collection<K> keys) {
@@ -44,8 +44,8 @@ public class MapUtils {
      * key 为 null 时, 不处理
      * 注意，如果查找到的 value 为 null 时，不进行处理
      *
-     * @param map 哈希表
-     * @param key key
+     * @param map      哈希表
+     * @param key      key
      * @param consumer 进一步处理的逻辑
      */
     public static <K, V> void findAndThen(Map<K, V> map, K key, Consumer<V> consumer) {

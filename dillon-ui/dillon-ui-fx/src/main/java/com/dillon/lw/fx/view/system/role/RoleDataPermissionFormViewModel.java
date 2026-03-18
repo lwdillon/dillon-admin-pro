@@ -7,6 +7,8 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
@@ -16,15 +18,15 @@ import com.dillon.lw.module.system.controller.admin.permission.vo.permission.Per
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.utils.DictTypeEnum;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class RoleDataPermissionFormViewModel extends BaseViewModel {
 
@@ -44,9 +46,12 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
         roleId.set(roleRespVO.getId());
         dataScope.set(roleRespVO.getDataScope());
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-        }).thenAcceptAsync(data -> {
+        Single
+                .fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
             DeptSimpleRespVO respVO = new DeptSimpleRespVO();
             respVO.setId(0L);
             respVO.setName("主类目");
@@ -74,10 +79,7 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
             });
 
             deptTreeRoot.set(root);
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        }, DefaultExceptionHandler::handle);
     }
 
     public void assignRoleDataScope(ConfirmDialog confirmDialog) {
@@ -91,16 +93,16 @@ public class RoleDataPermissionFormViewModel extends BaseViewModel {
         }
         permissionAssignRoleDataScopeReqVO.setDataScopeDeptIds(selMenuIds);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+                }, DefaultExceptionHandler::handle);
 
     }
 

@@ -23,12 +23,16 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class RoleAssignMenuPane extends JPanel {
+public class RoleAssignMenuPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
 
     public RoleAssignMenuPane() {
@@ -189,6 +193,7 @@ public class RoleAssignMenuPane extends JPanel {
             addMenuIdIfApplicable(treeNode, menuIdlist);
         }
     }
+
     // 将添加菜单ID的逻辑提取成一个方法
     private void addMenuIdIfApplicable(DefaultMutableTreeNode treeNode, Set<Long> menuIdList) {
         if (treeNode.getUserObject() instanceof MenuSimpleRespVO) {
@@ -203,70 +208,67 @@ public class RoleAssignMenuPane extends JPanel {
 
         nameTextField.setText(roleRespVO.getName());
         codeTextField.setText(roleRespVO.getCode());
+        /*
+         * 分配菜单需要并行加载“当前角色菜单权限”和“全部菜单树”，
+         * zip 后在 EDT 统一构造树节点和勾选状态。
+         */
+        Single
+                .zip(
+                        Single.fromCallable(() -> Forest.client(PermissionApi.class).getRoleMenuList(id).getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        (permissionSet, menuList) -> {
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("permissionSet", permissionSet);
+                            resultMap.put("menuList", menuList);
+                            return resultMap;
+                        }
+                )
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(resultMap -> {
+                    Set<Long> permissionSet = (Set<Long>) resultMap.get("permissionSet");
+                    List<MenuSimpleRespVO> menuList = (List<MenuSimpleRespVO>) resultMap.get("menuList");
 
-        CompletableFuture<Set<Long>> permissionFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).getRoleMenuList(id).getCheckedData();
-        });
+                    DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
+                    // Build the tree
+                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                    nodeMap.put(0L, menuRoot); // Root node
 
-        CompletableFuture<List<MenuSimpleRespVO>> menuFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).getSimpleMenuList().getCheckedData();
-        });
+                    List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
+                    for (MenuSimpleRespVO simpleRespVO : menuList) {
 
-        permissionFuture.thenCombineAsync(menuFuture, (permissionSet, menuList) -> {
-            // 使用 LinkedHashMap 保持顺序
-            Map<String, Object> resultMap = new LinkedHashMap<>();
-            resultMap.put("permissionSet", permissionSet);
-            resultMap.put("menuList", menuList);
-            return resultMap;
-        }).thenAcceptAsync(resultMap -> {
-            // 直接获取数据，无需强转
-            Set<Long> permissionSet = (Set<Long>) resultMap.get("permissionSet");
-            List<MenuSimpleRespVO> menuList = (List<MenuSimpleRespVO>) resultMap.get("menuList");
+                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                        nodeMap.put(simpleRespVO.getId(), node);
 
-            DefaultMutableTreeNode menuRoot = new DefaultMutableTreeNode("全部");
-            // Build the tree
-            Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-            nodeMap.put(0L, menuRoot); // Root node
-
-            List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
-            for (MenuSimpleRespVO simpleRespVO : menuList) {
-
-                DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
-                nodeMap.put(simpleRespVO.getId(), node);
-
-                if (permissionSet.contains(simpleRespVO.getId())) {
-                    selNodes.add(node);
-                }
-            }
-
-            menuList.forEach(menuSimpleRespVO -> {
-
-                DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
-                DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
-                if (parentNode != null) {
-                    if (childNode != null) {
-                        parentNode.add(childNode);
-                    }
-                }
-            });
-
-            menuTree.setModel(new DefaultTreeModel(menuRoot));
-            if (selNodes != null) {
-                for (DefaultMutableTreeNode node : selNodes) {
-                    if (node.isLeaf()) {
-                        menuTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                        if (permissionSet.contains(simpleRespVO.getId())) {
+                            selNodes.add(node);
+                        }
                     }
 
-                }
-            }
-            TreeUtils.expandAll(menuTree);
+                    menuList.forEach(menuSimpleRespVO -> {
 
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                        DefaultMutableTreeNode parentNode = nodeMap.get(menuSimpleRespVO.getParentId());
+                        DefaultMutableTreeNode childNode = nodeMap.get(menuSimpleRespVO.getId());
+                        if (parentNode != null) {
+                            if (childNode != null) {
+                                parentNode.add(childNode);
+                            }
+                        }
+                    });
+
+                    menuTree.setModel(new DefaultTreeModel(menuRoot));
+                    if (selNodes != null) {
+                        for (DefaultMutableTreeNode node : selNodes) {
+                            if (node.isLeaf()) {
+                                menuTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                            }
+
+                        }
+                    }
+                    TreeUtils.expandAll(menuTree);
+                }, SwingExceptionHandler::handle);
 
 
     }

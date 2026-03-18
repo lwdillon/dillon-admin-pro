@@ -19,12 +19,16 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class NotifyTemplateFromPane extends JPanel {
+public class NotifyTemplateFromPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
 
     public NotifyTemplateFromPane() {
@@ -166,16 +170,16 @@ public class NotifyTemplateFromPane extends JPanel {
             return;
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData();
-        }).thenAcceptAsync(resp -> {
-            setValue(resp);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 模板详情查询是同步请求，统一切到 IO 线程执行，
+                 * 回填表单时再切回 EDT。
+                 */
+                .fromCallable(() -> Forest.client(NotifyTemplateApi.class).getNotifyTemplate(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::setValue, SwingExceptionHandler::handle);
 
     }
 

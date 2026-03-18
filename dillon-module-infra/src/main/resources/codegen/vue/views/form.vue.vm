@@ -12,15 +12,15 @@
                   #if ( $table.templateType == 2 && $column.id == $treeParentColumn.id )
                     <el-form-item label="${comment}" prop="${javaField}">
                       <TreeSelect
-                        v-model="formData.${javaField}"
-                        :options="${classNameVar}Tree"
-                        :normalizer="normalizer"
-                        placeholder="请选择${comment}"
+                          v-model="formData.${javaField}"
+                          :options="${classNameVar}Tree"
+                          :normalizer="normalizer"
+                          placeholder="请选择${comment}"
                       />
                     </el-form-item>
                   #elseif ($column.htmlType == "input" && !$column.primaryKey)## 忽略主键，不用在表单里
                     <el-form-item label="${comment}" prop="${javaField}">
-                      <el-input v-model="formData.${javaField}" placeholder="请输入${comment}" />
+                      <el-input v-model="formData.${javaField}" placeholder="请输入${comment}"/>
                     </el-form-item>
                   #elseif($column.htmlType == "imageUpload")## 图片上传
                       #set ($hasImageUploadColumn = true)
@@ -42,9 +42,11 @@
                       <el-select v-model="formData.${javaField}" placeholder="请选择${comment}">
                           #if ("" != $dictType)## 有数据字典
                             <el-option v-for="dict in this.getDictDatas(DICT_TYPE.$dictType.toUpperCase())"
-                                       :key="dict.value" :label="dict.label" #if ($column.javaType == "Integer" || $column.javaType == "Long"):value="parseInt(dict.value)"#else:value="dict.value"#end />
+                                       :key="dict.value" :label="dict.label"
+                                       #if ($column.javaType == "Integer" || $column.javaType ==
+                                           "Long"):value="parseInt(dict.value)"#else:value="dict.value"#end />
                           #else##没数据字典
-                            <el-option label="请选择字典生成" value="" />
+                            <el-option label="请选择字典生成" value=""/>
                           #end
                       </el-select>
                     </el-form-item>
@@ -53,7 +55,9 @@
                       <el-checkbox-group v-model="formData.${javaField}">
                           #if ("" != $dictType)## 有数据字典
                             <el-checkbox v-for="dict in this.getDictDatas(DICT_TYPE.$dictType.toUpperCase())"
-                                         :key="dict.value" #if($column.javaType == "Integer" || $column.javaType == "Long"):label="parseInt(dict.value)"#else:label="dict.value"#end>{{dict.label}}</el-checkbox>
+                                         :key="dict.value"#if($column.javaType == "Integer" || $column.javaType ==
+                                "Long"):label="parseInt(dict.value)"#else:label="dict.value"#end>{{dict.label}}
+                            </el-checkbox>
                           #else##没数据字典
                             <el-checkbox>请选择字典生成</el-checkbox>
                           #end
@@ -64,8 +68,10 @@
                       <el-radio-group v-model="formData.${javaField}">
                           #if ("" != $dictType)## 有数据字典
                             <el-radio v-for="dict in this.getDictDatas(DICT_TYPE.$dictType.toUpperCase())"
-                                      :key="dict.value" #if($column.javaType == "Integer" || $column.javaType == "Long"):label="parseInt(dict.value)"
-                                      #else:label="dict.value"#end>{{dict.label}}</el-radio>
+                                      :key="dict.value"#if($column.javaType == "Integer" || $column.javaType ==
+                                "Long"):label="parseInt(dict.value)"
+                                      #else:label="dict.value"#end>{{dict.label}}
+                            </el-radio>
                           #else##没数据字典
                             <el-radio label="1">请选择字典生成</el-radio>
                           #end
@@ -73,11 +79,12 @@
                     </el-form-item>
                   #elseif($column.htmlType == "datetime")## 时间框
                     <el-form-item label="${comment}" prop="${javaField}">
-                      <el-date-picker clearable v-model="formData.${javaField}" type="date" value-format="timestamp" placeholder="选择${comment}" />
+                      <el-date-picker clearable v-model="formData.${javaField}" type="date" value-format="timestamp"
+                                      placeholder="选择${comment}"/>
                     </el-form-item>
                   #elseif($column.htmlType == "textarea")## 文本框
                     <el-form-item label="${comment}" prop="${javaField}">
-                      <el-input v-model="formData.${javaField}" type="textarea" placeholder="请输入内容" />
+                      <el-input v-model="formData.${javaField}" type="textarea" placeholder="请输入内容"/>
                     </el-form-item>
                   #end
               #end
@@ -93,7 +100,8 @@
                   #set ($subSimpleClassName = $subSimpleClassNames.get($index))
                   #set ($subJoinColumn_strikeCase = $subJoinColumn_strikeCases.get($index))
                 <el-tab-pane label="${subTable.classComment}" name="$subClassNameVar">
-                  <${subSimpleClassName}Form ref="${subClassNameVar}FormRef" :${subJoinColumn_strikeCase}="formData.id" />
+                  <${subSimpleClassName}Form ref="${subClassNameVar}FormRef"
+                                             :${subJoinColumn_strikeCase}="formData.id"/>
                 </el-tab-pane>
               #end
           </el-tabs>
@@ -122,18 +130,18 @@
   './components/'
       #if ($hasImageUploadColumn)
       #end
-  #if ($hasFileUploadColumn)
-  #end
-  #if ($hasEditorColumn)
-  #end
-  ## 特殊：树表专属逻辑
-  #if ( $table.templateType == 2 )
-  #end
-  ## 特殊：主子表专属逻辑
-  #if ( $table.templateType == 10 || $table.templateType == 12 )
-      #foreach ($subSimpleClassName in $subSimpleClassNames)
+      #if ($hasFileUploadColumn)
       #end
-  #end
+      #if ($hasEditorColumn)
+      #end
+      ## 特殊：树表专属逻辑
+      #if ( $table.templateType == 2 )
+      #end
+      ## 特殊：主子表专属逻辑
+      #if ( $table.templateType == 10 || $table.templateType == 12 )
+          #foreach ($subSimpleClassName in $subSimpleClassNames)
+          #end
+      #end
   export default {
     name: "${simpleClassName}Form",
     components: {
@@ -153,7 +161,7 @@
         ## 特殊：主子表专属逻辑
         #if ( $table.templateType == 10 || $table.templateType == 12 )
             #foreach ($subSimpleClassName in $subSimpleClassNames)
-               ${subSimpleClassName}Form,
+                    ${subSimpleClassName}Form,
             #end
         #end
     },
@@ -182,26 +190,29 @@
             #foreach ($column in $columns)
                 #if (($column.createOperation || $column.updateOperation) && !$column.nullable && !${column.primaryKey})## 创建或者更新操作 && 要求非空 && 非主键
                     #set($comment=$column.columnComment)
-                        $column.javaField: [{ required: true, message: '${comment}不能为空', trigger: #if($column.htmlType == 'select')'change'#else'blur'#end }],
+                        $column.javaField: [{
+                    required: true,
+                    message: '${comment}不能为空', trigger: #if($column.htmlType == 'select')'change'
+                            #else'blur'#end }],
                 #end
             #end
         },
           ## 特殊：树表专属逻辑
           #if ( $table.templateType == 2 )
-             ${classNameVar}Tree: [], // 树形结构
+                  ${classNameVar}Tree: [], // 树形结构
           #end
-        ## 特殊：主子表专属逻辑
-        #if ( $table.templateType == 10 || $table.templateType == 12 )
-        #if ( $subTables && $subTables.size() > 0 )
-            /** 子表的表单 */
-             subTabsName: '$subClassNameVars.get(0)'
-        #end
-        #end
+          ## 特殊：主子表专属逻辑
+          #if ( $table.templateType == 10 || $table.templateType == 12 )
+              #if ( $subTables && $subTables.size() > 0 )
+                /** 子表的表单 */
+                subTabsName: '$subClassNameVars.get(0)'
+              #end
+          #end
       };
     },
     methods: {
       /** 打开弹窗 */
-     async open(id) {
+      async open(id) {
         this.dialogVisible = true;
         this.reset();
         // 修改时，设置数据
@@ -216,10 +227,10 @@
           }
         }
         this.title = "新增${table.classComment}";
-        ## 特殊：树表专属逻辑
-        #if ( $table.templateType == 2 )
-        await this.get${simpleClassName}Tree();
-        #end
+          ## 特殊：树表专属逻辑
+          #if ( $table.templateType == 2 )
+            await this.get${simpleClassName}Tree();
+          #end
       },
       /** 提交按钮 */
       async submitForm() {
@@ -233,7 +244,7 @@
                       #set ($index = $foreach.count - 1)
                       #set ($subClassNameVar = $subClassNameVars.get($index))
                     try {
-                      ## 代码生成后会替换为正确的 refs
+                        ## 代码生成后会替换为正确的 refs
                       await this.refs['${subClassNameVar}FormRef'].validate();
                     } catch (e) {
                       this.subTabsName = '${subClassNameVar}';
@@ -245,30 +256,52 @@
         this.formLoading = true;
         try {
           const data = this.formData;
-        ## 特殊：主子表专属逻辑
-        #if ( $table.templateType == 10 || $table.templateType == 12 )
-        #if ( $subTables && $subTables.size() > 0 )
-            // 拼接子表的数据
-            #foreach ($subTable in $subTables)
-                #set ($index = $foreach.count - 1)
-                #set ($subClassNameVar = $subClassNameVars.get($index))
-              data.${subClassNameVar}#if ( $subTable.subJoinMany)s#end = this.refs['${subClassNameVar}FormRef'].getData();
+            ## 特殊：主子表专属逻辑
+            #if ( $table.templateType == 10 || $table.templateType == 12 )
+                #if ( $subTables && $subTables.size() > 0 )
+                  // 拼接子表的数据
+                    #foreach ($subTable in $subTables)
+                        #set ($index = $foreach.count - 1)
+                        #set ($subClassNameVar = $subClassNameVars.get($index))
+                      data.${subClassNameVar}#if ( $subTable.subJoinMany)s#end = this.refs['${subClassNameVar}FormRef'].getData();
+                    #end
+                #end
             #end
-        #end
-        #end
           // 修改的提交
           if (data.${primaryColumn.javaField}) {
             await ${simpleClassName}Api.update${simpleClassName}(data);
-            this.#[[$modal]]#.msgSuccess("修改成功");
+            this.
+          #
+            [[$modal]]
+          #.
+            msgSuccess("修改成功");
             this.dialogVisible = false;
-            this.#[[$]]#emit('success');
+            this.
+          #
+            [[$]]
+            #emit('success');
             return;
           }
           // 添加的提交
-          await ${simpleClassName}Api.create${simpleClassName}(data);
-          this.#[[$modal]]#.msgSuccess("新增成功");
+          await $
+          {
+            simpleClassName
+          }
+          Api.create$
+          {
+            simpleClassName
+          }
+          (data);
+          this.
+        #
+          [[$modal]]
+        #.
+          msgSuccess("新增成功");
           this.dialogVisible = false;
-          this.#[[$]]#emit('success');
+          this.
+        #
+          [[$]]
+          #emit('success');
         } finally {
           this.formLoading = false;
         }
@@ -276,10 +309,10 @@
         ## 特殊：树表专属逻辑
         #if ( $table.templateType == 2 )
           /** 获得${table.classComment}树 */
-         async get${simpleClassName}Tree() {
+          async get${simpleClassName}Tree() {
             this.${classNameVar}Tree = [];
             const res = await ${simpleClassName}Api.get${simpleClassName}List();
-            const root = { id: 0, name: '顶级${table.classComment}', children: [] };
+            const root = {id: 0, name: '顶级${table.classComment}', children: []};
             root.children = this.handleTree(res.data, 'id', '${treeParentColumn.javaField}')
             this.${classNameVar}Tree.push(root)
           },

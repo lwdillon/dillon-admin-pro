@@ -22,6 +22,7 @@ import com.dillon.lw.fx.utils.Lazy;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.utils.NodeUtils;
 import com.dillon.lw.fx.view.system.notice.MyNotifyMessagePane;
+import com.dillon.lw.fx.rx.FxSchedulers;
 import com.dillon.lw.fx.view.infra.apilog.ApiAccessLogView;
 import com.dillon.lw.fx.view.infra.apilog.ApiErrorLogView;
 import com.dillon.lw.fx.view.infra.config.ConfigView;
@@ -73,11 +74,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.fx.utils.NodeUtils.getIcon;
 
@@ -510,7 +512,7 @@ public class MainView extends BaseView<MainViewModel> {
         menuItem2.setOnAction(actionEvent -> viewModel.loginOut(false));
         menuItem1.setOnAction(actionEvent -> {
             UserInfoView userInfoView = ViewLoader.load(UserInfoView.class);
-            EventBusCenter.get().post(new MainTabEvent( "fth-user", "个人中心",userInfoView.getNode()));
+            EventBusCenter.get().post(new MainTabEvent("fth-user", "个人中心", userInfoView.getNode()));
 
         });
 
@@ -781,7 +783,7 @@ public class MainView extends BaseView<MainViewModel> {
         }
         StackPane fixedPane = new StackPane(node);
         fixedPane.setStyle("-fx-background-color: -color-bg-inset;");
-        fixedPane.setPadding(new Insets(15));
+//        fixedPane.setPadding(new Insets(15));
 
         Tab tab = new Tab(title);
         tab.setGraphic(getIcon(icon));
@@ -862,10 +864,16 @@ public class MainView extends BaseView<MainViewModel> {
     }
 
     private void loadUnreadNoticeCount() {
-        CompletableFuture
-                .supplyAsync(() -> Forest.client(NotifyMessageApi.class).getUnreadNotifyMessageCount().getCheckedData())
-                .thenAcceptAsync(count -> setUnreadNoticeCount(Math.max(0, count == null ? 0 : count.intValue())), Platform::runLater)
-                .exceptionally(ex -> null);
+        Single
+                /*
+                 * 未读消息数查询不需要阻塞主界面：
+                 * 后台线程拉取计数，角标刷新回到 JavaFX UI 线程执行。
+                 */
+                .fromCallable(() -> Forest.client(NotifyMessageApi.class).getUnreadNotifyMessageCount().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .subscribe(count -> setUnreadNoticeCount(Math.max(0, count == null ? 0 : count.intValue())), ex -> {
+                });
     }
 
     private void onWebSocketMessage(String rawMessage) {

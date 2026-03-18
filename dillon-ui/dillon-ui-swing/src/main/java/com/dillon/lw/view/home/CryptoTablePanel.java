@@ -47,26 +47,26 @@ public class CryptoTablePanel extends WPanel {
         // 数据与列定义
         String[] columns = {"SR No.", "Currency", "Price", "Pairs", "24 High", "24 Low", "Market Volume", "Volume %", "Action"};
         Object[][] data = {
-            {"01", "Solana (SOL)", "$17,491.16", "XRM/USDT", "$31,578.35", "$8691.75", "$9,847,327", "+1.92%", "Trade Now"},
-            {"02", "Ethereum (ETH)", "$2,491.16", "ETH/USDT", "$3,578.35", "$2491.75", "$1,847,327", "+2.45%", "Trade Now"},
-            {"03", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"04", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"05", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"06", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"07", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"08", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"09", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"10", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"11", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"12", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"13", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"14", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"15", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
-            {"16", "Cardano (ADA)", "$1.16", "ADA/USDT", "$3.35", "$0.75", "$47,327", "+5.12%", "Trade Now"}
+                {"01", "Solana (SOL)", "$17,491.16", "XRM/USDT", "$31,578.35", "$8691.75", "$9,847,327", "+1.92%", "Trade Now"},
+                {"02", "Ethereum (ETH)", "$2,491.16", "ETH/USDT", "$3,578.35", "$2491.75", "$1,847,327", "+2.45%", "Trade Now"},
+                {"03", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"04", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"05", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"06", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"07", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"08", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"09", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"10", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"11", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"12", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"13", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"14", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"15", "Bitcoin (BTC)", "$47,491.16", "BTC/USDT", "$61,578.35", "$41691.75", "$5,847,327", "-0.92%", "Trade Now"},
+                {"16", "Cardano (ADA)", "$1.16", "ADA/USDT", "$3.35", "$0.75", "$47,327", "+5.12%", "Trade Now"}
         };
 
         JTable table = new JTable(new DefaultTableModel(data, columns));
-        
+
         // 样式配置
         table.setRowHeight(55);
         table.setShowGrid(false);
@@ -95,16 +95,16 @@ public class CryptoTablePanel extends WPanel {
     private class CurrencyRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasF, int row, int col) {
-            JPanel p = new JPanel(new BorderLayout(7,7));
+            JPanel p = new JPanel(new BorderLayout(7, 7));
             p.setBackground(isSel ? table.getSelectionBackground() : table.getBackground());
-            p.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
+            p.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
             // 绘制圆形 Logo 背景
-            JLabel icon = new JLabel(new FlatSVGIcon("icons/currency_bch.svg",30,30));
+            JLabel icon = new JLabel(new FlatSVGIcon("icons/currency_bch.svg", 30, 30));
 
             JLabel label = new JLabel(value.toString());
             label.setForeground(new Color(64, 158, 255));
-            p.add(icon,BorderLayout.WEST);
-            p.add(label,BorderLayout.CENTER);
+            p.add(icon, BorderLayout.WEST);
+            p.add(label, BorderLayout.CENTER);
             return p;
         }
     }
@@ -140,7 +140,7 @@ public class CryptoTablePanel extends WPanel {
             btn.setFont(new Font("SansSerif", Font.BOLD, 12));
             btn.setFocusPainted(false);
             btn.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-            
+
             p.add(btn);
             return p;
         }

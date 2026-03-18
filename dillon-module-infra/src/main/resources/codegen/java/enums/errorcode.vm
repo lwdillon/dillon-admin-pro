@@ -11,12 +11,12 @@ ErrorCode ${simpleClassName_underlineCase.toUpperCase()}_PARENT_IS_CHILD = new E
 #end
 ## 特殊：主子表专属逻辑
 #if ( $table.templateType == 11 )## 特殊：ERP 情况
-#foreach ($subTable in $subTables)
-#set ($index = $foreach.count - 1)
-#set ($simpleClassNameUnderlineCase = $simpleClassNameUnderlineCases.get($index))
-ErrorCode ${simpleClassNameUnderlineCase.toUpperCase()}_NOT_EXISTS = new ErrorCode(TODO 补充编号, "${subTable.classComment}不存在");
-#if ( !$subTable.subJoinMany )
-ErrorCode ${simpleClassNameUnderlineCase.toUpperCase()}_EXISTS = new ErrorCode(TODO 补充编号, "${subTable.classComment}已存在");
-#end
-#end
+    #foreach ($subTable in $subTables)
+        #set ($index = $foreach.count - 1)
+        #set ($simpleClassNameUnderlineCase = $simpleClassNameUnderlineCases.get($index))
+    ErrorCode ${simpleClassNameUnderlineCase.toUpperCase()}_NOT_EXISTS = new ErrorCode(TODO 补充编号, "${subTable.classComment}不存在");
+        #if ( !$subTable.subJoinMany )
+        ErrorCode ${simpleClassNameUnderlineCase.toUpperCase()}_EXISTS = new ErrorCode(TODO 补充编号, "${subTable.classComment}已存在");
+        #end
+    #end
 #end

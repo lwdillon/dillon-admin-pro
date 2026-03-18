@@ -32,25 +32,25 @@ public class JobLogDO extends BaseDO {
     private Long id;
     /**
      * 任务编号
-     *
+     * <p>
      * 关联 {@link JobDO#getId()}
      */
     private Long jobId;
     /**
      * 处理器的名字
-     *
+     * <p>
      * 冗余字段 {@link JobDO#getHandlerName()}
      */
     private String handlerName;
     /**
      * 处理器的参数
-     *
+     * <p>
      * 冗余字段 {@link JobDO#getHandlerParam()}
      */
     private String handlerParam;
     /**
      * 第几次执行
-     *
+     * <p>
      * 用于区分是不是重试执行。如果是重试执行，则 index 大于 1
      */
     private Integer executeIndex;
@@ -69,13 +69,13 @@ public class JobLogDO extends BaseDO {
     private Integer duration;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link JobLogStatusEnum}
      */
     private Integer status;
     /**
      * 结果数据
-     *
+     * <p>
      * 成功时，使用 {@link JobHandler#execute(String)} 的结果
      * 失败时，使用 {@link JobHandler#execute(String)} 的异常堆栈
      */

@@ -15,7 +15,8 @@ public class UserHistory {
     private long lastLoginTime;
     private boolean lastSuccess;
 
-    public UserHistory() {}
+    public UserHistory() {
+    }
 
     public UserHistory(String userId, String username, String passwrod) {
         this.userId = userId;

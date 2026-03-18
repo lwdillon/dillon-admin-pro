@@ -44,7 +44,8 @@ public class DillonRedisMQConsumerAutoConfiguration {
      * 创建 Redis Pub/Sub 广播消费的容器
      */
     @Bean
-    @ConditionalOnBean(AbstractRedisChannelMessageListener.class) // 只有 AbstractChannelMessageListener 存在的时候，才需要注册 Redis pubsub 监听
+    @ConditionalOnBean(AbstractRedisChannelMessageListener.class)
+    // 只有 AbstractChannelMessageListener 存在的时候，才需要注册 Redis pubsub 监听
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisMQTemplate redisMQTemplate, List<AbstractRedisChannelMessageListener<?>> listeners) {
         // 创建 RedisMessageListenerContainer 对象
@@ -65,7 +66,8 @@ public class DillonRedisMQConsumerAutoConfiguration {
      * 创建 Redis Stream 重新消费的任务
      */
     @Bean
-    @ConditionalOnBean(AbstractRedisStreamMessageListener.class) // 只有 AbstractStreamMessageListener 存在的时候，才需要注册 Redis pubsub 监听
+    @ConditionalOnBean(AbstractRedisStreamMessageListener.class)
+    // 只有 AbstractStreamMessageListener 存在的时候，才需要注册 Redis pubsub 监听
     public RedisPendingMessageResendJob redisPendingMessageResendJob(List<AbstractRedisStreamMessageListener<?>> listeners,
                                                                      RedisMQTemplate redisTemplate,
                                                                      RedissonClient redissonClient) {
@@ -85,11 +87,12 @@ public class DillonRedisMQConsumerAutoConfiguration {
 
     /**
      * 创建 Redis Stream 集群消费的容器
-     *
+     * <p>
      * 基础知识：<a href="https://www.geek-book.com/src/docs/redis/redis/redis.io/commands/xreadgroup.html">Redis Stream 的 xreadgroup 命令</a>
      */
     @Bean(initMethod = "start", destroyMethod = "stop")
-    @ConditionalOnBean(AbstractRedisStreamMessageListener.class) // 只有 AbstractStreamMessageListener 存在的时候，才需要注册 Redis pubsub 监听
+    @ConditionalOnBean(AbstractRedisStreamMessageListener.class)
+    // 只有 AbstractStreamMessageListener 存在的时候，才需要注册 Redis pubsub 监听
     public StreamMessageListenerContainer<String, ObjectRecord<String, String>> redisStreamMessageListenerContainer(
             RedisMQTemplate redisMQTemplate, List<AbstractRedisStreamMessageListener<?>> listeners) {
         RedisTemplate<String, ?> redisTemplate = redisMQTemplate.getRedisTemplate();

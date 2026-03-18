@@ -38,64 +38,64 @@ import java.util.function.Supplier;
  */
 public class BeanSetPropertyField<M, E, T extends ObservableSet<E>, R extends Property<T>> implements PropertyField<T, M, R> {
 
-	private final SetGetter<M, E> getter;
+    private final SetGetter<M, E> getter;
 
-	private final SetSetter<M, E> setter;
+    private final SetSetter<M, E> setter;
 
-	private Set<E> defaultValue;
+    private Set<E> defaultValue;
 
-	private final SetProperty<E> targetProperty;
+    private final SetProperty<E> targetProperty;
 
-	public BeanSetPropertyField(SideEffect updateFunction, SetGetter<M, E> getter, SetSetter<M, E> setter,
-			Supplier<SetProperty<E>> propertySupplier) {
-		this(updateFunction, getter, setter, propertySupplier, Collections.emptySet());
-	}
+    public BeanSetPropertyField(SideEffect updateFunction, SetGetter<M, E> getter, SetSetter<M, E> setter,
+                                Supplier<SetProperty<E>> propertySupplier) {
+        this(updateFunction, getter, setter, propertySupplier, Collections.emptySet());
+    }
 
-	public BeanSetPropertyField(SideEffect updateFunction, SetGetter<M, E> getter, SetSetter<M, E> setter, Supplier<SetProperty<E>> propertySupplier,
-			Set<E> defaultValue) {
-		this.defaultValue = defaultValue;
-		this.getter = getter;
-		this.setter = setter;
-		this.targetProperty = propertySupplier.get();
-		this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
-		this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
-	}
+    public BeanSetPropertyField(SideEffect updateFunction, SetGetter<M, E> getter, SetSetter<M, E> setter, Supplier<SetProperty<E>> propertySupplier,
+                                Set<E> defaultValue) {
+        this.defaultValue = defaultValue;
+        this.getter = getter;
+        this.setter = setter;
+        this.targetProperty = propertySupplier.get();
+        this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
+        this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
+    }
 
-	static <E> void setAll(Set<E> target, Set<E> newValues) {
-		target.retainAll(newValues);
-		target.addAll(newValues);
-	}
+    static <E> void setAll(Set<E> target, Set<E> newValues) {
+        target.retainAll(newValues);
+        target.addAll(newValues);
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		setter.accept(wrappedObject, targetProperty.getValue());
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        setter.accept(wrappedObject, targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		setAll(targetProperty, getter.apply(wrappedObject));
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        setAll(targetProperty, getter.apply(wrappedObject));
+    }
 
-	@Override
-	public void resetToDefault() {
-		setAll(targetProperty, defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        setAll(targetProperty, defaultValue);
+    }
 
-	@Override
-	public void updateDefault(M wrappedObject) {
-		defaultValue = new HashSet<>(getter.apply(wrappedObject));
-	}
+    @Override
+    public void updateDefault(M wrappedObject) {
+        defaultValue = new HashSet<>(getter.apply(wrappedObject));
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final Set<E> modelValue = getter.apply(wrappedObject);
-		final Set<E> wrapperValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final Set<E> modelValue = getter.apply(wrappedObject);
+        final Set<E> wrapperValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrapperValue);
-	}
+        return !Objects.equals(modelValue, wrapperValue);
+    }
 }

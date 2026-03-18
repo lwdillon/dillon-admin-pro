@@ -17,7 +17,7 @@ public interface ApiErrorLogApi extends BaseApi {
 
     @Put("infra/api-error-log/update-status")
     CommonResult<Boolean> updateApiErrorLogProcess(@Query("id") Long id,
-                                                               @Query("processStatus") Integer processStatus);
+                                                   @Query("processStatus") Integer processStatus);
 
     // "获得 API 错误日志分页")
     @Get("infra/api-error-log/page")

@@ -25,7 +25,7 @@ public class WebSocketProperties {
 
     /**
      * 消息发送器的类型
-     *
+     * <p>
      * 可选值：local、redis、rocketmq、kafka、rabbitmq
      */
     @NotNull(message = "WebSocket 的消息发送者不能为空")

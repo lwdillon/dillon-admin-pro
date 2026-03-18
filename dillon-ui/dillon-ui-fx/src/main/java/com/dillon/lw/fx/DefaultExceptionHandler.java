@@ -21,7 +21,8 @@ public class DefaultExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
-    private DefaultExceptionHandler() {}
+    private DefaultExceptionHandler() {
+    }
 
     public static void handle(Throwable e) {
         log.error("客户端异常", e);

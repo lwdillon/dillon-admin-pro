@@ -7,17 +7,17 @@
 
   import {delete${simpleClassName}, export${simpleClassName}} from '@/api/'
 
-  defineOptions({ name: '${table.className}' })
+  defineOptions({name: '${table.className}'})
 
-const { t } = useI18n()
-const { createConfirm, createMessage } = useMessage()
-const [registerModal, { openModal }] = useModal()
+  const {t} = useI18n()
+  const {createConfirm, createMessage} = useMessage()
+  const [registerModal, {openModal}] = useModal()
 
-const [registerTable, { getForm, reload }] = useTable({
-  title: '${table.classComment}列表',
-  api: get${simpleClassName}Page,
+  const [registerTable, {getForm, reload}] = useTable({
+    title: '${table.classComment}列表',
+    api: get${simpleClassName}Page,
     columns,
-    formConfig: { labelWidth: 120, schemas: searchFormSchema },
+    formConfig: {labelWidth: 120, schemas: searchFormSchema},
     useSearchForm: true,
     showTableSetting: true,
     actionColumn: {
@@ -26,33 +26,33 @@ const [registerTable, { getForm, reload }] = useTable({
       dataIndex: 'action',
       fixed: 'right',
     },
-})
-
-function handleCreate() {
-  openModal(true, { isUpdate: false })
-}
-
-function handleEdit(record: Recordable) {
-  openModal(true, { record, isUpdate: true })
-}
-
-async function handleExport() {
-  createConfirm({
-    title: t('common.exportTitle'),
-    iconType: 'warning',
-    content: t('common.exportMessage'),
-    async onOk() {
-      await export${simpleClassName}(getForm().getFieldsValue())
-      createMessage.success(t('common.exportSuccessText'))
-    },
   })
-}
 
-async function handleDelete(record: Recordable) {
-  await delete${simpleClassName}(record.id)
-  createMessage.success(t('common.delSuccessText'))
-  reload()
-}
+  function handleCreate() {
+    openModal(true, {isUpdate: false})
+  }
+
+  function handleEdit(record: Recordable) {
+    openModal(true, {record, isUpdate: true})
+  }
+
+  async function handleExport() {
+    createConfirm({
+      title: t('common.exportTitle'),
+      iconType: 'warning',
+      content: t('common.exportMessage'),
+      async onOk() {
+        await export${simpleClassName}(getForm().getFieldsValue())
+        createMessage.success(t('common.exportSuccessText'))
+      },
+    })
+  }
+
+  async function handleDelete(record: Recordable) {
+    await delete${simpleClassName}(record.id)
+    createMessage.success(t('common.delSuccessText'))
+    reload()
+  }
 </script>
 <template>
   <div>
@@ -68,24 +68,24 @@ async function handleDelete(record: Recordable) {
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
           <TableAction
-            :actions="[
-              { icon: IconEnum.EDIT, label: t('action.edit'), auth: '${permissionPrefix}:update', onClick: handleEdit.bind(null, record) },
-              {
-                icon: IconEnum.DELETE,
-                danger: true,
-                label: t('action.delete'),
-                auth: '${permissionPrefix}:delete',
-                popConfirm: {
+              :actions="[
+                  { icon: IconEnum.EDIT, label: t('action.edit'), auth: '${permissionPrefix}:update', onClick: handleEdit.bind(null, record) },
+                  {
+                  icon: IconEnum.DELETE,
+                  danger: true,
+                  label: t('action.delete'),
+                  auth: '${permissionPrefix}:delete',
+                  popConfirm: {
                   title: t('common.delMessage'),
                   placement: 'left',
                   confirm: handleDelete.bind(null, record),
-                },
-              },
-            ]"
+                  },
+                  },
+                  ]"
           />
         </template>
       </template>
     </BasicTable>
-    <${simpleClassName}Modal @register="registerModal" @success="reload()" />
+    <${simpleClassName}Modal @register="registerModal" @success="reload()"/>
   </div>
 </template>

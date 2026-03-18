@@ -28,7 +28,7 @@ import static com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils.
 
 /**
  * 提供给外部应用调用为主
- *
+ * <p>
  * 1. 在 getUserInfo 方法上，添加 @PreAuthorize("@ss.hasScope('user.read')") 注解，声明需要满足 scope = user.read
  * 2. 在 updateUserInfo 方法上，添加 @PreAuthorize("@ss.hasScope('user.write')") 注解，声明需要满足 scope = user.write
  *

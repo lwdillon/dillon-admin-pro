@@ -30,7 +30,6 @@ public class WMessagePane extends JPanel {
     private int type;
 
 
-
     private float alpha = 0f;
 
     /**
@@ -83,7 +82,7 @@ public class WMessagePane extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D oldG= (Graphics2D) g;
+        Graphics2D oldG = (Graphics2D) g;
         oldG.setComposite(AlphaComposite.SrcOver.derive(alpha));
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

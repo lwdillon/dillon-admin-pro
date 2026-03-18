@@ -27,9 +27,9 @@ public class AutoCompleteField<T> extends JTextField {
 
         // UI 配置
         popupMenu.setFocusable(false);
-        popupMenu.add(scrollPane=new JScrollPane(list));
+        popupMenu.add(scrollPane = new JScrollPane(list));
 
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(7,7,7,7));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
         list.setBorder(null);
         // 1. 监听文本输入 (DocumentListener)
         this.getDocument().addDocumentListener(new DocumentListener() {

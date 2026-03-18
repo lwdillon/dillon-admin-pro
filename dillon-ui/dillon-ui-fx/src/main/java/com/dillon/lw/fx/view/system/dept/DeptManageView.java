@@ -84,7 +84,7 @@ public class DeptManageView extends BaseView<DeptManageViewModel> implements Ini
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        root.getChildren().add(modalPane=new ModalPane());
+        root.getChildren().add(modalPane = new ModalPane());
         load = new RingProgressIndicator();
         load.disableProperty().bind(load.visibleProperty().not());
         load.visibleProperty().bindBidirectional(content.disableProperty());
@@ -125,16 +125,15 @@ public class DeptManageView extends BaseView<DeptManageViewModel> implements Ini
                     protected void updateItem(Long item, boolean empty) {
                         super.updateItem(item, empty);
 
-                        if (item==null) {
+                        if (item == null) {
                             setGraphic(null);
                             return;
                         }
                         Label label = new Label();
-                        UserSimpleRespVO userSimpleRespVO= viewModel.getUserMap().get(item);
-                        if (userSimpleRespVO !=null) {
+                        UserSimpleRespVO userSimpleRespVO = viewModel.getUserMap().get(item);
+                        if (userSimpleRespVO != null) {
                             label.setText(userSimpleRespVO.getNickname());
                         }
-
 
 
                         setGraphic(label);

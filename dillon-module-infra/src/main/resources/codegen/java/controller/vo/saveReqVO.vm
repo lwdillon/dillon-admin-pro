@@ -6,18 +6,18 @@ import java.util.*;
 import ${jakartaPackage}.validation.constraints.*;
 ## 处理 BigDecimal 字段的引入
 #foreach ($column in $columns)
-#if (${column.javaType} == "BigDecimal")
-import java.math.BigDecimal;
-#break
-#end
+    #if (${column.javaType} == "BigDecimal")
+    import java.math.BigDecimal;
+        #break
+    #end
 #end
 ## 处理 LocalDateTime 字段的引入
 #foreach ($column in $columns)
-#if ((${column.createOperation} || ${column.updateOperation}) && ${column.javaType} == "LocalDateTime")
-import org.springframework.format.annotation.DateTimeFormat;
-import java.time.LocalDateTime;
-#break
-#end
+    #if ((${column.createOperation} || ${column.updateOperation}) && ${column.javaType} == "LocalDateTime")
+    import org.springframework.format.annotation.DateTimeFormat;
+    import java.time.LocalDateTime;
+        #break
+    #end
 #end
 ## 特殊：主子表专属逻辑
 #foreach ($subTable in $subTables)
@@ -30,35 +30,37 @@ public class ${sceneEnum.prefixClass}${table.className}SaveReqVO {
 
 ## 逐个处理字段
 #foreach ($column in $columns)
-#if (${column.createOperation} || ${column.updateOperation})
-## 1. 处理 Swagger 注解
-    @Schema(description = "${column.columnComment}"#if (!${column.nullable}), requiredMode = Schema.RequiredMode.REQUIRED#end#if ("$!column.example" != ""), example = "${column.example}"#end)
-## 2. 处理 Validator 参数校验
-#if (!${column.nullable} && !${column.primaryKey})
-#if (${column.javaType} == 'String')
-    @NotEmpty(message = "${column.columnComment}不能为空")
-#else
-    @NotNull(message = "${column.columnComment}不能为空")
-#end
-#end
-## 3. 处理字段定义
+    #if (${column.createOperation} || ${column.updateOperation})
+        ## 1. 处理 Swagger 注解
+    @Schema(description = "${column.columnComment}"#if (!${column.nullable}), requiredMode = Schema.RequiredMode.REQUIRED#end#if (
+        "$!column.example" != ""), example = "${column.example}"#end)
+        ## 2. 处理 Validator 参数校验
+        #if (!${column.nullable} && !${column.primaryKey})
+            #if (${column.javaType} == 'String')
+            @NotEmpty(message = "${column.columnComment}不能为空")
+            #else
+            @NotNull(message = "${column.columnComment}不能为空")
+            #end
+        #end
+        ## 3. 处理字段定义
     private ${column.javaType} ${column.javaField};
-
-#end
-#end
-## 特殊：主子表专属逻辑（非 ERP 模式）
-#if ( $subTables && $subTables.size() > 0 && $table.templateType != 11 )
-#foreach ($subTable in $subTables)
-#set ($index = $foreach.count - 1)
-    #if ( $subTable.subJoinMany)
-    @Schema(description = "${subTable.classComment}列表")
-    private List<${subTable.className}DO> ${subClassNameVars.get($index)}s;
-
-    #else
-    @Schema(description = "${subTable.classComment}")
-    private ${subTable.className}DO ${subClassNameVars.get($index)};
 
     #end
 #end
+## 特殊：主子表专属逻辑（非 ERP 模式）
+#if ( $subTables && $subTables.size() > 0 && $table.templateType != 11 )
+    #foreach ($subTable in $subTables)
+        #set ($index = $foreach.count - 1)
+        #if ( $subTable.subJoinMany)
+        @Schema(description = "${subTable.classComment}列表")
+        private List
+        <${subTable.className}DO> ${subClassNameVars.get($index)}s;
+
+        #else
+            @Schema(description = "${subTable.classComment}")
+            private ${subTable.className}DO ${subClassNameVars.get($index)};
+
+        #end
+    #end
 #end
-}
+    }

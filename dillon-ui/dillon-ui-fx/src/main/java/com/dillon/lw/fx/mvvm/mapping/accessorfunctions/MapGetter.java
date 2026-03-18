@@ -28,11 +28,10 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface MapGetter<M, K, V> extends Function<M, Map<K, V>> {
 
-	/**
-	 * @param model the model instance
-	 *
-	 * @return the value of the field
-	 */
-	@Override
-	Map<K, V> apply(M model);
+    /**
+     * @param model the model instance
+     * @return the value of the field
+     */
+    @Override
+    Map<K, V> apply(M model);
 }

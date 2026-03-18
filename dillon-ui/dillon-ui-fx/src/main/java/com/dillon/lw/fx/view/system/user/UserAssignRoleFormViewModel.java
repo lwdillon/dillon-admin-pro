@@ -7,21 +7,23 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleRespVO;
 import com.dillon.lw.module.system.controller.admin.user.vo.user.UserRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 public class UserAssignRoleFormViewModel extends BaseViewModel {
 
@@ -38,30 +40,37 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
         username.set(userRespVO.getUsername());
         nickname.set(userRespVO.getNickname());
 
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).listAdminRoles(userRespVO.getId()).getCheckedData();
-        }).thenAcceptAsync(roleIds -> {
-            selRoleIdItems = FXCollections.observableSet(roleIds);
-        }, Platform::runLater).thenComposeAsync(v -> {
-            return CompletableFuture.supplyAsync(() -> {
-                return Forest.client(RoleApi.class).getSimpleRoleList().getCheckedData();
-            });
-        }).thenAcceptAsync(roleRespVOS -> {
-            ObservableList<RoleRespVO> list = FXCollections.observableArrayList();
-            list.addAll(roleRespVOS);
-            for (RoleRespVO respVO : roleRespVOS) {
-                if (selRoleIdItems != null) {
-                    if (selRoleIdItems.contains(respVO.getId())) {
-                        selRoleItems.add(respVO);
+        Single
+                /*
+                 * 用户已分配角色和全部角色列表可以并行获取，
+                 * 用 zip 组合后一次性回到 JavaFX UI 线程刷新候选列表与已选中项。
+                 */
+                .zip(
+                        Single.fromCallable(() -> Forest.client(PermissionApi.class).listAdminRoles(userRespVO.getId()).getCheckedData()),
+                        Single.fromCallable(() -> Forest.client(RoleApi.class).getSimpleRoleList().getCheckedData()),
+                        (roleIds, roleRespVOS) -> {
+                            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>();
+                            result.put("roleIds", roleIds);
+                            result.put("roles", roleRespVOS);
+                            return result;
+                        }
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(result -> {
+                    selRoleIdItems = FXCollections.observableSet((java.util.Set<Long>) result.get("roleIds"));
+                    java.util.List<RoleRespVO> roleRespVOS = (java.util.List<RoleRespVO>) result.get("roles");
+                    ObservableList<RoleRespVO> list = FXCollections.observableArrayList();
+                    list.addAll(roleRespVOS);
+                    selRoleItems.clear();
+                    for (RoleRespVO respVO : roleRespVOS) {
+                        if (selRoleIdItems != null && selRoleIdItems.contains(respVO.getId())) {
+                            selRoleItems.add(respVO);
+                        }
                     }
-                }
-            }
-            roleItems.set(list);
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+                    roleItems.set(list);
+                }, DefaultExceptionHandler::handle);
     }
 
     public String getUsername() {
@@ -105,16 +114,16 @@ public class UserAssignRoleFormViewModel extends BaseViewModel {
             permissionAssignUserRoleReqVO.setRoleIds(roleIds);
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            EventBusCenter.get().post(new MessageEvent("分配角色成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(PermissionApi.class).assignUserRole(permissionAssignUserRoleReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    EventBusCenter.get().post(new MessageEvent("分配角色成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新用户列表"));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
 

@@ -4,13 +4,16 @@ import cn.hutool.core.util.ObjectUtil;
 import com.dillon.lw.api.infra.ApiAccessLogApi;
 import com.dillon.lw.fx.DefaultExceptionHandler;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public class ApiAccessLogViewModel extends BaseViewModel {
 
@@ -63,17 +65,21 @@ public class ApiAccessLogViewModel extends BaseViewModel {
         }
 
         queryMap.values().removeAll(Collections.singleton(null));
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            ObservableList<ApiAccessLogRespVO> respVOS = FXCollections.observableArrayList();
-            respVOS.addAll(data.getList());
-            tableItems.set(respVOS);
-            totalProperty().set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * API 访问日志分页查询改成标准 RxJava 链：
+                 * 请求放到 IO 线程，表格数据与分页属性回到 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(ApiAccessLogApi.class).getApiAccessLogPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    ObservableList<ApiAccessLogRespVO> respVOS = FXCollections.observableArrayList();
+                    respVOS.addAll(data.getList());
+                    tableItems.set(respVOS);
+                    totalProperty().set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }

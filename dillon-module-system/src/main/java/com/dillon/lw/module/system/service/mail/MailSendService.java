@@ -17,11 +17,11 @@ public interface MailSendService {
     /**
      * 发送单条邮件给管理后台的用户
      *
-     * @param userId 用户编码
-     * @param toMails 收件邮箱
-     * @param ccMails 抄送邮箱
-     * @param bccMails 密送邮箱
-     * @param templateCode 邮件模版编码
+     * @param userId         用户编码
+     * @param toMails        收件邮箱
+     * @param ccMails        抄送邮箱
+     * @param bccMails       密送邮箱
+     * @param templateCode   邮件模版编码
      * @param templateParams 邮件模版参数
      * @return 发送日志编号
      */
@@ -35,11 +35,11 @@ public interface MailSendService {
     /**
      * 发送单条邮件给用户 APP 的用户
      *
-     * @param userId 用户编码
-     * @param toMails 收件邮箱
-     * @param ccMails 抄送邮箱
-     * @param bccMails 密送邮箱
-     * @param templateCode 邮件模版编码
+     * @param userId         用户编码
+     * @param toMails        收件邮箱
+     * @param ccMails        抄送邮箱
+     * @param bccMails       密送邮箱
+     * @param templateCode   邮件模版编码
      * @param templateParams 邮件模版参数
      * @return 发送日志编号
      */
@@ -53,12 +53,12 @@ public interface MailSendService {
     /**
      * 发送单条邮件
      *
-     * @param toMails 收件邮箱
-     * @param ccMails 抄送邮箱
-     * @param bccMails 密送邮箱
-     * @param userId 用户编号
-     * @param userType 用户类型
-     * @param templateCode 邮件模版编码
+     * @param toMails        收件邮箱
+     * @param ccMails        抄送邮箱
+     * @param bccMails       密送邮箱
+     * @param userId         用户编号
+     * @param userType       用户类型
+     * @param templateCode   邮件模版编码
      * @param templateParams 邮件模版参数
      * @return 发送日志编号
      */

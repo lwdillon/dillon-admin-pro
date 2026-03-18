@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * 基础实体对象
- *
+ * <p>
  * 为什么实现 {@link TransPojo} 接口？
  * 因为使用 Easy-Trans TransType.SIMPLE 模式，集成 MyBatis Plus 查询
  *
@@ -35,14 +35,14 @@ public abstract class BaseDO implements Serializable, TransPojo {
     private LocalDateTime updateTime;
     /**
      * 创建者，目前使用 SysUser 的 id 编号
-     *
+     * <p>
      * 使用 String 类型的原因是，未来可能会存在非数值的情况，留好拓展性。
      */
     @TableField(fill = FieldFill.INSERT, jdbcType = JdbcType.VARCHAR)
     private String creator;
     /**
      * 更新者，目前使用 SysUser 的 id 编号
-     *
+     * <p>
      * 使用 String 类型的原因是，未来可能会存在非数值的情况，留好拓展性。
      */
     @TableField(fill = FieldFill.INSERT_UPDATE, jdbcType = JdbcType.VARCHAR)
@@ -56,7 +56,7 @@ public abstract class BaseDO implements Serializable, TransPojo {
     /**
      * 把 creator、createTime、updateTime、updater 都清空，避免前端直接传递 creator 之类的字段，直接就被更新了
      */
-    public void clean(){
+    public void clean() {
         this.creator = null;
         this.createTime = null;
         this.updater = null;

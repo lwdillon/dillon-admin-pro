@@ -31,16 +31,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_FILE_STORAGE;
 import static javax.swing.JOptionPane.*;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class FileConfigPane extends JPanel {
+public class FileConfigPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private String[] COLUMN_ID = {"编号", "配置名", "存储器", "备注", "主配置", "创建时间", "操作"};
 
     private DefaultTableModel tableModel;
@@ -58,7 +62,7 @@ public class FileConfigPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -273,31 +277,34 @@ public class FileConfigPane extends JPanel {
 
 
     private void add(FileConfigSaveReqVO roleSaveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).createFileConfig(roleSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(id -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 新增配置完成后要立刻刷新列表，因此把成功提示和刷新动作统一放在 EDT。
+                 */
+                .fromCallable(() -> Forest.client(FileConfigApi.class).createFileConfig(roleSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(id -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "添加成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void edit(FileConfigSaveReqVO roleSaveReqVO) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).updateFileConfig(roleSaveReqVO).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 修改配置与新增同样是同步提交请求，统一走 RxJava 链，
+                 * 避免页面线程直接等待接口返回。
+                 */
+                .fromCallable(() -> Forest.client(FileConfigApi.class).updateFileConfig(roleSaveReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "修改成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void del() {
@@ -317,17 +324,18 @@ public class FileConfigPane extends JPanel {
         }
 
         Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).deleteFileConfig(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 删除配置后需要立即回到界面层给出反馈并刷新表格。
+                 */
+                .fromCallable(() -> Forest.client(FileConfigApi.class).deleteFileConfig(finalId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void updateFileConfigMaster() {
@@ -345,17 +353,18 @@ public class FileConfigPane extends JPanel {
         }
 
         Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).updateFileConfigMaster(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "主配置更新成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 切换主配置也是一次后台写操作，保持和其他按钮一致的线程模型。
+                 */
+                .fromCallable(() -> Forest.client(FileConfigApi.class).updateFileConfigMaster(finalId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "主配置更新成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
 
@@ -382,57 +391,73 @@ public class FileConfigPane extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).getFileConfigPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(Convert.toLong(roleRespVO.get("id")));
-                rowV.add(Convert.toStr(roleRespVO.get("name")));
-                rowV.add(Convert.toInt(roleRespVO.get("storage")));
-                rowV.add(Convert.toStr(roleRespVO.get("remark")));
-                rowV.add(Convert.toBool(roleRespVO.get("master")));
-                rowV.add(DateUtil.format(Convert.toLocalDateTime(roleRespVO.get("createTime")), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            paginationPane.setTotal(result.getTotal());
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setMinWidth(180);
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        Single
+                /*
+                 * 文件配置列表页要更新分页、表格和徽标渲染器，
+                 * 所以请求放到 IO，所有 Swing 更新统一放到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(FileConfigApi.class).getFileConfigPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询进行时先禁用搜索按钮，避免同一批文件配置筛选条件被重复提交。
+                     * doOnSubscribe 不一定在 EDT 执行，因此按钮更新显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后统一恢复按钮，成功、失败和取消场景都保持一致。
+                     * doFinally 同样没有 EDT 保证，所以恢复动作继续交给 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(Convert.toLong(roleRespVO.get("id")));
+                        rowV.add(Convert.toStr(roleRespVO.get("name")));
+                        rowV.add(Convert.toInt(roleRespVO.get("storage")));
+                        rowV.add(Convert.toStr(roleRespVO.get("remark")));
+                        rowV.add(Convert.toBool(roleRespVO.get("master")));
+                        rowV.add(DateUtil.format(Convert.toLocalDateTime(roleRespVO.get("createTime")), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    paginationPane.setTotal(result.getTotal());
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setMinWidth(180);
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-            table.getColumn("存储器").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_FILE_STORAGE, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            table.getColumn("主配置").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                    table.getColumn("存储器").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_FILE_STORAGE, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    table.getColumn("主配置").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                }, SwingExceptionHandler::handle);
 
 
     }

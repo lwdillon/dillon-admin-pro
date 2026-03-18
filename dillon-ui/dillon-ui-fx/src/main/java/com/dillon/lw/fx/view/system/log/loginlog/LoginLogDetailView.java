@@ -16,7 +16,7 @@ import static atlantafx.base.theme.Styles.*;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_RESULT;
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_LOGIN_TYPE;
 
-public class LoginLogDetailView extends BaseView<LoginLogDetailViewModel>implements Initializable {
+public class LoginLogDetailView extends BaseView<LoginLogDetailViewModel> implements Initializable {
     @FXML
     private TextField createTimeField;
 
@@ -43,26 +43,26 @@ public class LoginLogDetailView extends BaseView<LoginLogDetailViewModel>impleme
 
 
         logTypeBut.textProperty().bind(Bindings.createStringBinding(
-                () -> AppStore.getDictDataValueMap(SYSTEM_LOGIN_TYPE).get(viewModel.logTypeProperty().get()+"").getLabel() + "",
+                () -> AppStore.getDictDataValueMap(SYSTEM_LOGIN_TYPE).get(viewModel.logTypeProperty().get() + "").getLabel() + "",
                 viewModel.logTypeProperty()));
 
         logTypeBut.textProperty().addListener((observableValue, s, t1) -> {
-            DictDataSimpleRespVO dict=AppStore.getDictDataLabelMap(SYSTEM_LOGIN_TYPE).get(t1);
+            DictDataSimpleRespVO dict = AppStore.getDictDataLabelMap(SYSTEM_LOGIN_TYPE).get(t1);
             switch (dict.getColorType()) {
                 case "primary":
-                    logTypeBut.getStyleClass().addAll( ACCENT);
+                    logTypeBut.getStyleClass().addAll(ACCENT);
                     break;
                 case "success":
-                    logTypeBut.getStyleClass().addAll( SUCCESS);
+                    logTypeBut.getStyleClass().addAll(SUCCESS);
                     break;
                 case "info":
                     logTypeBut.getStyleClass().addAll(BUTTON_OUTLINED);
                     break;
                 case "warning":
-                    logTypeBut.getStyleClass().addAll( WARNING);
+                    logTypeBut.getStyleClass().addAll(WARNING);
                     break;
                 case "danger":
-                    logTypeBut.getStyleClass().addAll( DANGER);
+                    logTypeBut.getStyleClass().addAll(DANGER);
                     break;
                 default:
                     logTypeBut.getStyleClass().addAll(BUTTON_OUTLINED);
@@ -70,31 +70,30 @@ public class LoginLogDetailView extends BaseView<LoginLogDetailViewModel>impleme
         });
 
 
-
-        resultBut.textProperty().addListener((observableValue, s, t1)  -> {
-            DictDataSimpleRespVO dict=AppStore.getDictDataLabelMap(SYSTEM_LOGIN_RESULT).get(resultBut.getText());
+        resultBut.textProperty().addListener((observableValue, s, t1) -> {
+            DictDataSimpleRespVO dict = AppStore.getDictDataLabelMap(SYSTEM_LOGIN_RESULT).get(resultBut.getText());
             switch (dict.getColorType()) {
                 case "primary":
-                    resultBut.getStyleClass().addAll( ACCENT);
+                    resultBut.getStyleClass().addAll(ACCENT);
                     break;
                 case "success":
-                    resultBut.getStyleClass().addAll( SUCCESS);
+                    resultBut.getStyleClass().addAll(SUCCESS);
                     break;
                 case "info":
                     resultBut.getStyleClass().addAll(BUTTON_OUTLINED);
                     break;
                 case "warning":
-                    resultBut.getStyleClass().addAll( WARNING);
+                    resultBut.getStyleClass().addAll(WARNING);
                     break;
                 case "danger":
-                    resultBut.getStyleClass().addAll( DANGER);
+                    resultBut.getStyleClass().addAll(DANGER);
                     break;
                 default:
                     resultBut.getStyleClass().addAll(BUTTON_OUTLINED);
             }
         });
         resultBut.textProperty().bind(Bindings.createStringBinding(
-                () -> AppStore.getDictDataValueMap(SYSTEM_LOGIN_RESULT).get(viewModel.resultProperty().get()+"").getLabel() + "",
+                () -> AppStore.getDictDataValueMap(SYSTEM_LOGIN_RESULT).get(viewModel.resultProperty().get() + "").getLabel() + "",
                 viewModel.resultProperty()));
 
         createTimeField.textProperty().bind(Bindings.convert(viewModel.createTimeProperty()));

@@ -26,6 +26,12 @@ public final class Resources {
         return URI.create(url.toExternalForm());
     }
 
+    public static URL getResourceURL(String resource) {
+        String path = resolve(resource);
+        URL url = Objects.requireNonNull(AppStart.class.getResource(resolve(path)), "Resource not found: " + path);
+        return url;
+    }
+
     public static String resolve(String resource) {
         Objects.requireNonNull(resource);
         return resource.startsWith("/") ? resource : MODULE_DIR + resource;

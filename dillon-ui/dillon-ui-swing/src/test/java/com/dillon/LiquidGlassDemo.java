@@ -15,7 +15,7 @@ public class LiquidGlassDemo extends JFrame {
         // --- 浅色模式面板 ---
         JPanel lightContainer = new JPanel(new GridBagLayout());
         lightContainer.setBackground(new Color(220, 230, 240)); // 淡蓝色背景
-        
+
         JButton lightButton = new JButton("Light Glass");
         styleButton(lightButton, new Color(255, 255, 255, 100), false);
         lightContainer.add(lightButton);
@@ -23,7 +23,7 @@ public class LiquidGlassDemo extends JFrame {
         // --- 暗色模式面板 ---
         JPanel darkContainer = new JPanel(new GridBagLayout());
         darkContainer.setBackground(new Color(25, 25, 35)); // 深色背景
-        
+
         JButton darkButton = new JButton("Dark Glass");
         styleButton(darkButton, new Color(50, 50, 60, 150), true);
         darkContainer.add(darkButton);
@@ -39,10 +39,10 @@ public class LiquidGlassDemo extends JFrame {
         btn.setOpaque(false);
         btn.setForeground(isDark ? Color.WHITE : Color.DARK_GRAY);
         btn.setFont(new Font("SansSerif", Font.BOLD, 14));
-        
+
         // 应用我们定义的边框
         btn.setBorder(new LiquidGlassBorder(25, isDark));
-        
+
         // 简单的背景填充以配合边框
         btn.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override

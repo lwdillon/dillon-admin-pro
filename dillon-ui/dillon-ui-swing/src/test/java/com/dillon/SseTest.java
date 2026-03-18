@@ -34,12 +34,13 @@ public class SseTest {
         ForestConfig.init();
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(new Dimension(700,300));
+        frame.setSize(new Dimension(700, 300));
         SsePanel testPane = new SsePanel();
         frame.setContentPane(new WLocalDateCombo());
         frame.setVisible(true);
 
     }
+
     private static void loadApplicationProperties() {
         Properties properties = new Properties();
         try (InputStreamReader in = new InputStreamReader(Resources.getResourceAsStream("/application.properties"),

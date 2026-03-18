@@ -40,7 +40,7 @@ public class SmsReceiveRespDTO {
     private String serialNo;
     /**
      * 短信日志编号
-     *
+     * <p>
      * 对应 SysSmsLogDO 的编号
      */
     private Long logId;

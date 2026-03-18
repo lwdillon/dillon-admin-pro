@@ -30,7 +30,7 @@ import static atlantafx.base.theme.Styles.BUTTON_CIRCLE;
  * @author liwen
  * @date 2022/09/16
  */
-public class UserInfoView extends BaseView<UserInfoViewModel>implements Initializable {
+public class UserInfoView extends BaseView<UserInfoViewModel> implements Initializable {
 
 
     @FXML
@@ -152,20 +152,20 @@ public class UserInfoView extends BaseView<UserInfoViewModel>implements Initiali
         });
 
         sexComboBox.valueProperty().addListener((observableValue, o, t1) -> {
-            int sex=3;
+            int sex = 3;
             if ("男".equals(t1)) {
-                sex=1;
+                sex = 1;
             } else if ("女".equals(t1)) {
-                sex=2;
+                sex = 2;
             }
             viewModel.sexProperty().set(sex);
         });
         viewModel.sexProperty().addListener((observableValue, number, t1) -> {
-            String sex="未知";
-            if (t1.intValue()==1) {
-                sex="男";
-            } else if (t1.intValue()==2) {
-                sex="女";
+            String sex = "未知";
+            if (t1.intValue() == 1) {
+                sex = "男";
+            } else if (t1.intValue() == 2) {
+                sex = "女";
             }
             sexComboBox.setValue(sex);
         });

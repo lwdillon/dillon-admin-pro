@@ -23,7 +23,7 @@ public interface FileApi {
      * 保存文件，并返回文件的访问路径
      *
      * @param content 文件内容
-     * @param name 文件名称，允许空
+     * @param name    文件名称，允许空
      * @return 文件路径
      */
     default String createFile(byte[] content, String name) {
@@ -33,10 +33,10 @@ public interface FileApi {
     /**
      * 保存文件，并返回文件的访问路径
      *
-     * @param content 文件内容
-     * @param name 文件名称，允许空
+     * @param content   文件内容
+     * @param name      文件名称，允许空
      * @param directory 目录，允许空
-     * @param type 文件的 MIME 类型，允许空
+     * @param type      文件的 MIME 类型，允许空
      * @return 文件路径
      */
     String createFile(@NotEmpty(message = "文件内容不能为空") byte[] content,
@@ -45,7 +45,7 @@ public interface FileApi {
     /**
      * 生成文件预签名地址，用于读取
      *
-     * @param url 完整的文件访问地址
+     * @param url               完整的文件访问地址
      * @param expirationSeconds 访问有效期，单位秒
      * @return 文件预签名地址
      */

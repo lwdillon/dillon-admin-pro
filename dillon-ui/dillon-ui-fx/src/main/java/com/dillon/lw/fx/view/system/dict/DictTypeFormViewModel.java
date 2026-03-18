@@ -8,17 +8,18 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReqVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
-
-import java.util.concurrent.CompletableFuture;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class DictTypeFormViewModel extends BaseViewModel {
 
@@ -33,16 +34,16 @@ public class DictTypeFormViewModel extends BaseViewModel {
             setDictType(new DictTypeSaveReqVO());
             return;
         }
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).getDictType(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            DictTypeSaveReqVO dictTypeSaveReqVO = new DictTypeSaveReqVO();
-            BeanUtil.copyProperties(data, dictTypeSaveReqVO);
-            setDictType(dictTypeSaveReqVO);
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DictTypeApi.class).getDictType(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    DictTypeSaveReqVO dictTypeSaveReqVO = new DictTypeSaveReqVO();
+                    BeanUtil.copyProperties(data, dictTypeSaveReqVO);
+                    setDictType(dictTypeSaveReqVO);
+                }, DefaultExceptionHandler::handle);
     }
 
     /**
@@ -63,31 +64,31 @@ public class DictTypeFormViewModel extends BaseViewModel {
 
     public void addDictType(ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).createDictType(getDictType()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
-            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DictTypeApi.class).createDictType(getDictType()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
+                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void updateDictType(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DictTypeApi.class).updateDictType(getDictType()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(DictTypeApi.class).updateDictType(getDictType()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新字典类型列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public StringProperty nameProperty() {
@@ -115,4 +116,3 @@ public class DictTypeFormViewModel extends BaseViewModel {
         return edit;
     }
 }
-

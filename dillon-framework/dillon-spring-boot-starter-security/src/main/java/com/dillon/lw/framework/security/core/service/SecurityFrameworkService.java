@@ -25,7 +25,7 @@ public interface SecurityFrameworkService {
 
     /**
      * 判断是否有角色
-     *
+     * <p>
      * 注意，角色使用的是 SysRoleDO 的 code 标识
      *
      * @param role 角色

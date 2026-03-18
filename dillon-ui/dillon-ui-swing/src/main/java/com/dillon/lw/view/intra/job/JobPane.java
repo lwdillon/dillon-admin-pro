@@ -32,15 +32,19 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_JOB_STATUS;
 import static javax.swing.JOptionPane.*;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class JobPane extends JPanel {
+public class JobPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private String[] COLUMN_ID = {"任务编号", "任务名称", "任务状态", "处理器的名字", "处理器的参数", "CRON 表达式", "操作"};
 
     private DefaultTableModel tableModel;
@@ -58,7 +62,7 @@ public class JobPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -294,17 +298,19 @@ public class JobPane extends JPanel {
             return;
         }
         Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).triggerJob(finalId).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 手动触发任务会发起一次同步请求，放到 IO 线程执行，
+                 * 成功后的提示与列表刷新回到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).triggerJob(finalId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "执行成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
 
     }
 
@@ -327,17 +333,19 @@ public class JobPane extends JPanel {
         Long finalId = id;
         int status = jobRespVO.getStatus() == 2 ? 1 : 2;
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).updateJobStatus(finalId, status).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 开启/暂停按钮属于写操作，接口执行在线程池中进行，
+                 * 页面提示和刷新继续在 EDT 中完成。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).updateJobStatus(finalId, status).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), text + "成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
 
     }
 
@@ -357,17 +365,18 @@ public class JobPane extends JPanel {
             return;
         }
         Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).deleteJob(finalId).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            loadTableData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 删除任务后要同步刷新当前页数据，保持“后台请求、前台更新”分层。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).deleteJob(finalId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -398,48 +407,63 @@ public class JobPane extends JPanel {
         queryMap.put("status", status);
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            Vector<Vector> tableData = new Vector<Vector>();
+        Single
+                /*
+                 * 列表查询负责拉取分页结果，表格行和状态徽标的渲染必须回到 EDT 执行。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 搜索按钮在任务列表查询期间保持禁用，避免用户连续点击制造重复请求。
+                     * doOnSubscribe 没有 EDT 保证，所以按钮状态切换显式交给 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后恢复按钮，保证异常或取消场景下也能重新检索。
+                     * doFinally 可能运行在后台线程，因此恢复动作同样走 EDT。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<Vector>();
 
-            result.getList().forEach(respVO -> {
-                Vector rowV = new Vector();
-                rowV.add(respVO.getId());
-                rowV.add(respVO.getName());
-                rowV.add(respVO.getStatus());
-                rowV.add(respVO.getHandlerName());
-                rowV.add(respVO.getHandlerParam());
-                rowV.add(respVO.getCronExpression());
-                rowV.add(respVO);
-                tableData.add(rowV);
-            });
+                    result.getList().forEach(respVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(respVO.getId());
+                        rowV.add(respVO.getName());
+                        rowV.add(respVO.getStatus());
+                        rowV.add(respVO.getHandlerName());
+                        rowV.add(respVO.getHandlerParam());
+                        rowV.add(respVO.getCronExpression());
+                        rowV.add(respVO);
+                        tableData.add(rowV);
+                    });
 
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setMinWidth(240);
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setMinWidth(240);
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-            table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                    table.getColumn("任务状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_JOB_STATUS, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -452,46 +476,46 @@ public class JobPane extends JPanel {
         }
 
         JobRespVO finalRespVO = respVO;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJobNextTimes(finalRespVO.getId(), 5).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            DefaultListModel listModel = new DefaultListModel();
+        Single
+                /*
+                 * “任务详细”弹窗需要先读取后续执行时间列表，
+                 * 仍然保持请求在线程池、弹窗组装在 EDT 的方式。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).getJobNextTimes(finalRespVO.getId(), 5).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    DefaultListModel listModel = new DefaultListModel();
 
-            int index = 1;
-            for (LocalDateTime dateTime : result) {
-                listModel.addElement("第" + index + "次: " + DateUtil.format(dateTime, "yyyy-MM-dd HH:mm:ss"));
-                index++;
-            }
-            JList<String> list = new JList<>();
-            list.setModel(listModel);
-            JPanel panel = new JPanel();
-            panel.setLayout(new MigLayout(
-                    "fill,insets 0,hidemode 3",
-                    // columns
-                    "[fill][grow,fill]",
-                    // rows
-                    "[][][][][][][][][][]"));
-            panel.setPreferredSize(new Dimension(450, 600));
-            addMessageInfo("任务编号", finalRespVO.getId(), panel, 0);
-            addMessageInfo("任务名称", finalRespVO.getName(), panel, 1);
-            addMessageInfo("任务状态", INFRA_JOB_STATUS, finalRespVO.getStatus(), panel, 2);
-            addMessageInfo("处理器的名字", finalRespVO.getHandlerName(), panel, 3);
-            addMessageInfo("处理器的参数", finalRespVO.getHandlerParam(), panel, 4);
-            addMessageInfo("Cron 表达式", finalRespVO.getCronExpression(), panel, 5);
-            addMessageInfo("重试次数", finalRespVO.getRetryCount(), panel, 6);
-            addMessageInfo("重试间隔", finalRespVO.getRetryInterval(), panel, 7);
-            addMessageInfo("监控超时时间", finalRespVO.getMonitorTimeout(), panel, 8);
-            panel.add(new JLabel("后续执行时间"), "cell 0 9");
-            panel.add(list, "cell 1 9,growy 0");
-            JOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
-
-
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                    int index = 1;
+                    for (LocalDateTime dateTime : result) {
+                        listModel.addElement("第" + index + "次: " + DateUtil.format(dateTime, "yyyy-MM-dd HH:mm:ss"));
+                        index++;
+                    }
+                    JList<String> list = new JList<>();
+                    list.setModel(listModel);
+                    JPanel panel = new JPanel();
+                    panel.setLayout(new MigLayout(
+                            "fill,insets 0,hidemode 3",
+                            // columns
+                            "[fill][grow,fill]",
+                            // rows
+                            "[][][][][][][][][][]"));
+                    panel.setPreferredSize(new Dimension(450, 600));
+                    addMessageInfo("任务编号", finalRespVO.getId(), panel, 0);
+                    addMessageInfo("任务名称", finalRespVO.getName(), panel, 1);
+                    addMessageInfo("任务状态", INFRA_JOB_STATUS, finalRespVO.getStatus(), panel, 2);
+                    addMessageInfo("处理器的名字", finalRespVO.getHandlerName(), panel, 3);
+                    addMessageInfo("处理器的参数", finalRespVO.getHandlerParam(), panel, 4);
+                    addMessageInfo("Cron 表达式", finalRespVO.getCronExpression(), panel, 5);
+                    addMessageInfo("重试次数", finalRespVO.getRetryCount(), panel, 6);
+                    addMessageInfo("重试间隔", finalRespVO.getRetryInterval(), panel, 7);
+                    addMessageInfo("监控超时时间", finalRespVO.getMonitorTimeout(), panel, 8);
+                    panel.add(new JLabel("后续执行时间"), "cell 0 9");
+                    panel.add(list, "cell 1 9,growy 0");
+                    JOptionPane.showOptionDialog(null, panel, "任务详细", OK_CANCEL_OPTION, PLAIN_MESSAGE, null, new Object[]{"确定", "取消"}, "确定");
+                }, SwingExceptionHandler::handle);
 
 
     }

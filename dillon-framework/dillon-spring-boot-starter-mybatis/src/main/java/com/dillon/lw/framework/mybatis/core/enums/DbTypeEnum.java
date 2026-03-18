@@ -20,7 +20,7 @@ public enum DbTypeEnum {
 
     /**
      * H2
-     *
+     * <p>
      * 注意：H2 不支持 find_in_set 函数
      */
     H2(DbType.H2, "H2", ""),
@@ -37,10 +37,10 @@ public enum DbTypeEnum {
 
     /**
      * PostgreSQL
-     *
+     * <p>
      * 华为 openGauss 使用 ProductName 与 PostgreSQL 相同
      */
-    POSTGRE_SQL(DbType.POSTGRE_SQL,"PostgreSQL", "POSITION('#{value}' IN #{column}) <> 0"),
+    POSTGRE_SQL(DbType.POSTGRE_SQL, "PostgreSQL", "POSITION('#{value}' IN #{column}) <> 0"),
 
     /**
      * SQL Server
@@ -64,9 +64,7 @@ public enum DbTypeEnum {
     /**
      * OceanBase
      */
-    OCEAN_BASE(DbType.OCEAN_BASE, "OceanBase", "FIND_IN_SET('#{value}', #{column}) <> 0")
-
-    ;
+    OCEAN_BASE(DbType.OCEAN_BASE, "OceanBase", "FIND_IN_SET('#{value}', #{column}) <> 0");
 
     public static final Map<String, DbTypeEnum> MAP_BY_NAME = Arrays.stream(values())
             .collect(Collectors.toMap(DbTypeEnum::getProductName, Function.identity()));

@@ -38,19 +38,19 @@ public class DictDataDO extends BaseDO {
     private String value;
     /**
      * 字典类型
-     *
+     * <p>
      * 冗余 {@link DictDataDO#getDictType()}
      */
     private String dictType;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
     /**
      * 颜色类型
-     *
+     * <p>
      * 对应到 element-ui 为 default、primary、success、info、warning、danger
      */
     private String colorType;

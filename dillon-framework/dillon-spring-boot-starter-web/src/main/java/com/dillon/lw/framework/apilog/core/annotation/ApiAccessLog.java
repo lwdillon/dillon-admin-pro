@@ -22,21 +22,24 @@ public @interface ApiAccessLog {
      * 是否记录访问日志
      */
     boolean enable() default true;
+
     /**
      * 是否记录请求参数
-     *
+     * <p>
      * 默认记录，主要考虑请求数据一般不大。可手动设置为 false 进行关闭
      */
     boolean requestEnable() default true;
+
     /**
      * 是否记录响应结果
-     *
+     * <p>
      * 默认不记录，主要考虑响应数据可能比较大。可手动设置为 true 进行打开
      */
     boolean responseEnable() default false;
+
     /**
      * 敏感参数数组
-     *
+     * <p>
      * 添加后，请求参数、响应结果不会记录该参数
      */
     String[] sanitizeKeys() default {};
@@ -45,19 +48,21 @@ public @interface ApiAccessLog {
 
     /**
      * 操作模块
-     *
+     * <p>
      * 为空时，会尝试读取 {@link io.swagger.v3.oas.annotations.tags.Tag#name()} 属性
      */
     String operateModule() default "";
+
     /**
      * 操作名
-     *
+     * <p>
      * 为空时，会尝试读取 {@link io.swagger.v3.oas.annotations.Operation#summary()} 属性
      */
     String operateName() default "";
+
     /**
      * 操作分类
-     *
+     * <p>
      * 实际并不是数组，因为枚举不能设置 null 作为默认值
      */
     OperateTypeEnum[] operateType() default {};

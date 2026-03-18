@@ -17,12 +17,16 @@ import java.awt.event.HierarchyEvent;
  * @author liwen
  * @date 2022/07/08
  */
-public abstract class AbstractRefreshablePanel extends JPanel {
+public abstract class AbstractRefreshablePanel extends AbstractDisposablePanel {
 
-    /** 是否需要刷新 */
+    /**
+     * 是否需要刷新
+     */
     private boolean dirty = false;
 
-    /** 是否已经注册到 EventBus */
+    /**
+     * 是否已经注册到 EventBus
+     */
     private boolean registered = false;
 
     /**
@@ -70,6 +74,7 @@ public abstract class AbstractRefreshablePanel extends JPanel {
 
     /**
      * 处理刷新事件
+     *
      * @param event 刷新数据事件
      */
     @Subscribe

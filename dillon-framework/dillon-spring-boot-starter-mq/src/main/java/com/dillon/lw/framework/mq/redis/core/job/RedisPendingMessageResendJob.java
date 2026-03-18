@@ -27,7 +27,7 @@ public class RedisPendingMessageResendJob {
 
     /**
      * 消息超时时间，默认 5 分钟
-     *
+     * <p>
      * 1. 超时的消息才会被重新投递
      * 2. 由于定时任务 1 分钟一次，消息超时后不会被立即重投，极端情况下消息 5 分钟过期后，再等 1 分钟才会被扫瞄到
      */
@@ -76,7 +76,7 @@ public class RedisPendingMessageResendJob {
                 pendingMessages.forEach(pendingMessage -> {
                     // 获取消息上一次传递到 consumer 的时间,
                     long lastDelivery = pendingMessage.getElapsedTimeSinceLastDelivery().getSeconds();
-                    if (lastDelivery < EXPIRE_TIME){
+                    if (lastDelivery < EXPIRE_TIME) {
                         return;
                     }
                     // 获取指定 id 的消息体

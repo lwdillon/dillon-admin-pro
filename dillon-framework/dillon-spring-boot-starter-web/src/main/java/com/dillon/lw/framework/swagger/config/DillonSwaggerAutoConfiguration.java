@@ -34,17 +34,19 @@ import static com.dillon.lw.framework.web.core.util.WebFrameworkUtils.HEADER_TEN
 
 /**
  * Swagger 自动配置类，基于 OpenAPI + Springdoc 实现。
- *
+ * <p>
  * 友情提示：
  * 1. Springdoc 文档地址：<a href="https://github.com/springdoc/springdoc-openapi">仓库</a>
  * 2. Swagger 规范，于 2015 更名为 OpenAPI 规范，本质是一个东西
  *
  * @author liwen
  */
-@AutoConfiguration(before = Knife4jAutoConfiguration.class) // before 原因，保证覆写的 Knife4jOpenApiCustomizer 先生效！相关 https://github.com/YunaiV/ruoyi-vue-pro/issues/954 讨论
+@AutoConfiguration(before = Knife4jAutoConfiguration.class)
+// before 原因，保证覆写的 Knife4jOpenApiCustomizer 先生效！相关 https://github.com/YunaiV/ruoyi-vue-pro/issues/954 讨论
 @ConditionalOnClass({OpenAPI.class})
 @EnableConfigurationProperties(SwaggerProperties.class)
-@ConditionalOnProperty(prefix = "springdoc.api-docs", name = "enabled", havingValue = "true", matchIfMissing = true) // 设置为 false 时，禁用
+@ConditionalOnProperty(prefix = "springdoc.api-docs", name = "enabled", havingValue = "true", matchIfMissing = true)
+// 设置为 false 时，禁用
 @Import(Knife4jOpenApiCustomizer.class)
 public class DillonSwaggerAutoConfiguration {
 
@@ -144,7 +146,7 @@ public class DillonSwaggerAutoConfiguration {
 
     /**
      * 构建 Authorization 认证请求头参数
-     *
+     * <p>
      * 解决 Knife4j <a href="https://gitee.com/xiaoym/knife4j/issues/I69QBU">Authorize 未生效，请求header里未包含参数</a>
      *
      * @return 认证参数

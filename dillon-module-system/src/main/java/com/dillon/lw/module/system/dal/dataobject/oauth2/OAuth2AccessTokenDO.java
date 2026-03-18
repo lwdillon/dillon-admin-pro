@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * OAuth2 访问令牌 DO
- *
+ * <p>
  * 如下字段，暂时未使用，暂时不支持：
  * user_name、authentication（用户信息）
  *
@@ -47,7 +47,7 @@ public class OAuth2AccessTokenDO extends TenantBaseDO {
     private Long userId;
     /**
      * 用户类型
-     *
+     * <p>
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;
@@ -58,7 +58,7 @@ public class OAuth2AccessTokenDO extends TenantBaseDO {
     private Map<String, String> userInfo;
     /**
      * 客户端编号
-     *
+     * <p>
      * 关联 {@link OAuth2ClientDO#getId()}
      */
     private String clientId;

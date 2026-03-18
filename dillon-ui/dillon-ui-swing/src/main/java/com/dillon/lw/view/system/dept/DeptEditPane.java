@@ -29,12 +29,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DeptEditPane extends JPanel {
+public class DeptEditPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private JXTree deptTree;
     private JPopupMenu popupMenu;
     private Long id = null;
@@ -195,6 +199,7 @@ public class DeptEditPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -210,8 +215,8 @@ public class DeptEditPane extends JPanel {
             return;
         }
 
-        statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(deptRespVO.getStatus(),0));
-        sortSpinner.setValue(ObjectUtil.defaultIfNull(deptRespVO.getSort(),0));
+        statusComboBox.setSelectedIndex(ObjectUtil.defaultIfNull(deptRespVO.getStatus(), 0));
+        sortSpinner.setValue(ObjectUtil.defaultIfNull(deptRespVO.getSort(), 0));
         nameTextField.setText(deptRespVO.getName());
         emailTextField.setText(deptRespVO.getEmail());
         phoneTextField.setText(deptRespVO.getPhone());
@@ -291,33 +296,29 @@ public class DeptEditPane extends JPanel {
             this.id = id;
         }
 
-        CompletableFuture<DeptRespVO> deptFuture = CompletableFuture.supplyAsync(() -> {
-            if (id == null) {
-                return new DeptRespVO();
-            }
-            return Forest.client(DeptApi.class).getDept(id).getCheckedData();
-        });
-
-        CompletableFuture<List<DeptSimpleRespVO>> deptListFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-        });
-
-        CompletableFuture<List<UserSimpleRespVO>> userListFuture = CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserApi.class).getSimpleUserList().getCheckedData();
-        });
-
-        CompletableFuture.allOf(deptFuture, deptListFuture, userListFuture).thenAcceptAsync(v -> {
-            Map<String, Object> resultMap = new LinkedHashMap<>();
-            resultMap.put("deptRespVO", deptFuture.join());
-            resultMap.put("deptList", deptListFuture.join());
-            resultMap.put("userList", userListFuture.join());
-            updateData(resultMap, isAdd);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 部门编辑页要并行准备部门详情、部门树和负责人列表，
+                 * zip 后再统一回填，避免界面反复局部刷新。
+                 */
+                .zip(
+                        Single.fromCallable(() -> id == null ? new DeptRespVO() : Forest.client(DeptApi.class).getDept(id).getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> Forest.client(UserApi.class).getSimpleUserList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        (deptRespVO, deptList, userList) -> {
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("deptRespVO", deptRespVO);
+                            resultMap.put("deptList", deptList);
+                            resultMap.put("userList", userList);
+                            return resultMap;
+                        }
+                )
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(resultMap -> updateData(resultMap, isAdd), SwingExceptionHandler::handle);
 
 
     }

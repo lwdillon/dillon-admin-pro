@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * 字典格式化
- *
+ * <p>
  * 实现将字典数据的值，格式化成字典数据的标签
  */
 @Target({ElementType.FIELD})

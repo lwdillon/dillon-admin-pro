@@ -29,16 +29,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_BOOLEAN_STRING;
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_CONFIG_TYPE;
 import static javax.swing.JOptionPane.*;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class ConfigPane extends JPanel {
+public class ConfigPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private String[] COLUMN_ID = {"参数主键", "参数分类", "参数名称", "参数键名", "参数键值", "是否可见", "系统内置", "备注", "创建时间", "操作"};
 
     private DefaultTableModel tableModel;
@@ -56,7 +60,7 @@ public class ConfigPane extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -271,17 +275,19 @@ public class ConfigPane extends JPanel {
         }
 
         final Long finalId = id;
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ConfigApi.class).deleteConfig(finalId).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            updateData();
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 删除操作本质上也是一次同步请求，这里仍然统一包成 Single，
+                 * 让删除和后续的成功提示都进入同一条响应式链中管理。
+                 */
+                .fromCallable(() -> Forest.client(ConfigApi.class).deleteConfig(finalId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     @Override
@@ -311,61 +317,77 @@ public class ConfigPane extends JPanel {
         }
         queryMap.values().removeIf(Objects::isNull);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ConfigApi.class).getConfigPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(respVO -> {
-                Vector rowV = new Vector();
-                rowV.add(respVO.getId());
-                rowV.add(respVO.getCategory());
-                rowV.add(respVO.getName());
-                rowV.add(respVO.getKey());
-                rowV.add(respVO.getValue());
-                rowV.add(respVO.getVisible());
-                rowV.add(respVO.getType());
-                rowV.add(respVO.getRemark());
-                rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(respVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
+        Single
+                /*
+                 * 列表查询继续沿用“后台拉数据、前台绘表格”的固定模式：
+                 * 查询条件在当前线程组装，请求放到 IO，表格模型和渲染器回到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(ConfigApi.class).getConfigPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询一发起就先禁用“搜索”按钮，避免用户在请求返回前重复点击。
+                     * doOnSubscribe 不保证运行在 EDT，所以按钮状态切换要显式投递回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 无论查询成功、失败还是订阅提前结束，都要恢复按钮可用态。
+                     * doFinally 同样不保证运行在 EDT，这里继续统一切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(respVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(respVO.getId());
+                        rowV.add(respVO.getCategory());
+                        rowV.add(respVO.getName());
+                        rowV.add(respVO.getKey());
+                        rowV.add(respVO.getValue());
+                        rowV.add(respVO.getVisible());
+                        rowV.add(respVO.getType());
+                        rowV.add(respVO.getRemark());
+                        rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(respVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(creatBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(creatBar()));
 
-            table.getColumn("是否可见").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
+                    table.getColumn("是否可见").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_BOOLEAN_STRING, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            table.getColumn("系统内置").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_CONFIG_TYPE, value);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    table.getColumn("系统内置").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(INFRA_CONFIG_TYPE, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            paginationPane.setTotal(result.getTotal());
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }

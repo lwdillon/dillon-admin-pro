@@ -45,7 +45,7 @@ public interface WebSocketSessionManager {
      * 获得指定用户编号的 Session 列表
      *
      * @param userType 用户类型
-     * @param userId 用户编号
+     * @param userId   用户编号
      * @return Session 列表
      */
     Collection<WebSocketSession> getSessionList(Integer userType, Long userId);

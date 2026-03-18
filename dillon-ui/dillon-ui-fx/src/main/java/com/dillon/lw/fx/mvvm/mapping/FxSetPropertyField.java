@@ -39,56 +39,56 @@ import static com.dillon.lw.fx.mvvm.mapping.BeanSetPropertyField.setAll;
  */
 class FxSetPropertyField<M, E, T extends ObservableSet<E>, R extends Property<T>> implements PropertyField<T, M, R> {
 
-	private Set<E> defaultValue;
+    private Set<E> defaultValue;
 
-	private final SetPropertyAccessor<M, E> accessor;
+    private final SetPropertyAccessor<M, E> accessor;
 
-	private final SetProperty<E> targetProperty;
+    private final SetProperty<E> targetProperty;
 
-	public FxSetPropertyField(SideEffect updateFunction, SetPropertyAccessor<M, E> accessor, Supplier<SetProperty<E>> propertySupplier) {
-		this(updateFunction, accessor, propertySupplier, Collections.emptySet());
-	}
+    public FxSetPropertyField(SideEffect updateFunction, SetPropertyAccessor<M, E> accessor, Supplier<SetProperty<E>> propertySupplier) {
+        this(updateFunction, accessor, propertySupplier, Collections.emptySet());
+    }
 
-	public FxSetPropertyField(SideEffect updateFunction, SetPropertyAccessor<M, E> accessor, Supplier<SetProperty<E>> propertySupplier,
-			Set<E> defaultValue) {
-		this.accessor = accessor;
-		this.defaultValue = defaultValue;
-		this.targetProperty = propertySupplier.get();
+    public FxSetPropertyField(SideEffect updateFunction, SetPropertyAccessor<M, E> accessor, Supplier<SetProperty<E>> propertySupplier,
+                              Set<E> defaultValue) {
+        this.accessor = accessor;
+        this.defaultValue = defaultValue;
+        this.targetProperty = propertySupplier.get();
 
-		this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
-		this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
-	}
+        this.targetProperty.setValue(FXCollections.observableSet(new HashSet<>()));
+        this.targetProperty.addListener((SetChangeListener<E>) change -> updateFunction.call());
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		setAll(accessor.apply(wrappedObject), targetProperty.getValue());
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        setAll(accessor.apply(wrappedObject), targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		setAll(targetProperty, accessor.apply(wrappedObject).getValue());
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        setAll(targetProperty, accessor.apply(wrappedObject).getValue());
+    }
 
-	@Override
-	public void resetToDefault() {
-		setAll(targetProperty, defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        setAll(targetProperty, defaultValue);
+    }
 
-	@Override
-	public void updateDefault(M wrappedObject) {
-		defaultValue = new HashSet<>(accessor.apply(wrappedObject).getValue());
-	}
+    @Override
+    public void updateDefault(M wrappedObject) {
+        defaultValue = new HashSet<>(accessor.apply(wrappedObject).getValue());
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final Set<E> modelValue = accessor.apply(wrappedObject).getValue();
-		final Set<E> wrapperValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final Set<E> modelValue = accessor.apply(wrappedObject).getValue();
+        final Set<E> wrapperValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrapperValue);
-	}
+        return !Objects.equals(modelValue, wrapperValue);
+    }
 }

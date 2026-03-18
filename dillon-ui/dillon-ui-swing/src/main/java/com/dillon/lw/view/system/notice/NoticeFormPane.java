@@ -20,12 +20,16 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class NoticeFormPane extends JPanel {
+public class NoticeFormPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
 
     public NoticeFormPane() {
@@ -139,7 +143,7 @@ public class NoticeFormPane extends JPanel {
         reqVO.setTitle(titleTextFiled.getText());
         DictDataSimpleRespVO selected = (DictDataSimpleRespVO) typeComboBox.getSelectedItem();
         if (selected != null) {
-            reqVO.setType(Convert.toInt(selected.getValue(),1));
+            reqVO.setType(Convert.toInt(selected.getValue(), 1));
         }
         reqVO.setContent(contentTextPane.getText());
         reqVO.setStatus(statusComboBox.getSelectedIndex());
@@ -148,6 +152,7 @@ public class NoticeFormPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -174,16 +179,15 @@ public class NoticeFormPane extends JPanel {
 
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(NoticeApi.class).getNotice(id).getCheckedData();
-        }).thenAcceptAsync(respVO1 -> {
-            setValue(respVO1);
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        Single
+                /*
+                 * 公告详情回填与其他表单保持一致：请求放到 IO，表单赋值放到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(NoticeApi.class).getNotice(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::setValue, SwingExceptionHandler::handle);
 
     }
 

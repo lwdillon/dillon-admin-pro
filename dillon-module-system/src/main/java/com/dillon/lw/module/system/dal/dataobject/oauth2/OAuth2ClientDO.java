@@ -28,7 +28,7 @@ public class OAuth2ClientDO extends BaseDO {
 
     /**
      * 编号，数据库自增
-     *
+     * <p>
      * 由于 SQL Server 在存储 String 主键有点问题，所以暂时使用 Long 类型
      */
     @TableId
@@ -55,7 +55,7 @@ public class OAuth2ClientDO extends BaseDO {
     private String description;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
@@ -74,7 +74,7 @@ public class OAuth2ClientDO extends BaseDO {
     private List<String> redirectUris;
     /**
      * 授权类型（模式）
-     *
+     * <p>
      * 枚举 {@link OAuth2GrantTypeEnum}
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
@@ -86,7 +86,7 @@ public class OAuth2ClientDO extends BaseDO {
     private List<String> scopes;
     /**
      * 自动授权的 Scope
-     *
+     * <p>
      * code 授权时，如果 scope 在这个范围内，则自动通过
      */
     @TableField(typeHandler = JacksonTypeHandler.class)

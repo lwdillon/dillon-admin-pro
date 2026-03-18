@@ -79,12 +79,12 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         EventBusCenter.get().register(this);
-        chartBox1.getChildren().add(createSmoothCurve(80d,25d,Color.web("#02A4FF"),Color.web("#7D40FF"),7d));
-        chartBar2.getChildren().add(createSmoothCurve(120d,30d,Color.web("#7517F8"),Color.web("#E323FF"),5d));
-        chartBar2.getChildren().add(createSmoothCurve(120d,30d,Color.web("#FF7D05"),Color.web("#FFD422"),5d));
-        chartBox3.getChildren().add(createSmoothCurve(30d,15D,Color.web("#7517F8"),Color.web("#E323FF"),3d));
-        chartBox4.getChildren().add(createSmoothCurve(30d,15d,Color.web("#02C751"),Color.web("#8AFF6C"),3d));
-        chartBox5.getChildren().add(createSmoothCurve(30d,15d,Color.web("#FF7D05"),Color.web("#FFD422"),3d));
+        chartBox1.getChildren().add(createSmoothCurve(80d, 25d, Color.web("#02A4FF"), Color.web("#7D40FF"), 7d));
+        chartBar2.getChildren().add(createSmoothCurve(120d, 30d, Color.web("#7517F8"), Color.web("#E323FF"), 5d));
+        chartBar2.getChildren().add(createSmoothCurve(120d, 30d, Color.web("#FF7D05"), Color.web("#FFD422"), 5d));
+        chartBox3.getChildren().add(createSmoothCurve(30d, 15D, Color.web("#7517F8"), Color.web("#E323FF"), 3d));
+        chartBox4.getChildren().add(createSmoothCurve(30d, 15d, Color.web("#02C751"), Color.web("#8AFF6C"), 3d));
+        chartBox5.getChildren().add(createSmoothCurve(30d, 15d, Color.web("#FF7D05"), Color.web("#FFD422"), 3d));
 
 
         initWoldMap();
@@ -100,20 +100,20 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
         LinearGradient gradient = new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.RED),
                 new Stop(1, Color.BLUE));
-        CLocation fmo = CLocationBuilder.create().name("FMO").latitude(39.9042 ).longitude(116.4074 ).connectionPartType(ConnectionPartType.SOURCE).build();
+        CLocation fmo = CLocationBuilder.create().name("FMO").latitude(39.9042).longitude(116.4074).connectionPartType(ConnectionPartType.SOURCE).build();
         CLocation muc = CLocationBuilder.create().name("MUC").latitude(23.1291).longitude(113.2644).connectionPartType(ConnectionPartType.TARGET).build();
         Connection fmoToMuc = ConnectionBuilder.create(fmo, muc).arrowsVisible(true).lineWidth(4.0).sourceColor(Color.web("#7517F8")).targetColor(Color.web("#E323FF")).gradientFill(true).build();
 
-        CLocation muc1 = CLocationBuilder.create().name("MUC").latitude(26.0769 ).longitude(119.2965 ).connectionPartType(ConnectionPartType.TARGET).build();
+        CLocation muc1 = CLocationBuilder.create().name("MUC").latitude(26.0769).longitude(119.2965).connectionPartType(ConnectionPartType.TARGET).build();
         Connection fmoToMuc1 = ConnectionBuilder.create(fmo, muc1).arrowsVisible(true).lineWidth(4.0).sourceColor(Color.web("#7517F8")).targetColor(Color.web("#E323FF")).gradientFill(true).build();
 
         CLocation muc2 = CLocationBuilder.create().name("MUC").latitude(30.5928).longitude(114.3055).connectionPartType(ConnectionPartType.TARGET).build();
         Connection fmoToMuc2 = ConnectionBuilder.create(fmo, muc2).arrowsVisible(true).lineWidth(4.0).sourceColor(Color.web("#7517F8")).targetColor(Color.web("#E323FF")).gradientFill(true).build();
 
-        CLocation muc3 = CLocationBuilder.create().name("MUC").latitude(30.5728).longitude(104.0668 ).connectionPartType(ConnectionPartType.TARGET).build();
+        CLocation muc3 = CLocationBuilder.create().name("MUC").latitude(30.5728).longitude(104.0668).connectionPartType(ConnectionPartType.TARGET).build();
         Connection fmoToMuc3 = ConnectionBuilder.create(fmo, muc3).arrowsVisible(true).lineWidth(4.0).sourceColor(Color.web("#7517F8")).targetColor(Color.web("#E323FF")).gradientFill(true).build();
 
-        CLocation muc4 = CLocationBuilder.create().name("MUC").latitude(31.2304).longitude(121.4737 ).connectionPartType(ConnectionPartType.TARGET).build();
+        CLocation muc4 = CLocationBuilder.create().name("MUC").latitude(31.2304).longitude(121.4737).connectionPartType(ConnectionPartType.TARGET).build();
         Connection fmoToMuc4 = ConnectionBuilder.create(fmo, muc4).arrowsVisible(true).lineWidth(4.0).sourceColor(Color.web("#7517F8")).targetColor(Color.web("#E323FF")).gradientFill(true).build();
 
         Poi muenster = PoiBuilder.create().lat(51.91183747470598).lon(7.633806255269727).name("Münster").image(Country.DE.getFlag().getImage()).svgPath("M9.998,0.004l2.24,6.908l7.252,0l-5.867,4.27l2.241,6.909l-5.866,-4.27l-5.867,4.27l2.241,-6.909l-5.867,-4.27l7.252,0l2.241,-6.908Z").svgPathDim(new Dimension2D(20.0, 20.0)).build();
@@ -126,7 +126,7 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
             pois.add(poi);
             heatmapSpots.add(new Point(city.lon(), city.lat()));
         });
-        this.countryPane = CountryPaneBuilder.create(this.country).pois(pois).poisVisible(true).poiTextVisible(true).connections(List.of(fmoToMuc,fmoToMuc1,fmoToMuc2,fmoToMuc3,fmoToMuc4)).overlayVisible(true).build();
+        this.countryPane = CountryPaneBuilder.create(this.country).pois(pois).poisVisible(true).poiTextVisible(true).connections(List.of(fmoToMuc, fmoToMuc1, fmoToMuc2, fmoToMuc3, fmoToMuc4)).overlayVisible(true).build();
         countryPane.setStyle("-fx-background-color: transparent");
         countryPane.setFill(AppStore.isDarkMode() ? Color.web("#ffffff") : Color.web("#000000"));
         countryStackPane.getChildren().add(countryPane);
@@ -134,7 +134,7 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
 
     }
 
-    private Path createSmoothCurve(Double hight,Double xW,Color color1 ,Color color2,double storeSize) {
+    private Path createSmoothCurve(Double hight, Double xW, Color color1, Color color2, double storeSize) {
         Path path = new Path();
 
         LinearGradient gradient = new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
@@ -151,7 +151,7 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
             double y0 = random.nextDouble() * hight;
             double x1 = (i + 1) * xW;
             double y1 = random.nextDouble() * hight;
-            path.getElements().add(new CubicCurveTo(x0 + xW/2, y0, x1 - xW/2, y1, x1, y1));
+            path.getElements().add(new CubicCurveTo(x0 + xW / 2, y0, x1 - xW / 2, y1, x1, y1));
         }
 
         return path;
@@ -231,7 +231,7 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
                 mumbai, beijing, hong_kong, sydney, christchurch, tokio, singapore, casablanca, tunis, alexandria, nairobi,
                 abidjan, hyderabad, chongqing, perth);
 
-        
+
         northAmerica.forEach(mapPoint -> {
             worldMap.addMapConnections(new MapConnection(berlin, mapPoint, random.nextInt(130) + 10, berlin.getFill(), Color.ORANGERED, true));
         });
@@ -248,7 +248,7 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
         southAmerica.forEach(mapPoint -> {
             worldMap.addMapConnections(new MapConnection(johannesburg, mapPoint, random.nextInt(130) + 10, johannesburg.getFill(), Color.ORANGE, true));
         });
-        
+
 
         MapConnection sanfrancisco_mumbai = new MapConnection(san_francisco, mumbai, 90, Color.ORANGERED, Color.BLUE, true);
         MapConnection sanfrancisco_newyork = new MapConnection(san_francisco, new_york, 100, Color.ORANGERED, Color.BLUE, true);
@@ -272,9 +272,8 @@ public class CountryDashboardView extends BaseView<CountryDashboardViewModel> {
             worldMap.setFillColor(AppStore.isDarkMode() ? Color.web("#1F1F43") : Color.web("#ffffff"));
             worldMap.setTextColor(AppStore.isDarkMode() ? Color.web("#1F1F43") : Color.web("#ffffff"));
             worldMap.setStrokeColor(AppStore.isDarkMode() ? Color.web("#ffffff") : Color.web("#000000"));
-           
-           
-            
+
+
         });
     }
 }

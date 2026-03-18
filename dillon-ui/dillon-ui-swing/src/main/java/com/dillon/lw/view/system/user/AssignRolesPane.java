@@ -26,12 +26,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class AssignRolesPane extends JPanel {
+public class AssignRolesPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
     private JPopupMenu rolePopupMenu;
     private CheckBoxList roleCheckBoxList;
@@ -163,26 +167,29 @@ public class AssignRolesPane extends JPanel {
         RoleApi roleApi = Forest.client(RoleApi.class);
         PermissionApi permissionApi = Forest.client(PermissionApi.class);
 
-        CompletableFuture<List<RoleRespVO>> rolesFuture = CompletableFuture.supplyAsync(() ->
-                roleApi.getSimpleRoleList().getCheckedData()
-        );
-
-        CompletableFuture<Set<Long>> adminRolesFuture = CompletableFuture.supplyAsync(() ->
-                permissionApi.listAdminRoles(id).getCheckedData()
-        );
-
-        CompletableFuture.allOf(rolesFuture, adminRolesFuture)
-                .thenAcceptAsync(v -> {
-                    List<RoleRespVO> roleResult = rolesFuture.join();
-                    Set<Long> listAdminRoleResult = adminRolesFuture.join();
+        Single
+                /*
+                 * 分配角色弹窗要同时拿到全部角色和当前用户已分配角色，
+                 * 用 zip 并行请求后再一次性回填选择器。
+                 */
+                .zip(
+                        Single.fromCallable(() -> roleApi.getSimpleRoleList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> permissionApi.listAdminRoles(id).getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        (roleResult, listAdminRoleResult) -> new Object[]{roleResult, listAdminRoleResult}
+                )
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    List<RoleRespVO> roleResult = (List<RoleRespVO>) result[0];
+                    Set<Long> listAdminRoleResult = (Set<Long>) result[1];
 
                     Vector<Object> selRoles = new Vector<>();
                     DefaultListModel listModel = new DefaultListModel();
 
                     for (RoleRespVO roleRespVO : roleResult) {
-
                         listModel.addElement(roleRespVO);
-
                         if (listAdminRoleResult.contains(roleRespVO.getId())) {
                             selRoles.add(roleRespVO);
                         }
@@ -192,13 +199,7 @@ public class AssignRolesPane extends JPanel {
                     if (selRoles != null) {
                         roleCheckBoxList.setSelectedObjects(selRoles);
                     }
-                }, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> {
-                        SwingExceptionHandler.handle(throwable);
-                    });
-                    return null;
-                });
+                }, SwingExceptionHandler::handle);
 
 
     }

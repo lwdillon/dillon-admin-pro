@@ -27,16 +27,18 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class OperatelogManagementPanel extends JPanel {
+public class OperatelogManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"日志编号", "操作人", "操作模块", "操作名", "操作内容", "操作时间", "业务编号", "ip", "操作"};
     private static final int COL_LOG_ID = 0;
     private static final int COL_LOG_OPERATOR = 3;
@@ -58,7 +60,7 @@ public class OperatelogManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -311,7 +313,16 @@ public class OperatelogManagementPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(OperateLogApi.class).clearOperateLog().getCheckedData(), result -> updateData());
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OperateLogApi.class).clearOperateLog().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> updateData(), SwingExceptionHandler::handle);
 
     }
 
@@ -329,7 +340,16 @@ public class OperatelogManagementPanel extends JPanel {
         if (opt != 0) {
             return;
         }
-        executeAsync(() -> Forest.client(OperateLogApi.class).deleteOperateLog(logId).getCheckedData(), result -> updateData());
+               Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(OperateLogApi.class).deleteOperateLog(logId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> updateData(), SwingExceptionHandler::handle);
 
 
     }
@@ -358,33 +378,56 @@ public class OperatelogManagementPanel extends JPanel {
         }
 
         if (ObjectUtil.isAllNotEmpty(startDateTextField.getValue(), endDateTextField.getValue())) {
-            java.lang.String sd= DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
+            java.lang.String sd = DateUtil.format(startDateTextField.getValue().atTime(0, 0, 0), "yyyy-MM-dd HH:mm:ss");
             java.lang.String ed = DateUtil.format(endDateTextField.getValue().atTime(23, 59, 59), "yyyy-MM-dd HH:mm:ss");
             queryMap.put("createTime", ListUtil.of(sd, ed));
         }
 
         queryMap.values().removeIf(Objects::isNull);
-        executeAsync(() -> Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getId());
-                rowV.add(roleRespVO.getUserName());
-                rowV.add(roleRespVO.getType());
-                rowV.add(roleRespVO.getSubType());
-                rowV.add(roleRespVO.getAction());
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO.getBizId());
-                rowV.add(roleRespVO.getUserIp());
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+        /*
+         * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+         * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+         */
+        Single
+                .fromCallable(() -> Forest.client(OperateLogApi.class).pageOperateLog(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 搜索期间先把按钮置灰，避免连续点击把多次操作日志查询同时压到后台。
+                     * doOnSubscribe 不保证运行在 EDT，所以按钮更新显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后恢复按钮，不让失败场景把查询入口长期锁住。
+                     * doFinally 的线程也不固定，这里继续统一走 EDT 更新 Swing 组件。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getId());
+                        rowV.add(roleRespVO.getUserName());
+                        rowV.add(roleRespVO.getType());
+                        rowV.add(roleRespVO.getSubType());
+                        rowV.add(roleRespVO.getAction());
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO.getBizId());
+                        rowV.add(roleRespVO.getUserIp());
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            paginationPane.setTotal(result.getTotal());
-        });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -414,16 +457,6 @@ public class OperatelogManagementPanel extends JPanel {
         return Convert.toStr(table.getValueAt(selectedRow, COL_LOG_OPERATOR));
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

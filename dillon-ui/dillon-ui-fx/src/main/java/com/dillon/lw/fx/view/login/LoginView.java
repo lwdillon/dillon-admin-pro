@@ -64,7 +64,7 @@ public class LoginView extends BaseView<LoginViewModel> {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logoSvgView.setSvgUrl("/icons/dillon.svg");
-        Stop[] stops = new Stop[] {
+        Stop[] stops = new Stop[]{
                 new Stop(0, Color.web("#6a11cb")),
                 new Stop(0.25, Color.web("#56ccf2")),
                 new Stop(0.5, Color.web("#f6d02f")),
@@ -108,7 +108,6 @@ public class LoginView extends BaseView<LoginViewModel> {
         usernameTextField.setRight(clearUserNmaeIcon);
         passwordTextField.setLeft(new FontIcon(Feather.LOCK));
         passwordTextField.setRight(clearPasswordIcon);
-
 
 
         usernameTextField.textProperty().addListener((obs, oldText, newText) -> {
@@ -165,13 +164,13 @@ public class LoginView extends BaseView<LoginViewModel> {
         ));
         clearUserNmaeIcon.visibleProperty().bind(
                 Bindings.createBooleanBinding(() ->
-                                usernameTextField.getText() != null && !usernameTextField.getText().isEmpty() ,
+                                usernameTextField.getText() != null && !usernameTextField.getText().isEmpty(),
                         usernameTextField.textProperty()
                 )
         );
         clearPasswordIcon.visibleProperty().bind(
                 Bindings.createBooleanBinding(() ->
-                                passwordTextField.getText() != null && !passwordTextField.getText().isEmpty() ,
+                                passwordTextField.getText() != null && !passwordTextField.getText().isEmpty(),
                         passwordTextField.textProperty()
                 )
         );

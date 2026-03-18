@@ -30,7 +30,7 @@ public class SmsClientFactoryImpl implements SmsClientFactory {
     /**
      * 短信客户端 Map
      * key：渠道编码，使用 {@link SmsChannelProperties#getCode()} ()}
-     *
+     * <p>
      * 注意，一些场景下，需要获得某个渠道类型的客户端，所以需要使用它。
      * 例如说，解析短信接收结果，是相对通用的，不需要使用某个渠道编号的 {@link #channelIdClients}
      */
@@ -76,11 +76,16 @@ public class SmsClientFactoryImpl implements SmsClientFactory {
         Assert.notNull(channelEnum, String.format("渠道类型(%s) 为空", channelEnum));
         // 创建客户端
         switch (channelEnum) {
-            case ALIYUN: return new AliyunSmsClient(properties);
-            case DEBUG_DING_TALK: return new DebugDingTalkSmsClient(properties);
-            case TENCENT: return new TencentSmsClient(properties);
-            case HUAWEI: return  new HuaweiSmsClient(properties);
-            case QINIU: return new QiniuSmsClient(properties);
+            case ALIYUN:
+                return new AliyunSmsClient(properties);
+            case DEBUG_DING_TALK:
+                return new DebugDingTalkSmsClient(properties);
+            case TENCENT:
+                return new TencentSmsClient(properties);
+            case HUAWEI:
+                return new HuaweiSmsClient(properties);
+            case QINIU:
+                return new QiniuSmsClient(properties);
         }
         // 创建失败，错误日志 + 抛出异常
         log.error("[createSmsClient][配置({}) 找不到合适的客户端实现]", properties);

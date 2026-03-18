@@ -12,10 +12,10 @@ import java.util.function.BiConsumer;
 @FunctionalInterface
 public interface SetSetter<M, E> extends BiConsumer<M, Set<E>> {
 
-	/**
-	 * @param model the model instance.
-	 * @param value the new value to be set
-	 */
-	@Override
-	void accept(M model, Set<E> value);
+    /**
+     * @param model the model instance.
+     * @param value the new value to be set
+     */
+    @Override
+    void accept(M model, Set<E> value);
 }

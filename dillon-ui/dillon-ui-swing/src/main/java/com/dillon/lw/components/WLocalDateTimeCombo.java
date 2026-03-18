@@ -168,7 +168,7 @@ public class WLocalDateTimeCombo extends JComboBox<LocalDateTime> {
                     if (popupShown) {
                         popupMenu.setVisible(false);
                     } else {
-                        nowLinkLabel.setText("当前: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+" ");
+                        nowLinkLabel.setText("当前: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " ");
                         WMonthView.setValue(getValue().toLocalDate());
                         WTimeView.setValue(getValue().toLocalTime());
                         popupMenu.show(WLocalDateTimeCombo.this, 0, getHeight());
@@ -299,7 +299,7 @@ public class WLocalDateTimeCombo extends JComboBox<LocalDateTime> {
         private final Font underlinedFont;
 
         private CurrentDateLinkLabel() {
-            super("当前: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+" ");
+            super("当前: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " ");
             setHorizontalAlignment(CENTER);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 

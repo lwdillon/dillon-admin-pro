@@ -21,7 +21,7 @@ public class SmsTemplateRespDTO {
     private String content;
     /**
      * 审核状态
-     *
+     * <p>
      * 枚举 {@link SmsTemplateAuditStatusEnum}
      */
     private Integer auditStatus;

@@ -17,6 +17,7 @@ public class OptButtonTableCellEditor extends BasicCellEditor implements ActionL
     private Object hideValue;
     private JPanel panel = new JPanel();
     private JComponent component;
+
     public OptButtonTableCellEditor(JComponent component) {
         this(component, -1, null);
     }

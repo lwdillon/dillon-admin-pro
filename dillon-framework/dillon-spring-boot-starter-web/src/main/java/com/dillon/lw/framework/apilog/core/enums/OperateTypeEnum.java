@@ -38,7 +38,7 @@ public enum OperateTypeEnum {
     IMPORT(6),
     /**
      * 其它
-     *
+     * <p>
      * 在无法归类时，可以选择使用其它。因为还有操作名可以进一步标识
      */
     OTHER(0);

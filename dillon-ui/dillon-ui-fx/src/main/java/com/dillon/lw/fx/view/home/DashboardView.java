@@ -428,7 +428,6 @@ public class DashboardView extends BaseView<DashboardViewModel> {
         ));
 
 
-
         barChart.getData().clear();
         barChart.getData().setAll(january, february, march);
 

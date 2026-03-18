@@ -100,7 +100,7 @@ public class SsePanel extends JPanel {
                         loginOutBut.setEnabled(true);
                         AppStore.setAuthLoginRespVO(get().getCheckedData());
 
-                        CommonResult<AuthPermissionInfoRespVO> commonResult=  Forest.client(AuthApi.class).getPermissionInfo();
+                        CommonResult<AuthPermissionInfoRespVO> commonResult = Forest.client(AuthApi.class).getPermissionInfo();
                         System.err.println();
                     } else {
                         loginBut.setEnabled(true);

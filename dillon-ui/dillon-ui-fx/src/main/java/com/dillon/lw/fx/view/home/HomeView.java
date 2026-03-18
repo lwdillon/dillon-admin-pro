@@ -22,7 +22,7 @@ import java.util.ResourceBundle;
 import java.util.stream.IntStream;
 
 
-public class HomeView extends BaseView<HomeViewModel>{
+public class HomeView extends BaseView<HomeViewModel> {
     private static final Random RND = new Random();
 
     private Tile radialChartTile;
@@ -55,7 +55,6 @@ public class HomeView extends BaseView<HomeViewModel>{
         imgView2.setSvgUrl(HomeView.class.getResource("/images/bbb.svg").toString());
         imgView3.setSvgUrl(HomeView.class.getResource("/images/ccc.svg").toString());
         imgView4.setSvgUrl(HomeView.class.getResource("/images/ddd.svg").toString());
-
 
 
         ChartData chartData1 = new ChartData("Item 1", 24.0, Tile.GREEN);

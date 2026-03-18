@@ -28,11 +28,13 @@ import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * 部门管理面板
@@ -49,6 +51,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
     private JTextField nameTextField;
     private JComboBox statusCombo;
+    private JButton searchButton;
 
 
     private WaitPane waitPane;
@@ -81,7 +84,7 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
         restButton.addActionListener(e -> {
             statusCombo.setSelectedIndex(0);
         });
-        JButton searchButton = new WButton("搜索");
+        searchButton = new WButton("搜索");
         searchButton.setBackground(new Color(0xff9c4b));
         searchButton.addActionListener(e -> updateData());
         toolBar.add(searchButton);
@@ -233,25 +236,48 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
 
         }
         Map<String, Object> queryMap = BeanUtil.beanToMap(deptListReqVO, false, true);
-        executeAsync(() -> Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData(), deptRespVOList -> {
-            long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
-            TreeNodeConfig config = new TreeNodeConfig();
-            config.setWeightKey("sort");
-            config.setParentIdKey("parentId");
-            config.setNameKey("name");
-            Tree<Long> treeList = TreeUtil.buildSingle(deptRespVOList, min, config, ((object, treeNode) -> {
-                treeNode.setId(object.getId());
-                treeNode.setParentId(object.getParentId());
-                treeNode.setName(object.getName());
-                treeNode.putExtra("sort", object.getSort());
-                treeNode.putExtra("status", object.getStatus());
-                if (object.getLeaderUserId() != null) {
-                    treeNode.putExtra("leaderUserId", object.getLeaderUserId());
-                }
-                treeNode.putExtra("createTime", DateUtil.format(object.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-            }));
-            updateTreeTableRoot(treeList);
-        });
+        Single
+                /*
+                 * 部门树查询会返回整棵树的数据，先在 IO 线程完成接口调用，
+                 * 再回到 EDT 构建 TreeTable 模型并刷新界面。
+                 */
+                .fromCallable(() -> Forest.client(DeptApi.class).getDeptList(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 查询部门树期间先禁用搜索按钮，避免连续点击把多次树查询同时压到后台。
+                     * doOnSubscribe 不保证运行在 EDT，因此按钮状态切换显式投递回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchButton.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询结束后恢复按钮，保证失败或取消场景下页面仍可继续检索。
+                     * doFinally 同样没有 EDT 保证，所以恢复动作继续统一走 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchButton.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(deptRespVOList -> {
+                    long min = deptRespVOList.stream().mapToLong(value -> value.getParentId()).min().orElse(0L);
+                    TreeNodeConfig config = new TreeNodeConfig();
+                    config.setWeightKey("sort");
+                    config.setParentIdKey("parentId");
+                    config.setNameKey("name");
+                    Tree<Long> treeList = TreeUtil.buildSingle(deptRespVOList, min, config, ((object, treeNode) -> {
+                        treeNode.setId(object.getId());
+                        treeNode.setParentId(object.getParentId());
+                        treeNode.setName(object.getName());
+                        treeNode.putExtra("sort", object.getSort());
+                        treeNode.putExtra("status", object.getStatus());
+                        if (object.getLeaderUserId() != null) {
+                            treeNode.putExtra("leaderUserId", object.getLeaderUserId());
+                        }
+                        treeNode.putExtra("createTime", DateUtil.format(object.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                    }));
+                    updateTreeTableRoot(treeList);
+                }, SwingExceptionHandler::handle);
 
 
     }
@@ -321,10 +347,19 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData(), aBoolean -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
-            updateData();
-        });
+        Single
+                /*
+                 * 删除部门后需要刷新整棵树，因此删除请求在线程池执行，
+                 * 成功后的提示和树刷新都回到 EDT 中完成。
+                 */
+                .fromCallable(() -> Forest.client(DeptApi.class).deleteDept(deptId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
+                    updateData();
+                }, SwingExceptionHandler::handle);
 
     }
 
@@ -345,17 +380,6 @@ public class DeptManagementPanel extends AbstractRefreshablePanel {
             return null;
         }
         return (Long) selectedNode.get("id");
-    }
-
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步执行模板：后台请求 + EDT 更新 + 全局异常处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
     }
 
     private static class DeptTreeTableModel extends AbstractTreeTableModel {

@@ -21,14 +21,18 @@ import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_FILE_STORAGE;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class FileConfigFromPane extends JPanel {
+public class FileConfigFromPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id = null;
 
     public FileConfigFromPane() {
@@ -457,25 +461,27 @@ public class FileConfigFromPane extends JPanel {
 
         this.id = id;
         if (id != null) {
-            CompletableFuture.supplyAsync(() -> {
-                return Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData();
-            }).thenAcceptAsync(jsonObject -> {
-                FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
+            Single
+                    /*
+                     * 文件配置详情返回的是一段 JSON 结构，先在 IO 线程读取，
+                     * 再回到 EDT 组装 VO 并刷新界面。
+                     */
+                    .fromCallable(() -> Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(SwingSchedulers.edt())
+                    .compose(SwingRx.bindTo(this))
+                    .subscribe(jsonObject -> {
+                        FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
 
-                saveReqVO.setName(Convert.toStr(jsonObject.get("name")));
-                saveReqVO.setStorage(Convert.toInt(jsonObject.get("storage")));
-                saveReqVO.setRemark(Convert.toStr(jsonObject.get("remark")));
-                saveReqVO.setId(Convert.toLong(jsonObject.get("id")));
-                Map<String, Object> config = (Map<String, Object>) jsonObject.get("config");
-                saveReqVO.setConfig(config);
+                        saveReqVO.setName(Convert.toStr(jsonObject.get("name")));
+                        saveReqVO.setStorage(Convert.toInt(jsonObject.get("storage")));
+                        saveReqVO.setRemark(Convert.toStr(jsonObject.get("remark")));
+                        saveReqVO.setId(Convert.toLong(jsonObject.get("id")));
+                        Map<String, Object> config = (Map<String, Object>) jsonObject.get("config");
+                        saveReqVO.setConfig(config);
 
-                setValue(saveReqVO);
-            }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-                SwingUtilities.invokeLater(() -> {
-                    SwingExceptionHandler.handle(throwable);
-                });
-                return null;
-            });
+                        setValue(saveReqVO);
+                    }, SwingExceptionHandler::handle);
         } else {
             setValue(new FileConfigSaveReqVO());
         }

@@ -20,7 +20,7 @@ public class FilePresignedUrlRespVO {
 
     /**
      * 为什么要返回 url 字段？
-     *
+     * <p>
      * 前端上传完文件后，需要使用该 URL 进行访问
      */
     @Schema(description = "文件访问 URL", requiredMode = Schema.RequiredMode.REQUIRED,
@@ -29,7 +29,7 @@ public class FilePresignedUrlRespVO {
 
     /**
      * 为什么要返回 path 字段？
-     *
+     * <p>
      * 前端上传完文件后，需要调用 createFile 记录下 path 路径
      */
     @Schema(description = "文件路径", requiredMode = Schema.RequiredMode.REQUIRED, example = "xxx.png")

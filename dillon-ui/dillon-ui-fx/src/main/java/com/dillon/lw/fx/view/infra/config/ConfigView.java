@@ -345,7 +345,6 @@ public class ConfigView extends BaseView<ConfigViewModel> implements Initializab
     }
 
 
-
     /**
      * 显示编辑对话框
      */

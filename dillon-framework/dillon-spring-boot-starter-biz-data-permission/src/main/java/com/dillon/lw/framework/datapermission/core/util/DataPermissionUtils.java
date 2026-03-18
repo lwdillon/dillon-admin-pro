@@ -61,12 +61,12 @@ public class DataPermissionUtils {
     /**
      * 添加忽略数据权限
      */
-    public static void addDisableDataPermission(){
+    public static void addDisableDataPermission() {
         DataPermission dataPermission = getDisableDataPermissionDisable();
         DataPermissionContextHolder.add(dataPermission);
     }
 
-    public static void removeDataPermission(){
+    public static void removeDataPermission() {
         DataPermissionContextHolder.remove();
     }
 

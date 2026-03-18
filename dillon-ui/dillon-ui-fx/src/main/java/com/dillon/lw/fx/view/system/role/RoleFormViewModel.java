@@ -8,15 +8,16 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.role.RoleSaveReqVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
-
-import java.util.concurrent.CompletableFuture;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class RoleFormViewModel extends BaseViewModel {
 
@@ -38,16 +39,16 @@ public class RoleFormViewModel extends BaseViewModel {
             setRole(new RoleSaveReqVO());
             return;
         }
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).getRole(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            RoleSaveReqVO roleRespVO = new RoleSaveReqVO();
-            BeanUtil.copyProperties(data, roleRespVO);
-            setRole(roleRespVO);
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(RoleApi.class).getRole(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    RoleSaveReqVO roleRespVO = new RoleSaveReqVO();
+                    BeanUtil.copyProperties(data, roleRespVO);
+                    setRole(roleRespVO);
+                }, DefaultExceptionHandler::handle);
     }
 
     /**
@@ -61,29 +62,29 @@ public class RoleFormViewModel extends BaseViewModel {
 
 
     public void addRole(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).createRole(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(RoleApi.class).createRole(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public void updateRole(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(RoleApi.class).updateRole(getUserSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(RoleApi.class).updateRole(getUserSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新角色列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public StringProperty nameProperty() {
@@ -107,4 +108,3 @@ public class RoleFormViewModel extends BaseViewModel {
     }
 
 }
-

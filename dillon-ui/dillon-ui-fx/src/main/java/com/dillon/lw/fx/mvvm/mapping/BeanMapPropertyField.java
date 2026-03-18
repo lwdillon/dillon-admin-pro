@@ -49,13 +49,13 @@ class BeanMapPropertyField<M, K, V, T extends ObservableMap<K, V>, R extends Pro
     private final MapProperty<K, V> targetProperty;
 
     BeanMapPropertyField(SideEffect updateFunction, MapGetter<M, K, V> getter, MapSetter<M, K, V> setter,
-            Supplier<MapProperty<K, V>> propertySupplier) {
+                         Supplier<MapProperty<K, V>> propertySupplier) {
         this(updateFunction, getter, setter, propertySupplier, Collections.emptyMap());
     }
 
     BeanMapPropertyField(SideEffect updateFunction, MapGetter<M, K, V> getter, MapSetter<M, K, V> setter,
-            Supplier<MapProperty<K, V>> propertySupplier,
-            Map<K, V> defaultValue) {
+                         Supplier<MapProperty<K, V>> propertySupplier,
+                         Map<K, V> defaultValue) {
         this.defaultValue = defaultValue;
         this.getter = getter;
         this.setter = setter;

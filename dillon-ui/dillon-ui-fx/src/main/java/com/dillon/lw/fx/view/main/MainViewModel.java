@@ -13,6 +13,8 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.ThemeEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.websocket.WebSocketNoticeService;
@@ -31,9 +33,10 @@ import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.util.Duration;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.dillon.lw.fx.utils.NodeUtils.getIcon;
@@ -53,44 +56,44 @@ public class MainViewModel extends BaseViewModel {
     }
 
     public void initData() {
+        Single
+                /*
+                 * 权限信息属于应用启动后的首批核心数据：
+                 * 先在 IO 线程取回菜单树，再回到 JavaFX UI 线程构建导航树和侧边菜单按钮。
+                 */
+                .fromCallable(() -> Forest.client(AuthApi.class).getPermissionInfo().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    AppStore.setAuthPermissionInfoRespVO(data);
+                    userNameProperty.set(StrUtil.subSuf(data.getUser().getNickname(), data.getUser().getNickname().length() - 1));
+                    bindTreeViewRoot(data.getMenus());
+                    bindMenuButton(data.getMenus());
+                    if (selectedTreeItem.get() != null) {
+                        setSelectedTreeItem(selectedTreeItem.get());
+                    } else {
+                        setSelectedTreeItem(treeItemObjectProperty.get().getChildren().get(0));
+                    }
+                }, DefaultExceptionHandler::handle);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(AuthApi.class).getPermissionInfo().getCheckedData();
-        }).thenAcceptAsync(data -> {
-            AppStore.setAuthPermissionInfoRespVO(data);
-            userNameProperty.set(StrUtil.subSuf(data.getUser().getNickname(), data.getUser().getNickname().length() - 1));
-
-            // 处理成功的响应数据
-            bindTreeViewRoot(data.getMenus());
-            bindMenuButton(data.getMenus());
-            if (selectedTreeItem.get() != null) {
-                setSelectedTreeItem(selectedTreeItem.get());
-            } else {
-                setSelectedTreeItem(treeItemObjectProperty.get().getChildren().get(0));
-            }
-
-        }, Platform::runLater).exceptionally(throwable -> {
-            // 处理错误
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
-
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(UserProfileApi.class).getUserProfile().getCheckedData();
-        }).thenAcceptAsync(response -> {
-            userProfileRespVO.set(response);
-        }, Platform::runLater).thenApplyAsync(unused -> {
-            // 获取用户主题
-            String key = userProfileRespVO.get().getId() + "";
-            return Forest.client(ConfigApi.class).getConfigKey(key).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            setDarkMode(StrUtil.contains(data, "dark"));
-            updateTheme();
-        }, Platform::runLater).exceptionally(throwable -> {
-            // 处理错误
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 用户资料和主题配置是串行依赖关系：
+                 * 先取用户资料，再用用户 ID 请求主题配置，最后统一回到 JavaFX UI 线程更新状态。
+                 */
+                .fromCallable(() -> Forest.client(UserProfileApi.class).getUserProfile().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .flatMap(response -> Single
+                        .fromCallable(() -> Forest.client(ConfigApi.class).getConfigKey(response.getId() + "").getCheckedData())
+                        .map(themeKey -> new AbstractMap.SimpleEntry<UserProfileRespVO, String>(response, themeKey)))
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(entry -> {
+                    userProfileRespVO.set(entry.getKey());
+                    setDarkMode(StrUtil.contains(entry.getValue(), "dark"));
+                    updateTheme();
+                }, DefaultExceptionHandler::handle);
     }
 
     /**
@@ -109,16 +112,19 @@ public class MainViewModel extends BaseViewModel {
         AppStore.setAuthPermissionInfoRespVO(null);
         AppStore.setDictDataListMap(null);
         // 先异步通知服务端登出，失败不阻塞本地退出。
-        CompletableFuture
-                .supplyAsync(() -> Forest.client(AuthApi.class).logout().getCheckedData())
-                .handle((ignored, throwable) -> {
-                    if (throwable != null) {
-                        DefaultExceptionHandler.handle(throwable);
-                        return false;
-                    }
-                    return true;
-                })
-                .thenAcceptAsync(serverLogoutSuccess -> {
+        Single
+                /*
+                 * 服务端登出是“尽力而为”的后台动作：
+                 * 即使接口失败，也通过 onErrorReturn 返回 false，让本地退出流程继续执行。
+                 */
+                .fromCallable(() -> Forest.client(AuthApi.class).logout().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .map(ignored -> Boolean.TRUE)
+                .doOnError(DefaultExceptionHandler::handle)
+                .onErrorReturnItem(Boolean.FALSE)
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(serverLogoutSuccess -> {
                     if (exitApp) {
                         Platform.exit();
                         System.exit(0);
@@ -130,7 +136,7 @@ public class MainViewModel extends BaseViewModel {
                     } else {
                         EventBusCenter.get().post(new MessageEvent("服务端退出失败，已本地退出", MessageType.WARNING));
                     }
-                }, Platform::runLater);
+                }, DefaultExceptionHandler::handle);
     }
 
     private TreeItem<AuthPermissionInfoRespVO.MenuVO> convertToTreeItem(AuthPermissionInfoRespVO.MenuVO menu) {
@@ -391,20 +397,26 @@ public class MainViewModel extends BaseViewModel {
         Map<String, Object> map = new HashMap<>();
         map.put("key", key);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(ConfigApi.class).getConfigPage(map).getCheckedData();
-        }).thenAcceptAsync(respVO -> {
-            if (respVO != null && respVO.getTotal() > 0) {
-                saveReqVO.setId(respVO.getList().get(0).getId());
-                Forest.client(ConfigApi.class).updateConfig(saveReqVO).getCheckedData();
-            } else {
-                Forest.client(ConfigApi.class).createConfig(saveReqVO).getCheckedData();
-            }
-        }).exceptionally(throwable -> {
-            // 处理错误
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 主题配置保存是“先查是否存在，再决定新增还是更新”的串行链路，
+                 * 这里用 flatMap 串起来，避免后台线程里再嵌套同步调用。
+                 */
+                .fromCallable(() -> Forest.client(ConfigApi.class).getConfigPage(map).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .flatMap(respVO -> Single.fromCallable(() -> {
+                    if (respVO != null && respVO.getTotal() > 0) {
+                        saveReqVO.setId(respVO.getList().get(0).getId());
+                        Forest.client(ConfigApi.class).updateConfig(saveReqVO).getCheckedData();
+                    } else {
+                        Forest.client(ConfigApi.class).createConfig(saveReqVO).getCheckedData();
+                    }
+                    return Boolean.TRUE;
+                }))
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(ignored -> {
+                }, DefaultExceptionHandler::handle);
     }
 
     public boolean isDarkMode() {

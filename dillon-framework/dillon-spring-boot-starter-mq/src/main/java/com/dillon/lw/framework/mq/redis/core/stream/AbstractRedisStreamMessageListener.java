@@ -19,7 +19,6 @@ import java.util.List;
  * Redis Stream 监听器抽象类，用于实现集群消费
  *
  * @param <T> 消息类型。一定要填写噢，不然会报错
- *
  * @author liwen
  */
 public abstract class AbstractRedisStreamMessageListener<T extends AbstractRedisStreamMessage>

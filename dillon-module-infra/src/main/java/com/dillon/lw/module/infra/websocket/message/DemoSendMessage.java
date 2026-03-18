@@ -12,7 +12,7 @@ public class DemoSendMessage {
 
     /**
      * 发送给谁
-     *
+     * <p>
      * 如果为空，说明发送给所有人
      */
     private Long toUserId;

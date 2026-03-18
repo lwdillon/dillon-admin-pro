@@ -8,18 +8,20 @@ import com.dillon.lw.fx.eventbus.EventBusCenter;
 import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.store.AppStore;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.infra.controller.admin.file.vo.config.FileConfigSaveReqVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.*;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.utils.DictTypeEnum.INFRA_FILE_STORAGE;
 
@@ -55,9 +57,12 @@ public class FileConfigFormViewModel extends BaseViewModel {
         }
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData();
-        }).thenAcceptAsync(jsonObject -> {
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).getFileConfig(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(jsonObject -> {
             FileConfigSaveReqVO saveReqVO = new FileConfigSaveReqVO();
             saveReqVO.setName(Convert.toStr(jsonObject.get("name")));
             saveReqVO.setStorage(Convert.toInt(jsonObject.get("storage")));
@@ -90,40 +95,37 @@ public class FileConfigFormViewModel extends BaseViewModel {
                 selStorage.set(sel);
             }
 
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        }, DefaultExceptionHandler::handle);
 
     }
-
 
 
     public void createFileConfig(ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).createFileConfig(getSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).createFileConfig(getSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
+
     public void updateFileConfig(ConfirmDialog confirmDialog) {
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(FileConfigApi.class).updateFileConfig(getSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-            confirmDialog.close();
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(FileConfigApi.class).updateFileConfig(getSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    EventBusCenter.get().post(new UpdateDataEvent("更新文件配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                    confirmDialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     public FileConfigSaveReqVO getSaveReqVO() {

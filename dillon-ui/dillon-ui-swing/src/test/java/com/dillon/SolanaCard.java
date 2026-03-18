@@ -33,12 +33,12 @@ public class SolanaCard extends JPanel {
         // 2. 绘制 Logo 区域 (模拟白底图标)
         g2.setColor(Color.WHITE);
         g2.fillRoundRect(80, 40, 60, 60, 20, 20);
-        
+
         // 3. 绘制文字信息
         g2.setColor(TEXT_GRAY);
         g2.setFont(new Font("SansSerif", Font.PLAIN, 14));
         g2.drawString("SOL", 155, 60);
-        
+
         g2.setColor(TEXT_WHITE);
         g2.setFont(new Font("SansSerif", Font.BOLD, 22));
         g2.drawString("Solana", 155, 88);
@@ -46,7 +46,7 @@ public class SolanaCard extends JPanel {
         // 4. 绘制价格
         g2.setFont(new Font("SansSerif", Font.PLAIN, 42));
         g2.drawString("419.68", 40, 160);
-        
+
         g2.setColor(TEXT_GRAY);
         g2.setFont(new Font("SansSerif", Font.PLAIN, 16));
         g2.drawString("$ 67,108.32", 40, 190);
@@ -65,31 +65,31 @@ public class SolanaCard extends JPanel {
         g2.setFont(new Font("SansSerif", Font.BOLD, 14));
         g2.drawString(text, x + 25, y + 20);
         // 简易箭头
-        g2.fillPolygon(new int[]{x+8, x+13, x+18}, new int[]{y+12, y+22, y+12}, 3);
+        g2.fillPolygon(new int[]{x + 8, x + 13, x + 18}, new int[]{y + 12, y + 22, y + 12}, 3);
     }
 
     private void drawChart(Graphics2D g2) {
         int chartY = 280;
         int chartHeight = 40;
-        
+
         Path2D.Double path = new Path2D.Double();
         // 模拟数据点
         double[] points = {0.1, 0.5, 0.2, 0.3, 0.1, 0.4, 0.3, 0.6, 0.8, 0.9};
-        
+
         g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.setColor(CHART_RED);
-        
+
         path.moveTo(0, chartY);
         // 使用二阶贝塞尔曲线连接点实现平滑感
         for (int i = 0; i < points.length - 1; i++) {
-            double x1 = i * (getWidth() / (double)points.length);
+            double x1 = i * (getWidth() / (double) points.length);
             double y1 = chartY + (points[i] * chartHeight);
-            double x2 = (i + 1) * (getWidth() / (double)points.length);
-            double y2 = chartY + (points[i+1] * chartHeight);
+            double x2 = (i + 1) * (getWidth() / (double) points.length);
+            double y2 = chartY + (points[i + 1] * chartHeight);
             path.curveTo(x1 + 10, y1, x2 - 10, y2, x2, y2);
         }
         g2.draw(path);
-        
+
         // 绘制高亮的小圆点
         g2.fillOval(250, chartY + 35, 8, 8);
     }

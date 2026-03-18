@@ -10,7 +10,7 @@ import javafx.scene.control.TextField;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class OperateLogDetailView extends BaseView<OperateLogDetailViewModel>implements Initializable {
+public class OperateLogDetailView extends BaseView<OperateLogDetailViewModel> implements Initializable {
     @FXML
     private TextArea actionTextArea;
 

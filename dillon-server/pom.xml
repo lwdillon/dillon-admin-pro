@@ -33,87 +33,87 @@
         </dependency>
 
         <!-- 会员中心。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-member</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-member</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- 数据报表。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-report</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-report</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
         <!-- 工作流。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-bpm</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-bpm</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
         <!-- 支付服务。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-pay</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-pay</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- 微信公众号模块。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-mp</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-mp</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- 商城相关模块。默认注释，保证编译速度-->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-product</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-promotion</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-trade</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-statistics</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-product</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-promotion</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-trade</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-statistics</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- CRM 相关模块。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-crm</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-crm</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- ERP 相关模块。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-erp</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-erp</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
-<!--         AI 大模型相关模块。默认注释，保证编译速度-->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-ai</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--         AI 大模型相关模块。默认注释，保证编译速度-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-ai</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- IoT 物联网相关模块。默认注释，保证编译速度 -->
-<!--        <dependency>-->
-<!--            <groupId>com.dillon.lw</groupId>-->
-<!--            <artifactId>dillon-module-iot-biz</artifactId>-->
-<!--            <version>${revision}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.dillon.lw</groupId>-->
+        <!--            <artifactId>dillon-module-iot-biz</artifactId>-->
+        <!--            <version>${revision}</version>-->
+        <!--        </dependency>-->
 
         <!-- spring boot 配置所需依赖 -->
         <dependency>

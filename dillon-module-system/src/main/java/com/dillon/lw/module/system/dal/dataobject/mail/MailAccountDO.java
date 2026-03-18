@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * 邮箱账号 DO
- *
+ * <p>
  * 用途：配置发送邮箱的账号
  *
  * @author wangjingyi

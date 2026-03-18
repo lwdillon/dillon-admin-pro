@@ -29,18 +29,20 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static com.dillon.lw.utils.DictTypeEnum.SYSTEM_NOTICE_TYPE;
 import static com.dillon.lw.utils.DictTypeEnum.USER_TYPE;
 import static javax.swing.JOptionPane.*;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
+
 /**
  * @author wenli
  */
-public class NoticeManagementPanel extends JPanel {
+public class NoticeManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"公告编号", "公告标题", "公告类型", "状态", "创建时间", "操作"};
     private static final int COL_NOTICE_ID = 0;
     private static final int COL_NOTICE_TITLE = 1;
@@ -63,13 +65,13 @@ public class NoticeManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
             }
         });
-       
+
         toolPane = new WPanel();
         label7 = new JLabel();
         titleTextField = new JTextField();
@@ -270,10 +272,19 @@ public class NoticeManagementPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(NoticeApi.class).deleteNotice(id).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(NoticeApi.class).deleteNotice(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     private void push() {
@@ -282,10 +293,19 @@ public class NoticeManagementPanel extends JPanel {
             WMessage.showMessageWarning(MainFrame.getInstance(), WARN_SELECT_NOTICE_FIRST);
             return;
         }
-        executeAsync(() -> Forest.client(NoticeApi.class).push(id).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "发布成功！");
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(NoticeApi.class).push(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "发布成功！");
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     public void updateData() {
@@ -302,61 +322,82 @@ public class NoticeManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(NoticeApi.class).getNoticePage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(respVO -> {
-                Vector rowV = new Vector();
-                rowV.add(respVO.getId());
-                rowV.add(respVO.getTitle());
-                rowV.add(respVO.getType());
-                rowV.add(respVO.getStatus());
-                rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(respVO);
-                tableData.add(rowV);
-            });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(NoticeApi.class).getNoticePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 公告查询开始后先禁用搜索按钮，避免用户反复点击堆积多个相同请求。
+                     * doOnSubscribe 不保证在 EDT 执行，所以按钮状态切换显式回到 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 请求结束后恢复按钮，保证失败场景下也能立即再次查询。
+                     * doFinally 同样需要显式走 EDT，避免后台线程直接修改 Swing 组件。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(respVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(respVO.getId());
+                        rowV.add(respVO.getTitle());
+                        rowV.add(respVO.getType());
+                        rowV.add(respVO.getStatus());
+                        rowV.add(DateUtil.format(respVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(respVO);
+                        tableData.add(rowV);
+                    });
 
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                        return label.getForeground();
-                    }));
-                    label.setIcon(icon);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
+                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                                return label.getForeground();
+                            }));
+                            label.setIcon(icon);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
-            table.getColumn("公告类型").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_NOTICE_TYPE, value);
+                    table.getColumn("公告类型").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = BadgeLabelUtil.getBadgeLabel(SYSTEM_NOTICE_TYPE, value);
 
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-
-
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
 
 
-            paginationPane.setTotal(result.getTotal());
-        });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
     }
 
     private Long getSelectedNoticeId() {
@@ -383,16 +424,6 @@ public class NoticeManagementPanel extends JPanel {
         return (NoticeRespVO) table.getValueAt(selectedRow, COL_NOTICE_OBJECT);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

@@ -113,5 +113,4 @@ public class Multi12CellSelectionTable extends WTable {
     }
 
 
-
 }

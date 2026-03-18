@@ -50,7 +50,7 @@ public class MainApp extends Application {
         scene.removeDefaultCSS();
         scene.setMoveControl(mainNoae);
         scene.setFill(Color.TRANSPARENT);
-        scene.getStylesheets().addAll(Resources.resolve("/styles/index.css"),Resources.resolve("/styles/gemsfx-atlantafx.css"));
+        scene.getStylesheets().addAll(Resources.resolve("/styles/index.css"), Resources.resolve("/styles/gemsfx-atlantafx.css"));
 
         scene.maximizedProperty().addListener((observableValue, oldVal, newVal) -> {
             if (newVal) {

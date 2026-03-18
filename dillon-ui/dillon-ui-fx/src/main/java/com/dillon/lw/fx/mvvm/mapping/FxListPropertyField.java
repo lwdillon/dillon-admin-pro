@@ -18,60 +18,59 @@ import java.util.function.Supplier;
  * will be mapped to a JavaFX {@link ListProperty}.
  *
  * @param <T>
- * @param <E>
- *            the type of the list elements.
+ * @param <E> the type of the list elements.
  */
 class FxListPropertyField<M, E, T extends ObservableList<E>, R extends Property<T>>
-		implements PropertyField<T, M, R> {
+        implements PropertyField<T, M, R> {
 
-	private List<E> defaultValue;
-	private final ListPropertyAccessor<M, E> accessor;
-	private final ListProperty<E> targetProperty;
+    private List<E> defaultValue;
+    private final ListPropertyAccessor<M, E> accessor;
+    private final ListProperty<E> targetProperty;
 
-	public FxListPropertyField(SideEffect updateFunction, ListPropertyAccessor<M, E> accessor, Supplier<ListProperty<E>> propertySupplier) {
-		this(updateFunction, accessor, propertySupplier, Collections.emptyList());
-	}
+    public FxListPropertyField(SideEffect updateFunction, ListPropertyAccessor<M, E> accessor, Supplier<ListProperty<E>> propertySupplier) {
+        this(updateFunction, accessor, propertySupplier, Collections.emptyList());
+    }
 
-	public FxListPropertyField(SideEffect updateFunction, ListPropertyAccessor<M, E> accessor, Supplier<ListProperty<E>> propertySupplier, List<E> defaultValue) {
-		this.accessor = accessor;
-		this.defaultValue = defaultValue;
+    public FxListPropertyField(SideEffect updateFunction, ListPropertyAccessor<M, E> accessor, Supplier<ListProperty<E>> propertySupplier, List<E> defaultValue) {
+        this.accessor = accessor;
+        this.defaultValue = defaultValue;
 
-		this.targetProperty = propertySupplier.get();
-		this.targetProperty.setValue(FXCollections.observableArrayList());
+        this.targetProperty = propertySupplier.get();
+        this.targetProperty.setValue(FXCollections.observableArrayList());
 
-		this.targetProperty.addListener((ListChangeListener<E>) change -> updateFunction.call());
-	}
+        this.targetProperty.addListener((ListChangeListener<E>) change -> updateFunction.call());
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		accessor.apply(wrappedObject).setAll(targetProperty.getValue());
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        accessor.apply(wrappedObject).setAll(targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		targetProperty.setAll(accessor.apply(wrappedObject).getValue());
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        targetProperty.setAll(accessor.apply(wrappedObject).getValue());
+    }
 
-	@Override
-	public void resetToDefault() {
-		targetProperty.setAll(defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        targetProperty.setAll(defaultValue);
+    }
 
-	@Override
-	public void updateDefault(final M wrappedObject) {
-		defaultValue = new ArrayList<>(accessor.apply(wrappedObject).getValue());
-	}
+    @Override
+    public void updateDefault(final M wrappedObject) {
+        defaultValue = new ArrayList<>(accessor.apply(wrappedObject).getValue());
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final List<E> modelValue = accessor.apply(wrappedObject).getValue();
-		final List<E> wrapperValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final List<E> modelValue = accessor.apply(wrappedObject).getValue();
+        final List<E> wrapperValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrapperValue);
-	}
+        return !Objects.equals(modelValue, wrapperValue);
+    }
 }

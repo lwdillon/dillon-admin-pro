@@ -36,7 +36,7 @@ public class NumberUtils {
 
     /**
      * 通过经纬度获取地球上两点之间的距离
-     *
+     * <p>
      * 参考 <<a href="https://gitee.com/dromara/hutool/blob/1caabb586b1f95aec66a21d039c5695df5e0f4c1/hutool-core/src/main/java/cn/hutool/core/util/DistanceUtil.java">DistanceUtil</a>> 实现，目前它已经被 hutool 删除
      *
      * @param lat1 经度1
@@ -60,7 +60,7 @@ public class NumberUtils {
 
     /**
      * 提供精确的乘法运算
-     *
+     * <p>
      * 和 hutool {@link NumberUtil#mul(BigDecimal...)} 的差别是，如果存在 null，则返回 null
      *
      * @param values 多个被乘值

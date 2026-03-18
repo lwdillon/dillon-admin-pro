@@ -25,10 +25,10 @@ public class LiquidGlassBorder implements Border {
 
         // 2. 绘制外边框渐变
         GradientPaint gradient = new GradientPaint(
-                0, 0, highlightColor, 
+                0, 0, highlightColor,
                 0, height, edgeColor
         );
-        
+
         g2.setPaint(gradient);
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);

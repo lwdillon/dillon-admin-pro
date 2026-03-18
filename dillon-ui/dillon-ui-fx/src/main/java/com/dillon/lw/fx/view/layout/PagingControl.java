@@ -20,7 +20,7 @@ import javafx.util.Callback;
  */
 public class PagingControl extends HBox {
 
-    private final ObservableList<Integer> pageItmeList = FXCollections.observableArrayList(10, 20, 30, 50,100);
+    private final ObservableList<Integer> pageItmeList = FXCollections.observableArrayList(10, 20, 30, 50, 100);
     private Pagination pagination;
     private Label totalLabel;
     private Label totalPageLabel;

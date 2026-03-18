@@ -13,7 +13,7 @@ public interface MailSendApi {
 
     /**
      * 发送单条邮箱给 Admin 用户
-     *
+     * <p>
      * 在 mail 为空时，使用 userId 加载对应 Admin 的邮箱
      *
      * @param reqDTO 发送请求
@@ -23,7 +23,7 @@ public interface MailSendApi {
 
     /**
      * 发送单条邮箱给 Member 用户
-     *
+     * <p>
      * 在 mail 为空时，使用 userId 加载对应 Member 的邮箱
      *
      * @param reqDTO 发送请求

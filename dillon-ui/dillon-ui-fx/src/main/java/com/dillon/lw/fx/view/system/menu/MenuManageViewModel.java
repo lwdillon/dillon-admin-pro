@@ -10,21 +10,23 @@ import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.SideMenuEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuListReqVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TreeItem;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 
 /**
@@ -88,44 +90,44 @@ public class MenuManageViewModel extends BaseViewModel {
         menuListReqVO.setStatus(StrUtil.equals("全部", status) ? null : (StrUtil.equals("正常", status) ? 0 : 1));
         Map<String, Object> queryMap = BeanUtil.beanToMap(menuListReqVO, false, true);
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
+        Single
+                /*
+                 * 菜单列表查询先在 IO 线程获取完整菜单树数据，
+                 * 再回到 JavaFX UI 线程构建 TreeItem，避免界面线程阻塞。
+                 */
+                .fromCallable(() -> Forest.client(MenuApi.class).getMenuList(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    TreeItem<MenuRespVO> rootItem = new TreeItem<>(new MenuRespVO());
+                    rootItem.setExpanded(true);
+                    Map<Long, TreeItem<MenuRespVO>> itemMap = new HashMap<>();
+                    itemMap.put(0L, rootItem);
 
-            // 创建根节点（空的或具有实际数据）
-            TreeItem<MenuRespVO> rootItem = new TreeItem<>(new MenuRespVO());
-            rootItem.setExpanded(true);
-            // 将菜单列表转换为树形结构
-            Map<Long, TreeItem<MenuRespVO>> itemMap = new HashMap<>();
-            itemMap.put(0L, rootItem);
+                    for (MenuRespVO menu : data) {
+                        TreeItem<MenuRespVO> treeItem = new TreeItem<>(menu);
+                        itemMap.put(menu.getId(), treeItem);
+                    }
 
-            for (MenuRespVO menu : data) {
-                TreeItem<MenuRespVO> treeItem = new TreeItem<>(menu);
-                itemMap.put(menu.getId(), treeItem);
-            }
+                    data.forEach(menuRespVO -> {
+                        TreeItem<MenuRespVO> parentNode = itemMap.get(menuRespVO.getParentId());
+                        TreeItem<MenuRespVO> childNode = itemMap.get(menuRespVO.getId());
+                        if (parentNode != null) {
+                            parentNode.getChildren().add(childNode);
+                        }
+                    });
 
-            data.forEach(menuRespVO -> {
-                TreeItem<MenuRespVO> parentNode = itemMap.get(menuRespVO.getParentId());
-                TreeItem<MenuRespVO> childNode = itemMap.get(menuRespVO.getId());
-                if (parentNode != null) {
-                    parentNode.getChildren().add(childNode);
-                }
-            });
-
-            treeItemObjectProperty.setValue(rootItem);
-            if (pendingSelectMenuId != null) {
-                TreeItem<MenuRespVO> target = itemMap.get(pendingSelectMenuId);
-                if (target != null) {
-                    expandToRoot(target);
-                    selectedTreeItemProperty.set(target);
-                }
-                pendingSelectMenuId = null;
-            }
-
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+                    treeItemObjectProperty.setValue(rootItem);
+                    if (pendingSelectMenuId != null) {
+                        TreeItem<MenuRespVO> target = itemMap.get(pendingSelectMenuId);
+                        if (target != null) {
+                            expandToRoot(target);
+                            selectedTreeItemProperty.set(target);
+                        }
+                        pendingSelectMenuId = null;
+                    }
+                }, DefaultExceptionHandler::handle);
 
 
     }
@@ -138,24 +140,27 @@ public class MenuManageViewModel extends BaseViewModel {
     }
 
     public void deleteMenu(Long menuId, ConfirmDialog dialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(MenuApi.class).deleteMenu(menuId).getCheckedData();
-        }).thenAcceptAsync(commonResult -> {
-            EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-            EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
-            dialog.close();
-
-        }, Platform::runLater).exceptionally(throwable -> {
-            DefaultExceptionHandler.handle(throwable);
-            return null;
-        });
+        Single
+                /*
+                 * 删除菜单后需要立刻刷新侧边菜单和当前列表，
+                 * 所以成功回调统一切回 JavaFX UI 线程处理事件派发与弹窗关闭。
+                 */
+                .fromCallable(() -> Forest.client(MenuApi.class).deleteMenu(menuId).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(commonResult -> {
+                    EventBusCenter.get().post(new SideMenuEvent("更新菜单"));
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                    EventBusCenter.get().post(new UpdateDataEvent("更新菜单列表"));
+                    dialog.close();
+                }, DefaultExceptionHandler::handle);
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
-            if("更新菜单列表".equals(menuEvent.getMessage())) {
+        FxSchedulers.runOnFx(() -> {
+            if ("更新菜单列表".equals(menuEvent.getMessage())) {
                 Object data = menuEvent.getData();
                 if (data instanceof Number) {
                     pendingSelectMenuId = ((Number) data).longValue();
@@ -167,7 +172,7 @@ public class MenuManageViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> query());
+        FxSchedulers.runOnFx(() -> query());
     }
 
     private void expandToRoot(TreeItem<MenuRespVO> node) {
@@ -177,8 +182,6 @@ public class MenuManageViewModel extends BaseViewModel {
             current = current.getParent();
         }
     }
-
-
 
 
 }

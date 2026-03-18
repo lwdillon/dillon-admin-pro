@@ -35,7 +35,7 @@ public @interface ChineseNameDesensitize {
 
     /**
      * 是否禁用脱敏
-     *
+     * <p>
      * 支持 Spring EL 表达式，如果返回 true 则跳过脱敏
      */
     String disable() default "";

@@ -27,11 +27,11 @@ import static atlantafx.base.theme.Styles.toggleStyleClass;
  * @author wenli
  * @date 2023/02/15
  */
-public class DeptFromView extends BaseView<DeptFromViewModel>implements Initializable {
+public class DeptFromView extends BaseView<DeptFromViewModel> implements Initializable {
 
 
     private Popover popover;
-    private TreeView<DeptSimpleRespVO>  deptTree;
+    private TreeView<DeptSimpleRespVO> deptTree;
     @FXML
     private CustomTextField deptTreeTextField;
 
@@ -65,10 +65,10 @@ public class DeptFromView extends BaseView<DeptFromViewModel>implements Initiali
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         deptTreeTextField.setRight(FontIcon.of(Feather.CHEVRON_DOWN));
-        popover = new Popover(deptTree=new TreeView<>());
+        popover = new Popover(deptTree = new TreeView<>());
         popover.setHeaderAlwaysVisible(false);
         popover.setArrowLocation(Popover.ArrowLocation.TOP_CENTER);
-        deptTree.setCellFactory(cell->new TreeCell<>(){
+        deptTree.setCellFactory(cell -> new TreeCell<>() {
             @Override
             protected void updateItem(DeptSimpleRespVO deptSimpleRespVO, boolean empty) {
                 super.updateItem(deptSimpleRespVO, empty);
@@ -93,14 +93,14 @@ public class DeptFromView extends BaseView<DeptFromViewModel>implements Initiali
         viewModel.selectTreeItemProperty().addListener((observableValue, deptSimpleRespVOTreeItem, t1) -> deptTree.getSelectionModel().select(t1));
 
         deptTreeTextField.setEditable(false);
-        deptTreeTextField.setOnMouseClicked(actionEvent ->{
-            deptTree.setPrefWidth(deptTreeTextField.getWidth()-50);
+        deptTreeTextField.setOnMouseClicked(actionEvent -> {
+            deptTree.setPrefWidth(deptTreeTextField.getWidth() - 50);
             popover.show(deptTreeTextField);
             TreeItem<DeptSimpleRespVO> selectedTreeItem = viewModel.selectTreeItemProperty().get();
             if (selectedTreeItem != null) {
                 selectedTreeItem.setExpanded(true);
             }
-        } );
+        });
         nameTextField.textProperty().bindBidirectional(viewModel.nameProperty());
         deptTree.rootProperty().bind(viewModel.deptTreeRootProperty());
 
@@ -130,7 +130,7 @@ public class DeptFromView extends BaseView<DeptFromViewModel>implements Initiali
         leaderUserIdComBox.itemsProperty().bind(viewModel.leaderUserListProperty());
         leaderUserIdComBox.getSelectionModel().selectedItemProperty().addListener((observableValue, userSimpleRespVO, t1) -> viewModel.selectLeaderUserProperty().set(t1));
         viewModel.selectLeaderUserProperty().addListener((observableValue, userSimpleRespVO, t1) -> leaderUserIdComBox.getSelectionModel().select(t1));
-        leaderUserIdComBox.setCellFactory(cell->new TextFieldListCell<>() {
+        leaderUserIdComBox.setCellFactory(cell -> new TextFieldListCell<>() {
             @Override
             public void updateItem(UserSimpleRespVO userSimpleRespVO, boolean empty) {
                 super.updateItem(userSimpleRespVO, empty);
@@ -151,8 +151,6 @@ public class DeptFromView extends BaseView<DeptFromViewModel>implements Initiali
         });
         toggleStyleClass(deptTree, Tweaks.ALT_ICON);
     }
-
-
 
 
 }

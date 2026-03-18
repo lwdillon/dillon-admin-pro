@@ -36,7 +36,7 @@ public class RoleDO extends TenantBaseDO {
     private String name;
     /**
      * 角色标识
-     *
+     * <p>
      * 枚举
      */
     private String code;
@@ -46,13 +46,13 @@ public class RoleDO extends TenantBaseDO {
     private Integer sort;
     /**
      * 角色状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
     /**
      * 角色类型
-     *
+     * <p>
      * 枚举 {@link RoleTypeEnum}
      */
     private Integer type;
@@ -63,13 +63,13 @@ public class RoleDO extends TenantBaseDO {
 
     /**
      * 数据范围
-     *
+     * <p>
      * 枚举 {@link DataScopeEnum}
      */
     private Integer dataScope;
     /**
      * 数据范围(指定部门数组)
-     *
+     * <p>
      * 适用于 {@link #dataScope} 的值为 {@link DataScopeEnum#DEPT_CUSTOM} 时
      */
     @TableField(typeHandler = JacksonTypeHandler.class)

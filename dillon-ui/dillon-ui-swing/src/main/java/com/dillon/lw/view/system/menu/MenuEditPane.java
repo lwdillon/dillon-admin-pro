@@ -12,8 +12,12 @@ import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuRespVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSaveVO;
 import com.dillon.lw.module.system.controller.admin.permission.vo.menu.MenuSimpleRespVO;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.swingx.JXTree;
 
@@ -27,7 +31,8 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author wenli
@@ -38,6 +43,18 @@ public class MenuEditPane extends JPanel {
 
     private Long id = null;
     private Long parentId = null;
+    /**
+     * 菜单编辑页初始化请求版本号。
+     * <p>
+     * 新旧请求交替时，只接受最后一次打开动作对应的返回值，
+     * 避免用户快速切换“新增/编辑”时被旧数据回填。
+     * </p>
+     */
+    private final AtomicInteger loadRequestVersion = new AtomicInteger();
+    /**
+     * 当前初始化请求订阅。
+     */
+    private final AtomicReference<Disposable> currentLoadDisposable = new AtomicReference<Disposable>();
 
     public MenuEditPane() {
         initComponents();
@@ -311,6 +328,7 @@ public class MenuEditPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {
@@ -326,7 +344,7 @@ public class MenuEditPane extends JPanel {
             return;
         }
         nameTextField.setText(menuRespVO.getName());
-        int menuType = ObjectUtil.defaultIfNull(menuRespVO.getType(),0);
+        int menuType = ObjectUtil.defaultIfNull(menuRespVO.getType(), 0);
         if (menuType == 1) {
             typeDirRadioButton.setSelected(true);
         } else if (menuType == 2) {
@@ -339,90 +357,140 @@ public class MenuEditPane extends JPanel {
         componentTextField.setText(menuRespVO.getComponentSwing());
         componentNameTextField.setText(menuRespVO.getComponentName());
         permissionTextField.setText(menuRespVO.getPermission());
-        sortSpinner.setValue(ObjectUtil.defaultIfNull(menuRespVO.getSort(),0));
+        sortSpinner.setValue(ObjectUtil.defaultIfNull(menuRespVO.getSort(), 0));
         statusCheckBox.setSelected(ObjectUtil.equals(menuRespVO.getStatus(), 0));
         visibleCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getVisible(), true));
-        alwaysShowCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getAlwaysShow(),true));
-        keepAliveCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getKeepAlive(),true));
+        alwaysShowCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getAlwaysShow(), true));
+        keepAliveCheckBox.setSelected(ObjectUtil.defaultIfNull(menuRespVO.getKeepAlive(), true));
     }
 
 
     public void updateData(Long id, boolean isAdd) {
-
+        /*
+         * 菜单编辑页可能以“新增”和“编辑”两种模式打开。
+         * 这里先固化页面状态，再发起并行请求，保证后续回调使用的是同一次打开动作的参数。
+         */
         if (isAdd) {
             this.id = null;
         } else {
             this.id = id;
         }
 
-        // 获取 API 实例
-        MenuApi menuApi = Forest.client(MenuApi.class);
+        final MenuApi menuApi = Forest.client(MenuApi.class);
+        final int requestId = loadRequestVersion.incrementAndGet();
+        disposeTrackedDisposable(currentLoadDisposable);
 
-        CompletableFuture<MenuRespVO> menuFuture = CompletableFuture.supplyAsync(() -> {
-            if (id == null) {
-                return new MenuRespVO();
-            }
-            return menuApi.getMenu(id).getCheckedData();
-        });
+        final AtomicReference<Disposable> loadDisposableRef = new AtomicReference<Disposable>();
+        Single
+                /*
+                 * 编辑页初始化需要两份数据：当前菜单详情 + 简化菜单树。
+                 * 用 Single.zip(...) 可以把它们并行拉取，再合并成页面真正需要的结构。
+                 */
+                .zip(
+                        id == null
+                                ? Single.just(new MenuRespVO())
+                                : Single.fromCallable(() -> menuApi.getMenu(id).getCheckedData()),
+                        Single.fromCallable(() -> menuApi.getSimpleMenuList().getCheckedData()),
+                        MenuLoadData::new
+                )
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    loadDisposableRef.set(disposable);
+                    currentLoadDisposable.set(disposable);
+                })
+                .doFinally(() -> clearTrackedDisposable(currentLoadDisposable, loadDisposableRef.get()))
+                .subscribe(
+                        data -> {
+                            /*
+                             * 只接受最后一次 updateData(...) 触发的结果，
+                             * 避免用户快速切换新增/编辑时被旧请求回填表单。
+                             */
+                            if (requestId != loadRequestVersion.get()) {
+                                return;
+                            }
+                            applyMenuLoadData(data);
+                        },
+                        SwingExceptionHandler::handle
+                );
+    }
 
-        CompletableFuture<List<MenuSimpleRespVO>> menuListFuture = CompletableFuture.supplyAsync(() -> {
-            return menuApi.getSimpleMenuList().getCheckedData();
-        });
+    private void applyMenuLoadData(MenuLoadData data) {
+        MenuRespVO menuRespVO = data.menuRespVO;
+        List<MenuSimpleRespVO> menuList = data.menuList;
 
-        CompletableFuture.allOf(menuFuture, menuListFuture).thenAcceptAsync(v -> {
-            try {
-                MenuRespVO menuRespVO = menuFuture.get();
-                List<MenuSimpleRespVO> menuList = menuListFuture.get();
+        setMenuRespVO(menuRespVO);
 
-                setMenuRespVO(menuRespVO);
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
+        Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+        for (MenuSimpleRespVO menu : menuList) {
+            nodeMap.put(menu.getId(), new DefaultMutableTreeNode(menu));
+        }
 
-                DefaultMutableTreeNode root = new DefaultMutableTreeNode("主类目");
-                Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-                for (MenuSimpleRespVO menu : menuList) {
-                    nodeMap.put(menu.getId(), new DefaultMutableTreeNode(menu));
-                }
-
-                for (MenuSimpleRespVO menu : menuList) {
-                    DefaultMutableTreeNode node = nodeMap.get(menu.getId());
-                    if (menu.getParentId() == null || menu.getParentId() == 0) {
-                        root.add(node);
-                    } else {
-                        DefaultMutableTreeNode parentNode = nodeMap.get(menu.getParentId());
-                        if (parentNode != null) {
-                            parentNode.add(node);
-                        } else {
-                            root.add(node);
-                        }
-                    }
-                }
-
-                menuTree.setModel(new DefaultTreeModel(root));
-
-                if (menuRespVO.getParentId() != null && menuRespVO.getParentId() != 0) {
-                    parentId = menuRespVO.getParentId();
-                    for (MenuSimpleRespVO menu : menuList) {
-                        if (menu.getId().equals(parentId)) {
-                            parentIdTextField.setText(menu.getName());
-                            break;
-                        }
-                    }
+        for (MenuSimpleRespVO menu : menuList) {
+            DefaultMutableTreeNode node = nodeMap.get(menu.getId());
+            if (menu.getParentId() == null || menu.getParentId() == 0) {
+                root.add(node);
+            } else {
+                DefaultMutableTreeNode parentNode = nodeMap.get(menu.getParentId());
+                if (parentNode != null) {
+                    parentNode.add(node);
                 } else {
-                    parentId = 0L;
-                    parentIdTextField.setText("主类目");
+                    root.add(node);
                 }
-            } catch (Exception e) {
-                SwingExceptionHandler.handle(e);
             }
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+        }
 
+        menuTree.setModel(new DefaultTreeModel(root));
 
+        if (menuRespVO.getParentId() != null && menuRespVO.getParentId() != 0) {
+            parentId = menuRespVO.getParentId();
+            for (MenuSimpleRespVO menu : menuList) {
+                if (menu.getId().equals(parentId)) {
+                    parentIdTextField.setText(menu.getName());
+                    return;
+                }
+            }
+        }
 
+        parentId = 0L;
+        parentIdTextField.setText("主类目");
+    }
 
+    /**
+     * 发起新请求前先释放旧订阅，避免旧页面状态继续占用回调。
+     */
+    private void disposeTrackedDisposable(AtomicReference<Disposable> disposableRef) {
+        Disposable disposable = disposableRef.getAndSet(null);
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+    }
+
+    /**
+     * 只在句柄仍匹配当前活跃订阅时才清空引用，避免新旧请求交错时清错对象。
+     */
+    private void clearTrackedDisposable(AtomicReference<Disposable> disposableRef, Disposable disposable) {
+        disposableRef.compareAndSet(disposable, null);
+    }
+
+    /**
+     * 菜单编辑页初始化结果。
+     */
+    private static final class MenuLoadData {
+        private final MenuRespVO menuRespVO;
+        private final List<MenuSimpleRespVO> menuList;
+
+        private MenuLoadData(MenuRespVO menuRespVO, List<MenuSimpleRespVO> menuList) {
+            this.menuRespVO = menuRespVO;
+            this.menuList = menuList;
+        }
+    }
+
+    @Override
+    public void removeNotify() {
+        disposeTrackedDisposable(currentLoadDisposable);
+        super.removeNotify();
     }
 
 

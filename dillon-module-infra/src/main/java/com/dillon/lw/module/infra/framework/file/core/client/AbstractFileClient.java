@@ -59,7 +59,7 @@ public abstract class AbstractFileClient<Config extends FileClientConfig> implem
      * 使用场景：local、ftp、db，通过 FileController 的 getFile 来获取文件内容
      *
      * @param domain 自定义域名
-     * @param path 文件路径
+     * @param path   文件路径
      * @return URL 访问地址
      */
     protected String formatFileUrl(String domain, String path) {

@@ -29,12 +29,16 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DataPermissionPane extends JPanel {
+public class DataPermissionPane extends com.dillon.lw.components.AbstractDisposablePanel {
     private Long id;
 
     public DataPermissionPane() {
@@ -257,50 +261,51 @@ public class DataPermissionPane extends JPanel {
 
         }
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData();
-        }).thenAcceptAsync(deptResult -> {
-            DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
-            // Build the tree
-            Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
-            nodeMap.put(0L, deptRoot); // Root node
+        Single
+                /*
+                 * 数据权限面板需要先查询部门树，再按当前角色勾选已有权限；
+                 * 因此把取树请求放到 IO，树模型构建和勾选回到 EDT。
+                 */
+                .fromCallable(() -> Forest.client(DeptApi.class).getSimpleDeptList().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(deptResult -> {
+                    DefaultMutableTreeNode deptRoot = new DefaultMutableTreeNode("全部");
+                    // Build the tree
+                    Map<Long, DefaultMutableTreeNode> nodeMap = new HashMap<>();
+                    nodeMap.put(0L, deptRoot); // Root node
 
-            List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
-            for (DeptSimpleRespVO simpleRespVO : deptResult) {
-                DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
-                nodeMap.put(simpleRespVO.getId(), node);
-                Set<Long> deptIds = roleRespVO.getDataScopeDeptIds();
-                if (deptIds != null && deptIds.contains(simpleRespVO.getId())) {
-                    selNodes.add(node);
-                }
-            }
-
-            deptResult.forEach(deptSimpleRespVO -> {
-                DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
-                DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
-                if (parentNode != null) {
-                    parentNode.add(childNode);
-                }
-            });
-
-            deptTree.setModel(new DefaultTreeModel(deptRoot));
-
-            if (selNodes != null) {
-                for (DefaultMutableTreeNode node : selNodes) {
-                    if (node.isLeaf()) {
-                        deptTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                    List<DefaultMutableTreeNode> selNodes = new ArrayList<>();
+                    for (DeptSimpleRespVO simpleRespVO : deptResult) {
+                        DefaultMutableTreeNode node = new DefaultMutableTreeNode(simpleRespVO);
+                        nodeMap.put(simpleRespVO.getId(), node);
+                        Set<Long> deptIds = roleRespVO.getDataScopeDeptIds();
+                        if (deptIds != null && deptIds.contains(simpleRespVO.getId())) {
+                            selNodes.add(node);
+                        }
                     }
 
-                }
-            }
-            TreeUtils.expandAll(deptTree);
+                    deptResult.forEach(deptSimpleRespVO -> {
+                        DefaultMutableTreeNode parentNode = nodeMap.get(deptSimpleRespVO.getParentId());
+                        DefaultMutableTreeNode childNode = nodeMap.get(deptSimpleRespVO.getId());
+                        if (parentNode != null) {
+                            parentNode.add(childNode);
+                        }
+                    });
 
-        }, SwingUtilities::invokeLater).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                SwingExceptionHandler.handle(throwable);
-            });
-            return null;
-        });
+                    deptTree.setModel(new DefaultTreeModel(deptRoot));
+
+                    if (selNodes != null) {
+                        for (DefaultMutableTreeNode node : selNodes) {
+                            if (node.isLeaf()) {
+                                deptTree.getCheckBoxTreeSelectionModel().addSelectionPath(new TreePath(node.getPath()));
+                            }
+
+                        }
+                    }
+                    TreeUtils.expandAll(deptTree);
+                }, SwingExceptionHandler::handle);
 
 
     }

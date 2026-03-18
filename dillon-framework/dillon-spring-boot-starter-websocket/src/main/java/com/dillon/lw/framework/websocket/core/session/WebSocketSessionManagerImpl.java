@@ -23,14 +23,14 @@ public class WebSocketSessionManagerImpl implements WebSocketSessionManager {
 
     /**
      * id 与 WebSocketSession 映射
-     *
+     * <p>
      * key：Session 编号
      */
     private final ConcurrentMap<String, WebSocketSession> idSessions = new ConcurrentHashMap<>();
 
     /**
      * user 与 WebSocketSession 映射
-     *
+     * <p>
      * key1：用户类型
      * key2：用户编号
      */

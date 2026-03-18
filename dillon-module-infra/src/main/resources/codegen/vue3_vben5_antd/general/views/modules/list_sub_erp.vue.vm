@@ -19,176 +19,177 @@
   import {Form, message} from 'ant-design-vue';
 
       #if ($table.templateType == 11) ## erp
-#end
-
-#if ($table.templateType == 11) ## erp
-#else
-#if ($subTable.subJoinMany) ## 一对多
-#else
-#end
-#end
-
-const props = defineProps<{
-  ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
-}>()
-
-#if ($table.templateType == 11) ## erp
-const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: ${subSimpleClassName}Form,
-  destroyOnClose: true,
-});
-
-/** 创建${subTable.classComment} */
-function handleCreate() {
-  if (!props.${subJoinColumn.javaField}){
-    message.warning("请先选择一个${table.classComment}!")
-    return
-  }
-  formModalApi.setData({${subJoinColumn.javaField}: props.${subJoinColumn.javaField}}).open();
-}
-
-/** 编辑${subTable.classComment} */
-function handleEdit(row: ${simpleClassName}Api.${subSimpleClassName}) {
-  formModalApi.setData(row).open();
-}
-
-/** 删除${subTable.classComment} */
-async function handleDelete(row: ${simpleClassName}Api.${subSimpleClassName}) {
-  const hideLoading = message.loading({
-    content: $t('ui.actionMessage.deleting', [row.id]),
-    duration: 0,
-  });
-  try {
-    await delete${subSimpleClassName}(row.id!);
-    message.success($t('ui.actionMessage.deleteSuccess', [row.id]));
-    await getList();
-  } finally {
-    hideLoading();
-  }
-}
-
-#if ($deleteBatchEnable)
-/** 批量删除${subTable.classComment} */
-async function handleDeleteBatch() {
-  const hideLoading = message.loading({
-    content: $t('ui.actionMessage.deleting'),
-    duration: 0,
-  });
-  try {
-    await delete${subSimpleClassName}List(checkedIds.value);
-    checkedIds.value = [];
-    message.success($t('ui.actionMessage.deleteSuccess'));
-    await getList();
-  } finally {
-    hideLoading();
-  }
-}
-
-const checkedIds = ref<number[]>([])
-function handleRowCheckboxChange({
-  records,
-}: {
-  records: ${simpleClassName}Api.${subSimpleClassName}[];
-}) {
-  checkedIds.value = records.map((item) => item.id!);
-}
-#end
-#end
-
-const loading = ref(true) // 列表的加载中
-const list = ref<${simpleClassName}Api.${subSimpleClassName}[]>([]) // 列表的数据
-#if ($table.templateType == 11) ## erp
-const total = ref(0) // 列表的总页数
-#end
-#if ($table.templateType == 11) ## erp
-const queryFormRef = ref() // 搜索的表单
-const queryParams = reactive({
-  pageNo: 1,
-  pageSize: 10,
-  #foreach ($column in $subColumns)
-    #if ($column.listOperation)
-      #if ($column.listOperationCondition != 'BETWEEN')
-            $column.javaField: undefined,
       #end
-      #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
-            $column.javaField: undefined,
-      #end
-    #end
-  #end
-})
 
-/** 搜索按钮操作 */
-function handleQuery() {
-  queryParams.pageNo = 1
-  getList()
-}
-
-/** 重置按钮操作 */
-function resetQuery() {
-  queryFormRef.value.resetFields()
-  handleQuery()
-}
-#end
-  /** 查询列表 */
-async function getList() {
-  loading.value = true
-  try {
-    if (!props.${subJoinColumn.javaField}){
-      return []
-    }
-      ## 特殊：树表专属逻辑（树不需要分页接口）
       #if ($table.templateType == 11) ## erp
-        const params = cloneDeep(queryParams) as any;
-          #foreach ($column in $columns)
+      #else
+          #if ($subTable.subJoinMany) ## 一对多
+          #else
+          #end
+      #end
+
+  const props = defineProps<{
+          ${subJoinColumn.javaField}?: number // ${subJoinColumn.columnComment}（主表的关联字段）
+  }>()
+
+      #if ($table.templateType == 11) ## erp
+      const [FormModal, formModalApi] = useVbenModal({
+        connectedComponent: ${subSimpleClassName}Form,
+        destroyOnClose: true,
+      });
+
+      /** 创建${subTable.classComment} */
+      function handleCreate() {
+        if (!props.${subJoinColumn.javaField}) {
+          message.warning("请先选择一个${table.classComment}!")
+          return
+        }
+        formModalApi.setData({${subJoinColumn.javaField}: props.${subJoinColumn.javaField}}).open();
+      }
+
+      /** 编辑${subTable.classComment} */
+      function handleEdit(row: ${simpleClassName}Api.${subSimpleClassName}) {
+        formModalApi.setData(row).open();
+      }
+
+      /** 删除${subTable.classComment} */
+      async function handleDelete(row: ${simpleClassName}Api.${subSimpleClassName}) {
+        const hideLoading = message.loading({
+          content: $t('ui.actionMessage.deleting', [row.id]),
+          duration: 0,
+        });
+        try {
+          await delete${subSimpleClassName}(row.id!);
+          message.success($t('ui.actionMessage.deleteSuccess', [row.id]));
+          await getList();
+        } finally {
+          hideLoading();
+        }
+      }
+
+          #if ($deleteBatchEnable)
+          /** 批量删除${subTable.classComment} */
+          async function handleDeleteBatch() {
+            const hideLoading = message.loading({
+              content: $t('ui.actionMessage.deleting'),
+              duration: 0,
+            });
+            try {
+              await delete${subSimpleClassName}List(checkedIds.value);
+              checkedIds.value = [];
+              message.success($t('ui.actionMessage.deleteSuccess'));
+              await getList();
+            } finally {
+              hideLoading();
+            }
+          }
+
+          const checkedIds = ref<number[]>([])
+
+          function handleRowCheckboxChange({
+                                             records,
+                                           }: {
+            records: ${simpleClassName}Api.${subSimpleClassName}[];
+          }) {
+            checkedIds.value = records.map((item) => item.id!);
+          }
+          #end
+      #end
+
+  const loading = ref(true) // 列表的加载中
+  const list = ref<${simpleClassName}Api.${subSimpleClassName}[]>([]) // 列表的数据
+      #if ($table.templateType == 11) ## erp
+      const total = ref(0) // 列表的总页数
+      #end
+      #if ($table.templateType == 11) ## erp
+      const queryFormRef = ref() // 搜索的表单
+      const queryParams = reactive({
+        pageNo: 1,
+        pageSize: 10,
+          #foreach ($column in $subColumns)
               #if ($column.listOperation)
+                  #if ($column.listOperationCondition != 'BETWEEN')
+                          $column.javaField: undefined,
+                  #end
                   #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
-                    if (params.${column.javaField} && Array.isArray(params.${column.javaField})) {
-                      params.${column.javaField} = (params.${column.javaField} as string[]).join(',');
-                    }
+                          $column.javaField: undefined,
                   #end
               #end
           #end
-        params.${subJoinColumn.javaField} = props.${subJoinColumn.javaField};
-        const data = await get${subSimpleClassName}Page(params)
-        list.value = data.list
-        total.value = data.total
-      #else
-          #if ($subTable.subJoinMany) ## 一对多
-           list.value = await get${subSimpleClassName}ListBy${SubJoinColumnName}(props.${subJoinColumn.javaField}!);
-          #else
-           list.value = [await get${subSimpleClassName}By${SubJoinColumnName}(props.${subJoinColumn.javaField}!)];
-          #end
+      })
+
+      /** 搜索按钮操作 */
+      function handleQuery() {
+        queryParams.pageNo = 1
+        getList()
+      }
+
+      /** 重置按钮操作 */
+      function resetQuery() {
+        queryFormRef.value.resetFields()
+        handleQuery()
+      }
       #end
-  } finally {
-    loading.value = false
-  }
-}
-
-/** 监听主表的关联字段的变化，加载对应的子表数据 */
-watch(
-  () => props.${subJoinColumn.javaField},
-  async (val) => {
-    if (!val) {
-      return;
+  /** 查询列表 */
+  async function getList() {
+    loading.value = true
+    try {
+      if (!props.${subJoinColumn.javaField}) {
+        return []
+      }
+        ## 特殊：树表专属逻辑（树不需要分页接口）
+        #if ($table.templateType == 11) ## erp
+          const params = cloneDeep(queryParams) as any;
+            #foreach ($column in $columns)
+                #if ($column.listOperation)
+                    #if ($column.htmlType == "datetime" || $column.listOperationCondition == "BETWEEN")
+                      if (params.${column.javaField} && Array.isArray(params.${column.javaField})) {
+                        params.${column.javaField} = (params.${column.javaField} as string[]).join(',');
+                      }
+                    #end
+                #end
+            #end
+          params.${subJoinColumn.javaField} = props.${subJoinColumn.javaField};
+          const data = await get${subSimpleClassName}Page(params)
+          list.value = data.list
+          total.value = data.total
+        #else
+            #if ($subTable.subJoinMany) ## 一对多
+              list.value = await get${subSimpleClassName}ListBy${SubJoinColumnName}(props.${subJoinColumn.javaField}!);
+            #else
+              list.value = [await get${subSimpleClassName}By${SubJoinColumnName}(props.${subJoinColumn.javaField}!)];
+            #end
+        #end
+    } finally {
+      loading.value = false
     }
-    await nextTick();
-    await getList()
-  },
-  { immediate: true },
-);
+  }
 
-#if ($table.templateType == 11) ## erp
-/** 初始化 */
-const { hiddenSearchBar, tableToolbarRef, tableRef } = useTableToolbar();
-onMounted(() => {
-  getList();
-});
-#end
+  /** 监听主表的关联字段的变化，加载对应的子表数据 */
+  watch(
+      () => props.${subJoinColumn.javaField},
+      async (val) => {
+        if (!val) {
+          return;
+        }
+        await nextTick();
+        await getList()
+      },
+      {immediate: true},
+  );
+
+      #if ($table.templateType == 11) ## erp
+      /** 初始化 */
+      const {hiddenSearchBar, tableToolbarRef, tableRef} = useTableToolbar();
+      onMounted(() => {
+        getList();
+      });
+      #end
 </script>
 
 <template>
     #if ($table.templateType == 11) ## erp
-      <FormModal @success="getList" />
+      <FormModal @success="getList"/>
       <div class="h-[600px]">
         <ContentWrap v-if="!hiddenSearchBar">
           <!-- 搜索工作栏 -->
@@ -220,7 +221,8 @@ onMounted(() => {
                               class="w-full"
                           />
                         </Form.Item>
-                      #elseif ($column.htmlType == "select" || $column.htmlType == "radio" || $column.htmlType == "checkbox")
+                      #elseif ($column.htmlType == "select" || $column.htmlType == "radio" || $column.htmlType ==
+                          "checkbox")
                         <Form.Item label="${comment}" name="${javaField}">
                           <Select
                               v-model:value="queryParams.${javaField}"
@@ -237,7 +239,7 @@ onMounted(() => {
                                   {{ dict.label }}
                                 </Select.Option>
                               #else## 未设置 dictType 数据字典的情况
-                                <Select.Option label="请选择字典生成" value="" />
+                                <Select.Option label="请选择字典生成" value=""/>
                               #end
                           </Select>
                         </Form.Item>
@@ -265,7 +267,7 @@ onMounted(() => {
                   #end
               #end
             <Form.Item>
-              <Button class="ml-2" @click="resetQuery"> 重置 </Button>
+              <Button class="ml-2" @click="resetQuery"> 重置</Button>
               <Button class="ml-2" @click="handleQuery" type="primary">
                 搜索
               </Button>
@@ -302,7 +304,7 @@ onMounted(() => {
                     批量删除
                   </Button>
                 #end
-            </TableToolbar>
+              </TableToolbar>
           </template>
           <vxe-table
               ref="tableRef"
@@ -331,13 +333,13 @@ onMounted(() => {
                       #elseif($column.dictType && "" != $column.dictType)## 数据字典
                         <vxe-column field="${javaField}" title="${comment}" align="center">
                           <template #default="{row}">
-                            <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}" />
+                            <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}"/>
                           </template>
                         </vxe-column>
                       #elseif ($table.templateType == 2 && $javaField == $treeNameColumn.javaField)
-                        <vxe-column field="${javaField}" title="${comment}" align="center"  tree-node/>
+                        <vxe-column field="${javaField}" title="${comment}" align="center" tree-node/>
                       #else
-                        <vxe-column field="${javaField}" title="${comment}" align="center" />
+                        <vxe-column field="${javaField}" title="${comment}" align="center"/>
                       #end
                   #end
               #end
@@ -377,35 +379,35 @@ onMounted(() => {
         </ContentWrap>
       </div>
     #else
-    <ContentWrap title="${subTable.classComment}列表">
-      <vxe-table
-          :data="list"
-          show-overflow
-          :loading="loading"
-      >
-          #foreach($column in $subColumns)
-              #if ($column.listOperationResult)
-                  #set ($dictType=$column.dictType)
-                  #set ($javaField = $column.javaField)
-                  #set ($comment=$column.columnComment)
-                  #if ($column.javaType == "LocalDateTime")## 时间类型
-                    <vxe-column field="${javaField}" title="${comment}" align="center">
-                      <template #default="{row}">
-                        {{formatDateTime(row.${javaField})}}
-                      </template>
-                    </vxe-column>
-                  #elseif($column.dictType && "" != $column.dictType)## 数据字典
-                    <vxe-column field="${javaField}" title="${comment}" align="center">
-                      <template #default="{row}">
-                        <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}" />
-                      </template>
-                    </vxe-column>
-                  #else
-                    <vxe-column field="${javaField}" title="${comment}" align="center" />
-                  #end
-              #end
-          #end
-      </vxe-table>
-    </ContentWrap>
+      <ContentWrap title="${subTable.classComment}列表">
+        <vxe-table
+            :data="list"
+            show-overflow
+            :loading="loading"
+        >
+            #foreach($column in $subColumns)
+                #if ($column.listOperationResult)
+                    #set ($dictType=$column.dictType)
+                    #set ($javaField = $column.javaField)
+                    #set ($comment=$column.columnComment)
+                    #if ($column.javaType == "LocalDateTime")## 时间类型
+                      <vxe-column field="${javaField}" title="${comment}" align="center">
+                        <template #default="{row}">
+                          {{formatDateTime(row.${javaField})}}
+                        </template>
+                      </vxe-column>
+                    #elseif($column.dictType && "" != $column.dictType)## 数据字典
+                      <vxe-column field="${javaField}" title="${comment}" align="center">
+                        <template #default="{row}">
+                          <dict-tag :type="DICT_TYPE.$dictType.toUpperCase()" :value="row.${javaField}"/>
+                        </template>
+                      </vxe-column>
+                    #else
+                      <vxe-column field="${javaField}" title="${comment}" align="center"/>
+                    #end
+                #end
+            #end
+        </vxe-table>
+      </ContentWrap>
     #end
 </template>

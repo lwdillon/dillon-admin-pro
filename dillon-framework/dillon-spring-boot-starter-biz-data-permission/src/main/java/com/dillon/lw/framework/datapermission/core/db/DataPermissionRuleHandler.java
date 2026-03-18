@@ -16,7 +16,7 @@ import static com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils.
 
 /**
  * 基于 {@link DataPermissionRule} 的数据权限处理器
- *
+ * <p>
  * 它的底层，是基于 MyBatis Plus 的 <a href="https://baomidou.com/plugins/data-permission/">数据权限插件</a>
  * 核心原理：它会在 SQL 执行前拦截 SQL 语句，并根据用户权限动态添加权限相关的 SQL 片段。这样，只有用户有权限访问的数据才会被查询出来
  *

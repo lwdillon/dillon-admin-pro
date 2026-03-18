@@ -13,7 +13,7 @@ public class GlowingLabel extends JLabel {
         // 确保 JLabel 背景是透明的，这样才能看到光晕
         setOpaque(false);
         // 设置字体颜色以便在光晕上清晰显示
-        setForeground(Color.WHITE); 
+        setForeground(Color.WHITE);
         setFont(new Font("SansSerif", Font.BOLD, 18));
         setHorizontalAlignment(CENTER);
     }
@@ -71,13 +71,13 @@ public class GlowingLabel extends JLabel {
         // 6. 释放 Graphics2D 资源
         g2d.dispose();
     }
-    
+
     // --- 示例用法 (main方法) ---
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("光晕效果示例");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            
+
             // 为了更好地展示光晕，使用一个深色背景的 JPanel
             JPanel panel = new JPanel(new GridBagLayout());
             panel.setBackground(Color.DARK_GRAY);
@@ -85,9 +85,9 @@ public class GlowingLabel extends JLabel {
             // 创建自定义的 GlowingLabel 实例
             JLabel titleLabel = new GlowingLabel("后台管理系统");
             titleLabel.setPreferredSize(new Dimension(200, 100)); // 设定一个大小
-            
+
             panel.add(titleLabel);
-            
+
             frame.add(panel);
             frame.pack();
             frame.setSize(400, 300);

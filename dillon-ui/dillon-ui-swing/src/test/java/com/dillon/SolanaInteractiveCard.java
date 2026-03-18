@@ -22,7 +22,7 @@ public class SolanaInteractiveCard extends JPanel {
     // 模拟数据
     private final double[] dataPoints1 = {0.4, 0.35, 0.5, 0.75, 0.5, 0.6, 0.3, 0.4, 0.7, 0.65, 0.55};
     private final double[] dataPoints2 = {0.6, 0.55, 0.7, 0.50, 0.4, 0.3, 0.45, 0.35, 0.5, 0.4, 0.3};
-    
+
     private final DecimalFormat df = new DecimalFormat("###.00");
     private int mouseX = -1;
 
@@ -52,13 +52,13 @@ public class SolanaInteractiveCard extends JPanel {
 
         drawDynamicBackground(g2, w, h);
         drawUIElements(g2, w, h);
-        
+
         // 布局参数
-        int paddingL = (int)(w * 0.15);
-        int paddingR = (int)(w * 0.08);
+        int paddingL = (int) (w * 0.15);
+        int paddingR = (int) (w * 0.08);
         int chartW = w - (paddingL + paddingR);
-        int chartH = (int)(h * 0.22);
-        int chartY = (int)(h * 0.62);
+        int chartH = (int) (h * 0.22);
+        int chartY = (int) (h * 0.62);
 
         // 1. 绘制坐标轴
         drawAxes(g2, paddingL, chartY, chartW, chartH);
@@ -76,7 +76,7 @@ public class SolanaInteractiveCard extends JPanel {
     private void drawAxes(Graphics2D g2, int x, int y, int w, int h) {
         g2.setFont(new Font("Inter", Font.PLAIN, 10));
         FontMetrics fm = g2.getFontMetrics();
-        
+
         String[] yLabels = {"$300", "$250", "$200"};
         for (int i = 0; i <= 2; i++) {
             int lineY = y + (i * h / 2);
@@ -104,7 +104,7 @@ public class SolanaInteractiveCard extends JPanel {
             else {
                 double prevX = padding + ((i - 1) * step);
                 double prevY = chartY + (points[i - 1] * chartH);
-                path.curveTo(prevX + step/2, prevY, x - step/2, y, x, y);
+                path.curveTo(prevX + step / 2, prevY, x - step / 2, y, x, y);
             }
         }
 
@@ -123,7 +123,7 @@ public class SolanaInteractiveCard extends JPanel {
         fillPath.lineTo(padding, chartY + chartH + 30);
         fillPath.closePath();
         g2.setPaint(new GradientPaint(0, chartY, new Color(color.getRed(), color.getGreen(), color.getBlue(), 40),
-                                      0, chartY + chartH + 30, new Color(0,0,0,0)));
+                0, chartY + chartH + 30, new Color(0, 0, 0, 0)));
         g2.fill(fillPath);
     }
 
@@ -133,7 +133,7 @@ public class SolanaInteractiveCard extends JPanel {
             int index = (int) Math.round((mouseX - padding) / step);
             if (index >= 0 && index < dataPoints1.length) {
                 double targetX = padding + (index * step);
-                
+
                 // 1. 绘制垂直共享指引线
                 g2.setStroke(new BasicStroke(1.2f, 0, 0, 10, new float[]{6}, 0));
                 g2.setColor(new Color(255, 255, 255, 80));
@@ -148,7 +148,7 @@ public class SolanaInteractiveCard extends JPanel {
                 // 3. 绘制组合 Tooltip
                 String txt1 = "RED: $" + df.format(250 - val1 * 50);
                 String txt2 = "CYAN: $" + df.format(250 - val2 * 50);
-                drawCombinedTooltip(g2, (int)targetX, (int)(yStart + Math.min(val1, val2) * h), txt1, txt2);
+                drawCombinedTooltip(g2, (int) targetX, (int) (yStart + Math.min(val1, val2) * h), txt1, txt2);
             }
         }
     }
@@ -186,13 +186,13 @@ public class SolanaInteractiveCard extends JPanel {
         g2.setColor(BACKGROUND_COLOR);
         g2.fillRoundRect(10, 10, w - 20, h - 20, 40, 40);
         RadialGradientPaint topGlow = new RadialGradientPaint(
-            new Point2D.Float(w * 0.3f, 0), h * 0.8f, new float[]{0f, 1f},
-            new Color[]{new Color(153, 69, 255, 80), new Color(0, 0, 0, 0)});
+                new Point2D.Float(w * 0.3f, 0), h * 0.8f, new float[]{0f, 1f},
+                new Color[]{new Color(153, 69, 255, 80), new Color(0, 0, 0, 0)});
         g2.setPaint(topGlow);
         g2.fillRoundRect(10, 10, w - 20, h - 20, 40, 40);
         RadialGradientPaint bottomGlow = new RadialGradientPaint(
-            new Point2D.Float(w * 0.8f, h), h * 0.7f, new float[]{0f, 1f},
-            new Color[]{ACCENT_BLUE, new Color(0, 0, 0, 0)});
+                new Point2D.Float(w * 0.8f, h), h * 0.7f, new float[]{0f, 1f},
+                new Color[]{ACCENT_BLUE, new Color(0, 0, 0, 0)});
         g2.setPaint(bottomGlow);
         g2.fillRoundRect(10, 10, w - 20, h - 20, 40, 40);
         g2.setStroke(new BasicStroke(1.5f));
@@ -201,26 +201,26 @@ public class SolanaInteractiveCard extends JPanel {
     }
 
     private void drawUIElements(Graphics2D g2, int w, int h) {
-        int logoSize = (int)(h * 0.11);
+        int logoSize = (int) (h * 0.11);
         g2.setPaint(new GradientPaint(30, 40, new Color(153, 69, 255), 80, 90, CHART_CYAN));
         g2.fillRoundRect(30, 40, logoSize, logoSize, 18, 18);
         g2.setColor(TEXT_GRAY);
-        g2.setFont(new Font("Inter", Font.PLAIN, (int)(h * 0.032)));
+        g2.setFont(new Font("Inter", Font.PLAIN, (int) (h * 0.032)));
         g2.drawString("SOL / USD", 30 + logoSize + 15, 58);
         g2.setColor(TEXT_WHITE);
-        g2.setFont(new Font("Inter", Font.BOLD, (int)(h * 0.048)));
-        g2.drawString("Solana Network", 30 + logoSize + 15, 60 + (int)(h * 0.048));
-        g2.setFont(new Font("Inter", Font.BOLD, (int)(h * 0.09)));
-        g2.drawString("238.14", 30, (int)(h * 0.32));
+        g2.setFont(new Font("Inter", Font.BOLD, (int) (h * 0.048)));
+        g2.drawString("Solana Network", 30 + logoSize + 15, 60 + (int) (h * 0.048));
+        g2.setFont(new Font("Inter", Font.BOLD, (int) (h * 0.09)));
+        g2.drawString("238.14", 30, (int) (h * 0.32));
         g2.setColor(TEXT_GRAY);
-        g2.setFont(new Font("Inter", Font.PLAIN, (int)(h * 0.038)));
-        g2.drawString("Vol: $ 102,491,204", 30, (int)(h * 0.38));
+        g2.setFont(new Font("Inter", Font.PLAIN, (int) (h * 0.038)));
+        g2.drawString("Vol: $ 102,491,204", 30, (int) (h * 0.38));
         int badgeW = 85;
         g2.setColor(ACCENT_RED);
-        g2.fillRoundRect(w - badgeW - 40, (int)(h * 0.26), badgeW, 32, 10, 10);
+        g2.fillRoundRect(w - badgeW - 40, (int) (h * 0.26), badgeW, 32, 10, 10);
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Inter", Font.BOLD, 14));
-        g2.drawString("-4.20%", w - badgeW - 22, (int)(h * 0.26) + 21);
+        g2.drawString("-4.20%", w - badgeW - 22, (int) (h * 0.26) + 21);
 
     }
 

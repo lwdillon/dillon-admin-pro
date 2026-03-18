@@ -23,11 +23,11 @@ public class AssertUtils {
 
     /**
      * 比对两个对象的属性是否一致
-     *
+     * <p>
      * 注意，如果 expected 存在的属性，actual 不存在的时候，会进行忽略
      *
-     * @param expected 期望对象
-     * @param actual 实际对象
+     * @param expected     期望对象
+     * @param actual       实际对象
      * @param ignoreFields 忽略的属性数组
      */
     public static void assertPojoEquals(Object expected, Object actual, String... ignoreFields) {
@@ -57,11 +57,11 @@ public class AssertUtils {
 
     /**
      * 比对两个对象的属性是否一致
-     *
+     * <p>
      * 注意，如果 expected 存在的属性，actual 不存在的时候，会进行忽略
      *
-     * @param expected 期望对象
-     * @param actual 实际对象
+     * @param expected     期望对象
+     * @param actual       实际对象
      * @param ignoreFields 忽略的属性数组
      * @return 是否一致
      */
@@ -85,8 +85,8 @@ public class AssertUtils {
     /**
      * 执行方法，校验抛出的 Service 是否符合条件
      *
-     * @param executable 业务异常
-     * @param errorCode 错误码对象
+     * @param executable    业务异常
+     * @param errorCode     错误码对象
      * @param messageParams 消息参数
      */
     public static void assertServiceException(Executable executable, ErrorCode errorCode, Object... messageParams) {

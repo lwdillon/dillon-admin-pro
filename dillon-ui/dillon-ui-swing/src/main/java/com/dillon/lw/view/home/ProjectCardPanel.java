@@ -37,7 +37,7 @@ public class ProjectCardPanel extends WPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // 图标标签
-        JLabel iconLabel = new JLabel(new FlatSVGIcon(svgIcon,45,45));
+        JLabel iconLabel = new JLabel(new FlatSVGIcon(svgIcon, 45, 45));
         gbc.gridy = 0;
         gbc.gridheight = 3; // 图标跨三行
         gbc.insets = new Insets(0, 0, 0, 15);

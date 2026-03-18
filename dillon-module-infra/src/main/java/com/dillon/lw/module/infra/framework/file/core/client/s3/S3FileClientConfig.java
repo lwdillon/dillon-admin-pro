@@ -75,7 +75,7 @@ public class S3FileClientConfig implements FileClientConfig {
 
     /**
      * 是否公开访问
-     *
+     * <p>
      * true：公开访问，所有人都可以访问
      * false：私有访问，只有配置的 accessKey 才可以访问
      */

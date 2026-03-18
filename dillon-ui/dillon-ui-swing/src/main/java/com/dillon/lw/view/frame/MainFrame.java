@@ -4,6 +4,7 @@ import com.dillon.lw.api.system.AuthApi;
 import com.dillon.lw.config.AppPrefs;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.LoginEvent;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.store.AppStore;
 import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.view.login.LoginPane;
@@ -20,12 +21,13 @@ import com.formdev.flatlaf.util.LoggingFacade;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.formdev.flatlaf.util.UIScale;
 import com.google.common.eventbus.Subscribe;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import com.jidesoft.swing.JideTabbedPane;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.concurrent.CompletableFuture;
 
 import static com.dillon.lw.config.AppPrefs.KEY_UI_THEME;
 import static com.dillon.lw.utils.ColorUtils.withAlpha;
@@ -137,6 +139,7 @@ public class MainFrame extends JFrame {
 
     /**
      * 展示登录界面
+     *
      * @param isInit 是否为应用启动时的第一次展示
      */
     public void showLogin(boolean isInit) {
@@ -339,19 +342,32 @@ public class MainFrame extends JFrame {
     public void dispose() {
         EventBusCenter.get().unregister(this);
         WebSocketNoticeService.getInstance().stop();
-        // 异步执行登出并彻底关闭应用
-        CompletableFuture.runAsync(() -> {
-            try {
-                Forest.client(AuthApi.class).logout();
-            } catch (Exception ignored) {}
-        }).whenComplete((v, e) -> System.exit(0));
+        /*
+         * 关闭主窗口时尽量通知服务端退出当前会话，
+         * 但无论请求成功还是失败，都不阻塞客户端真正退出。
+         */
+        Completable
+                .fromAction(() -> Forest.client(AuthApi.class).logout())
+                .subscribeOn(Schedulers.io())
+                .doFinally(() -> SwingSchedulers.runOnEdt(() -> System.exit(0)))
+                .subscribe(() -> {
+                }, ignored -> {
+                });
 
         FlatUIDefaultsInspector.hide();
         super.dispose();
     }
 
     // --- Getters ---
-    public JideTabbedPane getTabbedPane() { return mainPane != null ? mainPane.getTabbedPane() : null; }
-    public MainPane getMainPane() { return mainPane; }
-    public TitlePanel getTitlePanel() { return titlePanel; }
+    public JideTabbedPane getTabbedPane() {
+        return mainPane != null ? mainPane.getTabbedPane() : null;
+    }
+
+    public MainPane getMainPane() {
+        return mainPane;
+    }
+
+    public TitlePanel getTitlePanel() {
+        return titlePanel;
+    }
 }

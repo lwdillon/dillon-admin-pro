@@ -22,7 +22,7 @@ public interface DesensitizationHandler<T extends Annotation> {
 
     /**
      * 是否禁用脱敏的 Spring EL 表达式
-     *
+     * <p>
      * 如果返回 true 则跳过脱敏
      *
      * @param annotation 注解信息

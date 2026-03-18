@@ -185,14 +185,14 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
         OAuth2AccessTokenDO accessTokenDO = BeanUtils.toBean(refreshTokenDO, OAuth2AccessTokenDO.class)
                 .setAccessToken(refreshTokenDO.getRefreshToken());
         TenantUtils.execute(refreshTokenDO.getTenantId(),
-                        () -> accessTokenDO.setUserInfo(buildUserInfo(refreshTokenDO.getUserId(), refreshTokenDO.getUserType())));
+                () -> accessTokenDO.setUserInfo(buildUserInfo(refreshTokenDO.getUserId(), refreshTokenDO.getUserType())));
         return accessTokenDO;
     }
 
     /**
      * 加载用户信息，方便 {@link com.dillon.lw.framework.security.core.LoginUser} 获取到昵称、部门等信息
      *
-     * @param userId 用户编号
+     * @param userId   用户编号
      * @param userType 用户类型
      * @return 用户信息
      */

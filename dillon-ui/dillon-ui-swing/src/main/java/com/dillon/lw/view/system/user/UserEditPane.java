@@ -35,12 +35,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class UserEditPane extends JPanel {
+public class UserEditPane extends com.dillon.lw.components.AbstractDisposablePanel {
 
     private Long id;
     private Long deptId = null;
@@ -273,39 +277,33 @@ public class UserEditPane extends JPanel {
         DeptApi deptApi = Forest.client(DeptApi.class);
         PostApi postApi = Forest.client(PostApi.class);
 
-        CompletableFuture<UserRespVO> userFuture = CompletableFuture.supplyAsync(() -> {
-            if (id == null) {
-                return new UserRespVO();
-            }
-            return userApi.getUser(id).getCheckedData();
-        });
-
-        CompletableFuture<List<DeptSimpleRespVO>> deptsFuture = CompletableFuture.supplyAsync(() ->
-                deptApi.getSimpleDeptList().getCheckedData()
-        );
-
-        CompletableFuture<List<PostSimpleRespVO>> postsFuture = CompletableFuture.supplyAsync(() ->
-                postApi.getSimplePostList().getCheckedData()
-        );
-
-        CompletableFuture.allOf(userFuture, deptsFuture, postsFuture)
-                .thenAcceptAsync(unused -> {
-                    try {
-                        Map<String, Object> resultMap = new LinkedHashMap<>();
-                        resultMap.put("userInfo", userFuture.get());
-                        resultMap.put("deptList", deptsFuture.get());
-                        resultMap.put("postList", postsFuture.get());
-                        updateData(resultMap);
-                    } catch (Exception e) {
-                        SwingExceptionHandler.handle(e);
-                    }
-                }, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> {
-                        SwingExceptionHandler.handle(throwable);
-                    });
-                    return null;
-                });
+        Single
+                /*
+                 * 编辑用户需要同时准备用户详情、部门树和岗位列表，
+                 * 用 zip 并行三个同步请求，避免串行等待拉长弹窗打开时间。
+                 */
+                .zip(
+                        Single.fromCallable(() -> id == null ? new UserRespVO() : userApi.getUser(id).getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> deptApi.getSimpleDeptList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        Single.fromCallable(() -> postApi.getSimplePostList().getCheckedData())
+                                .subscribeOn(Schedulers.io()),
+                        (userInfo, deptList, postList) -> {
+                            Map<String, Object> resultMap = new LinkedHashMap<>();
+                            resultMap.put("userInfo", userInfo);
+                            resultMap.put("deptList", deptList);
+                            resultMap.put("postList", postList);
+                            return resultMap;
+                        }
+                )
+                /*
+                 * updateData(resultMap) 会重建树、列表并回填多个 Swing 组件，
+                 * 因此统一在 EDT 中消费 zip 的结果。
+                 */
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(this::updateData, SwingExceptionHandler::handle);
     }
 
     private void updateData(Map<String, Object> resultMap) {
@@ -345,7 +343,7 @@ public class UserEditPane extends JPanel {
 
             listModel.addElement(postSimpleRespVO);
 
-            if (userInfo != null&& CollUtil.isNotEmpty(userInfo.getPostIds())) {
+            if (userInfo != null && CollUtil.isNotEmpty(userInfo.getPostIds())) {
 
                 if (userInfo.getPostIds().contains(postSimpleRespVO.getId())) {
                     selPost.add(postSimpleRespVO);
@@ -374,7 +372,7 @@ public class UserEditPane extends JPanel {
         emailTextField.setText(userRespVO.getEmail());
         nicknameTextField.setText(userRespVO.getNickname());
         remarkTextArea.setText(userRespVO.getRemark());
-        if(userRespVO.getDeptId()!=null){
+        if (userRespVO.getDeptId() != null) {
             deptId = userRespVO.getDeptId();
         }
         if (userRespVO.getSex() != null) {
@@ -414,6 +412,7 @@ public class UserEditPane extends JPanel {
 
     /**
      * 验证表单
+     *
      * @return 验证失败的错误消息，null表示验证通过
      */
     public String validates() {

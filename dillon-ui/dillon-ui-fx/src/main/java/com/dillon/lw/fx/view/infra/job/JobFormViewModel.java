@@ -8,17 +8,18 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
 import com.dillon.lw.fx.mvvm.mapping.ModelWrapper;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.dtflys.forest.Forest;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.StringProperty;
-
-import java.util.concurrent.CompletableFuture;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class JobFormViewModel extends BaseViewModel {
 
@@ -35,14 +36,12 @@ public class JobFormViewModel extends BaseViewModel {
 
         this.id = id;
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJob(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            setWrapper(data);
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).getJob(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(this::setWrapper, DefaultExceptionHandler::handle);
 
     }
 
@@ -54,32 +53,35 @@ public class JobFormViewModel extends BaseViewModel {
 
 
     public void createJob(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).createJob(getSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-            EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            confirmDialog.close();
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).createJob(getSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("保存成功", MessageType.SUCCESS));
+                }, e -> {
+                    DefaultExceptionHandler.handle(e);
+                    confirmDialog.close();
+                });
     }
 
     public void updateJob(ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).updateJob(getSaveReqVO()).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-            EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            confirmDialog.close();
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).updateJob(getSaveReqVO()).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("更新成功", MessageType.SUCCESS));
+                }, e -> {
+                    DefaultExceptionHandler.handle(e);
+                    confirmDialog.close();
+                });
     }
 
     public JobSaveReqVO getSaveReqVO() {

@@ -31,7 +31,7 @@ public class ErrorInterceptor implements ForestInterceptor {
             int status = response.getStatusCode();
             String url = request.getUrl();
 
-            if(status==401){
+            if (status == 401) {
                 throw new ServiceException(
                         401,
                         "账号未登录\n" + url,
@@ -66,9 +66,9 @@ public class ErrorInterceptor implements ForestInterceptor {
         // ========= ② 网络级错误（主备切换） =========
         Throwable cause = ex.getCause();
         boolean isNetworkError =
-                        (cause instanceof ConnectException ||
-                                cause instanceof SocketTimeoutException ||
-                                cause instanceof UnknownHostException);
+                (cause instanceof ConnectException ||
+                        cause instanceof SocketTimeoutException ||
+                        cause instanceof UnknownHostException);
 
         if (isNetworkError && isRequestToMaster(request)) {
             log.warn("主机不可达，切换到备机，原因：{}", cause.toString());

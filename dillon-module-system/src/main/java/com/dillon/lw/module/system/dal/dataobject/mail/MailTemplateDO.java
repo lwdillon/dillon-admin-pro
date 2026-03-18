@@ -39,7 +39,7 @@ public class MailTemplateDO extends BaseDO {
     private String code;
     /**
      * 发送的邮箱账号编号
-     *
+     * <p>
      * 关联 {@link MailAccountDO#getId()}
      */
     private Long accountId;
@@ -63,7 +63,7 @@ public class MailTemplateDO extends BaseDO {
     private List<String> params;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

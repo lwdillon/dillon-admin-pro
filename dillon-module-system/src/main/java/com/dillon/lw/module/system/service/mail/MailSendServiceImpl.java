@@ -119,7 +119,7 @@ public class MailSendServiceImpl implements MailSendService {
     public void doSendMail(MailSendMessage message) {
         // 1. 创建发送账号
         MailAccountDO account = validateMailAccount(message.getAccountId());
-        MailAccount mailAccount  = buildMailAccount(account, message.getNickname());
+        MailAccount mailAccount = buildMailAccount(account, message.getNickname());
         // 2. 发送邮件
         try {
             String messageId = MailUtil.send(mailAccount, message.getToMails(), message.getCcMails(), message.getBccMails(),
@@ -165,7 +165,7 @@ public class MailSendServiceImpl implements MailSendService {
     /**
      * 校验邮件参数是否缺失
      *
-     * @param template 邮箱模板
+     * @param template       邮箱模板
      * @param templateParams 参数列表
      */
     @VisibleForTesting

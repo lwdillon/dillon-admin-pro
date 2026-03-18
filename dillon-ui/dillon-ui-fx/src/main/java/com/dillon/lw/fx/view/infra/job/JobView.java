@@ -112,7 +112,7 @@ public class JobView extends BaseView<JobViewModel> implements Initializable {
 
         statusComboBox.setItems(FXCollections.observableArrayList(AppStore.getDictDataList(INFRA_JOB_STATUS)));
         statusComboBox.valueProperty().bindBidirectional(viewModel.statusProperty());
-        statusComboBox.setButtonCell(new ListCell<>(){
+        statusComboBox.setButtonCell(new ListCell<>() {
             @Override
             protected void updateItem(DictDataSimpleRespVO item, boolean empty) {
                 super.updateItem(item, empty);
@@ -123,7 +123,7 @@ public class JobView extends BaseView<JobViewModel> implements Initializable {
                 }
             }
         });
-        statusComboBox.setCellFactory(param ->  new ListCell<>() {
+        statusComboBox.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(DictDataSimpleRespVO item, boolean empty) {
                 super.updateItem(item, empty);

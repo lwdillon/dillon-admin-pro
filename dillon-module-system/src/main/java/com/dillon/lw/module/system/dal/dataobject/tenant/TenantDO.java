@@ -44,7 +44,7 @@ public class TenantDO extends BaseDO {
     private String name;
     /**
      * 联系人的用户编号
-     *
+     * <p>
      * 关联 {@link AdminUserDO#getId()}
      */
     private Long contactUserId;
@@ -58,13 +58,13 @@ public class TenantDO extends BaseDO {
     private String contactMobile;
     /**
      * 租户状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
     /**
      * 绑定域名列表
-     *
+     * <p>
      * 1. 考虑到对微信小程序的兼容，也允许传递 appid
      * 2. 为什么是数组，考虑到管理后台、会员前台都有独立的域名，又或者多个管理后台
      */
@@ -72,7 +72,7 @@ public class TenantDO extends BaseDO {
     private List<String> websites;
     /**
      * 租户套餐编号
-     *
+     * <p>
      * 关联 {@link TenantPackageDO#getId()}
      * 特殊逻辑：系统内置租户，不使用套餐，暂时使用 {@link #PACKAGE_ID_SYSTEM} 标识
      */

@@ -32,20 +32,23 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * 角色管理主面板。
  * <p>
  * 负责角色列表查询、分页、增删改，以及角色菜单/数据权限分配。
  * </p>
+ *
  * @author wenli
  */
-public class RoleManagementPanel extends JPanel {
+public class RoleManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"角色编号", "角色名称", "角色类型", "角色标识", "显示顺序", "备注", "状态", "创建时间", "操作"};
     private static final int COL_ROLE_ID = 0;
     private static final int COL_ROLE_NAME = 1;
@@ -68,7 +71,7 @@ public class RoleManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -346,30 +349,57 @@ public class RoleManagementPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(RoleApi.class).deleteRole(id).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
-            loadTableData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(RoleApi.class).deleteRole(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), "删除成功！");
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     /**
      * 提交角色菜单权限分配。
      */
     private void assignRoleMenu(PermissionAssignRoleMenuReqVO permissionAssignRoleMenuReqVO) {
-        executeAsync(() -> Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
-            loadTableData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(PermissionApi.class).assignRoleMenu(permissionAssignRoleMenuReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
     /**
      * 提交角色数据权限分配。
      */
     private void assignRoleDataScope(PermissionAssignRoleDataScopeReqVO permissionAssignRoleDataScopeReqVO) {
-        executeAsync(() -> Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData(), result -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
-            loadTableData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(PermissionApi.class).assignRoleDataScope(permissionAssignRoleDataScopeReqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_ASSIGN);
+                    loadTableData();
+                }, SwingExceptionHandler::handle);
     }
 
 
@@ -397,46 +427,69 @@ public class RoleManagementPanel extends JPanel {
         }
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getId());
-                rowV.add(roleRespVO.getName());
-                rowV.add(roleRespVO.getType());
-                rowV.add(roleRespVO.getCode());
-                rowV.add(roleRespVO.getSort());
-                rowV.add(roleRespVO.getRemark());
-                rowV.add(roleRespVO.getStatus());
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setMinWidth(240);
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(RoleApi.class).getRolePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 角色查询期间先禁用搜索按钮，避免用户连续点击触发多个相同分页请求。
+                     * doOnSubscribe 不保证运行在 EDT，因此按钮状态切换显式回到 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询链结束后恢复按钮，不让异常或取消场景把搜索入口一直锁住。
+                     * doFinally 同样通过 EDT 执行，确保 Swing 组件访问线程安全。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getId());
+                        rowV.add(roleRespVO.getName());
+                        rowV.add(roleRespVO.getType());
+                        rowV.add(roleRespVO.getCode());
+                        rowV.add(roleRespVO.getSort());
+                        rowV.add(roleRespVO.getRemark());
+                        rowV.add(roleRespVO.getStatus());
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setMinWidth(240);
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                        return label.getForeground();
-                    }));
-                    label.setIcon(icon);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-            paginationPane.setTotal(result.getTotal());
-        });
+                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                                return label.getForeground();
+                            }));
+                            label.setIcon(icon);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                    paginationPane.setTotal(result.getTotal());
+                }, SwingExceptionHandler::handle);
     }
 
     private Long getSelectedRoleId() {
@@ -466,16 +519,6 @@ public class RoleManagementPanel extends JPanel {
         return (RoleRespVO) table.getValueAt(selectedRow, COL_ROLE_OBJECT);
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步执行模板：后台请求 + EDT 更新 + 全局异常处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

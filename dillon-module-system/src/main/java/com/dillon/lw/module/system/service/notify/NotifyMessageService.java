@@ -20,11 +20,11 @@ public interface NotifyMessageService {
     /**
      * 创建站内信
      *
-     * @param userId 用户编号
-     * @param userType 用户类型
-     * @param template 模版信息
+     * @param userId          用户编号
+     * @param userType        用户类型
+     * @param template        模版信息
      * @param templateContent 模版内容
-     * @param templateParams 模版参数
+     * @param templateParams  模版参数
      * @return 站内信编号
      */
     Long createNotifyMessage(Long userId, Integer userType,
@@ -42,8 +42,8 @@ public interface NotifyMessageService {
      * 获得【我的】站内信分页
      *
      * @param pageReqVO 分页查询
-     * @param userId 用户编号
-     * @param userType 用户类型
+     * @param userId    用户编号
+     * @param userType  用户类型
      * @return 站内信分页
      */
     PageResult<NotifyMessageDO> getMyMyNotifyMessagePage(NotifyMessageMyPageReqVO pageReqVO, Long userId, Integer userType);
@@ -78,8 +78,8 @@ public interface NotifyMessageService {
     /**
      * 标记站内信为已读
      *
-     * @param ids    站内信编号集合
-     * @param userId 用户编号
+     * @param ids      站内信编号集合
+     * @param userId   用户编号
      * @param userType 用户类型
      * @return 更新到的条数
      */

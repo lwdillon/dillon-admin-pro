@@ -31,7 +31,7 @@ public class SmsSendRespDTO {
 
     /**
      * API 返回错误码
-     *
+     * <p>
      * 由于第三方的错误码可能是字符串，所以使用 String 类型
      */
     private String apiCode;

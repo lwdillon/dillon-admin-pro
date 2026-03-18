@@ -12,10 +12,11 @@ import java.time.format.DateTimeFormatter;
 public class CalJob implements JobHandler {
     @Resource
     private TaskMessagePublisher taskMessagePublisher;
+
     @Override
     public String execute(String param) throws Exception {
         String taskId = "TASK_A";
-        taskMessagePublisher.publish(taskId, "STATUS", "hello!"+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")));
+        taskMessagePublisher.publish(taskId, "STATUS", "hello!" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss")));
         return "";
     }
 }

@@ -14,12 +14,12 @@ public class TaskSnapshotHolder {
 
     public void update(String taskId, String type, Object payload) {
         snapshots
-            .computeIfAbsent(taskId, k -> new ConcurrentHashMap<>())
-            .put(type, payload);
+                .computeIfAbsent(taskId, k -> new ConcurrentHashMap<>())
+                .put(type, payload);
     }
 
     public Map<String, Object> getAll(String taskId) {
-        return snapshots.getOrDefault(taskId,new HashMap<>());
+        return snapshots.getOrDefault(taskId, new HashMap<>());
     }
 
     public void clear(String taskId) {

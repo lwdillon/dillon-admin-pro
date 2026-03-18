@@ -27,7 +27,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 
 /**
  * 腾讯云短信功能实现
- *
+ * <p>
  * 参见 <a href="https://cloud.tencent.com/document/product/382/52077">文档</a>
  *
  * @author shiwp
@@ -45,7 +45,7 @@ public class TencentSmsClient extends AbstractSmsClient {
 
     /**
      * 是否国际/港澳台短信：
-     *
+     * <p>
      * 0：表示国内短信。
      * 1：表示国际/港澳台短信。
      */
@@ -59,9 +59,9 @@ public class TencentSmsClient extends AbstractSmsClient {
 
     /**
      * 参数校验腾讯云的 SDK AppId
-     *
+     * <p>
      * 原因是：腾讯云发放短信的时候，需要额外的参数 sdkAppId
-     *
+     * <p>
      * 解决方案：考虑到不破坏原有的 apiKey + apiSecret 的结构，所以将 secretId 拼接到 apiKey 字段中，格式为 "secretId sdkAppId"。
      *
      * @param properties 配置
@@ -147,21 +147,24 @@ public class TencentSmsClient extends AbstractSmsClient {
     @VisibleForTesting
     Integer convertSmsTemplateAuditStatus(int templateStatus) {
         switch (templateStatus) {
-            case 1: return SmsTemplateAuditStatusEnum.CHECKING.getStatus();
-            case 0: return SmsTemplateAuditStatusEnum.SUCCESS.getStatus();
-            case -1: return SmsTemplateAuditStatusEnum.FAIL.getStatus();
-            default: throw new IllegalArgumentException(String.format("未知审核状态(%d)", templateStatus));
+            case 1:
+                return SmsTemplateAuditStatusEnum.CHECKING.getStatus();
+            case 0:
+                return SmsTemplateAuditStatusEnum.SUCCESS.getStatus();
+            case -1:
+                return SmsTemplateAuditStatusEnum.FAIL.getStatus();
+            default:
+                throw new IllegalArgumentException(String.format("未知审核状态(%d)", templateStatus));
         }
     }
 
     /**
      * 请求腾讯云短信
      *
-     * @see <a href="https://cloud.tencent.com/document/product/382/52072">签名方法 v3</a>
-     *
      * @param action 请求的 API 名称
-     * @param body 请求参数
+     * @param body   请求参数
      * @return 请求结果
+     * @see <a href="https://cloud.tencent.com/document/product/382/52072">签名方法 v3</a>
      */
     private JSONObject request(String action, TreeMap<String, Object> body) {
         // 1.1 请求 Header

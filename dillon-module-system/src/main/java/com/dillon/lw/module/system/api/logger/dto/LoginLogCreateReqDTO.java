@@ -34,7 +34,7 @@ public class LoginLogCreateReqDTO {
     private Integer userType;
     /**
      * 用户账号
-     *
+     * <p>
      * 不再强制校验 username 非空，因为 Member 社交登录时，此时暂时没有 username(mobile）！
      */
     private String username;
@@ -52,7 +52,7 @@ public class LoginLogCreateReqDTO {
     private String userIp;
     /**
      * 浏览器 UserAgent
-     *
+     * <p>
      * 允许空，原因：Job 过期登出时，是无法传递 UserAgent 的
      */
     private String userAgent;

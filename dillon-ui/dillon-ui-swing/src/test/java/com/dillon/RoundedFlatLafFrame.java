@@ -9,7 +9,7 @@ public class RoundedFlatLafFrame {
     public static void main(String[] args) {
         // 1. 初始化皮肤
         FlatLightLaf.setup();
-        
+
         // 2. 开启自定义装饰
         JFrame.setDefaultLookAndFeelDecorated(true);
 

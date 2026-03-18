@@ -165,7 +165,7 @@ public class SmsTemplateServiceImpl implements SmsTemplateService {
     /**
      * 校验 API 短信平台的模板是否有效
      *
-     * @param channelId 渠道编号
+     * @param channelId     渠道编号
      * @param apiTemplateId API 模板编号
      */
     @VisibleForTesting

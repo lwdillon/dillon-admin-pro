@@ -3,7 +3,11 @@ package com.dillon.lw.components;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.components.notice.WMessage;
 import com.dillon.lw.exception.SwingExceptionHandler;
+import com.dillon.lw.swing.rx.SwingSchedulers;
 import com.dillon.lw.view.frame.MainFrame;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -11,8 +15,8 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -27,6 +31,8 @@ public class WFormDialog<T> extends JDialog {
     private final JPanel formPane;
     private final JButton confirmButton;
     private final JButton cancelButton;
+    private final AtomicReference<Disposable> currentSubmitDisposable = new AtomicReference<Disposable>();
+    private final AtomicBoolean disposed = new AtomicBoolean();
     private boolean confirmed = false;
 
     /**
@@ -35,6 +41,7 @@ public class WFormDialog<T> extends JDialog {
     public interface FormValidator {
         /**
          * 验证表单
+         *
          * @return 验证失败的错误消息，返回null或空字符串表示验证通过
          */
         String validates();
@@ -163,8 +170,27 @@ public class WFormDialog<T> extends JDialog {
 
             T data = dataSupplier.get();
 
-            CompletableFuture.supplyAsync(() -> asyncTask.apply(data))
-                    .thenAcceptAsync(result -> {
+            final AtomicReference<Disposable> submitDisposableRef = new AtomicReference<Disposable>();
+            Disposable submitDisposable = Single
+                    /*
+                     * 表单提交任务本身通常是同步 HTTP 调用，
+                     * 这里统一包成 Single，交给 IO 线程执行，避免提交时阻塞对话框。
+                     */
+                    .fromCallable(() -> asyncTask.apply(data))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(SwingSchedulers.edt())
+                    .doFinally(() ->
+                            /*
+                             * doFinally 可能发生在成功、失败或 dispose 路径，
+                             * 因此按钮状态恢复必须显式切回 EDT。
+                             */
+                            SwingSchedulers.runOnEdt(() -> {
+                                confirmButton.setEnabled(true);
+                                confirmButton.setText("确定");
+                                currentSubmitDisposable.compareAndSet(submitDisposableRef.get(), null);
+                            })
+                    )
+                    .subscribe(result -> {
                         confirmed = true;
                         if (StrUtil.isNotBlank(successMsg)) {
                             WMessage.showMessageSuccess(MainFrame.getInstance(), successMsg);
@@ -173,20 +199,24 @@ public class WFormDialog<T> extends JDialog {
                             onSuccess.run();
                         }
                         dispose();
-                    }, SwingUtilities::invokeLater)
-                    .exceptionally(throwable -> {
-                        SwingUtilities.invokeLater(() -> {
-                            // 恢复按钮状态
-                            confirmButton.setEnabled(true);
-                            confirmButton.setText("确定");
-                            // 显示错误，但不关闭对话框
-                            SwingExceptionHandler.handle(throwable);
-                        });
-                        return null;
-                    });
+                    }, SwingExceptionHandler::handle);
+            submitDisposableRef.set(submitDisposable);
+            currentSubmitDisposable.set(submitDisposable);
         });
 
         setVisible(true);
+    }
+
+    @Override
+    public void dispose() {
+        if (disposed.compareAndSet(false, true)) {
+            SwingLifecycleUtils.disposeComponentTree(formPane);
+            Disposable submitDisposable = currentSubmitDisposable.getAndSet(null);
+            if (submitDisposable != null && !submitDisposable.isDisposed()) {
+                submitDisposable.dispose();
+            }
+        }
+        super.dispose();
     }
 
     /**

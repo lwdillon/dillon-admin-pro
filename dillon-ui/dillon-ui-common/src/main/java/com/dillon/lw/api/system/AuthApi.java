@@ -14,10 +14,10 @@ import com.dtflys.forest.annotation.Post;
 public interface AuthApi extends BaseApi {
 
     @Post("/system/auth/login")
-   CommonResult<AuthLoginRespVO> login(@Body AuthLoginReqVO authLoginReqVO);
+    CommonResult<AuthLoginRespVO> login(@Body AuthLoginReqVO authLoginReqVO);
 
     @Post("/system/auth/logout")
-   CommonResult<Boolean> logout();
+    CommonResult<Boolean> logout();
 
     /**
      * 获取登录用户的权限信息

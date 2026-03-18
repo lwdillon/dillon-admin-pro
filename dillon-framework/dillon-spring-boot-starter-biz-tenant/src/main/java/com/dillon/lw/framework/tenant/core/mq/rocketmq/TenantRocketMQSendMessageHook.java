@@ -8,7 +8,7 @@ import static com.dillon.lw.framework.web.core.util.WebFrameworkUtils.HEADER_TEN
 
 /**
  * RocketMQ 消息队列的多租户 {@link SendMessageHook} 实现类
- *
+ * <p>
  * Producer 发送消息时，将 {@link TenantContextHolder} 租户编号，添加到消息的 Header 中
  *
  * @author liwen

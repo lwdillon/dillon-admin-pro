@@ -61,7 +61,7 @@ public class WebFrameworkUtils {
      */
     public static Long getVisitTenantId(HttpServletRequest request) {
         String tenantId = request.getHeader(HEADER_VISIT_TENANT_ID);
-        return NumberUtil.isNumber(tenantId)? Long.valueOf(tenantId) : null;
+        return NumberUtil.isNumber(tenantId) ? Long.valueOf(tenantId) : null;
     }
 
     public static void setLoginUserId(ServletRequest request, Long userId) {
@@ -71,7 +71,7 @@ public class WebFrameworkUtils {
     /**
      * 设置用户类型
      *
-     * @param request 请求
+     * @param request  请求
      * @param userType 用户类型
      */
     public static void setLoginUserType(ServletRequest request, Integer userType) {

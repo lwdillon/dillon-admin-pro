@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
      * 因为 Filter 不走 SpringMVC 的流程，但是我们又需要兜底处理异常，所以这里提供一个全量的异常处理过程，保持逻辑统一。
      *
      * @param request 请求
-     * @param ex 异常
+     * @param ex      异常
      * @return 通用返回
      */
     public CommonResult<?> allExceptionHandler(HttpServletRequest request, Throwable ex) {
@@ -116,7 +116,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求参数缺失
-     *
+     * <p>
      * 例如说，接口上设置了 @RequestParam("xx") 参数，结果并未传递 xx 参数
      */
     @ExceptionHandler(value = MissingServletRequestParameterException.class)
@@ -127,7 +127,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求参数类型错误
-     *
+     * <p>
      * 例如说，接口上设置了 @RequestParam("xx") 参数为 Integer，结果传递 xx 参数类型为 String
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -174,7 +174,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求参数类型错误
-     *
+     * <p>
      * 例如说，接口上设置了 @RequestBody 实体中 xx 属性类型为 Integer，结果传递 xx 参数类型为 String
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -221,7 +221,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求地址不存在
-     *
+     * <p>
      * 注意，它需要设置如下两个配置项：
      * 1. spring.mvc.throw-exception-if-no-handler-found 为 true
      * 2. spring.mvc.static-path-pattern 为 /statics/**
@@ -234,7 +234,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求方法不正确
-     *
+     * <p>
      * 例如说，A 接口的方法为 GET 方式，结果请求方法为 POST 方式，导致不匹配
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -245,7 +245,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 SpringMVC 请求的 Content-Type 不正确
-     *
+     * <p>
      * 例如说，A 接口的 Content-Type 为 application/json，结果请求的 Content-Type 为 application/octet-stream，导致不匹配
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -256,7 +256,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 Spring Security 权限不足的异常
-     *
+     * <p>
      * 来源是，使用 @PreAuthorize 注解，AOP 进行权限拦截
      */
     @ExceptionHandler(value = AccessDeniedException.class)
@@ -268,7 +268,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理 Guava UncheckedExecutionException
-     *
+     * <p>
      * 例如说，缓存加载报错，可见 <a href="https://t.zsxq.com/UszdH">https://t.zsxq.com/UszdH</a>
      */
     @ExceptionHandler(value = UncheckedExecutionException.class)
@@ -278,7 +278,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理业务异常 ServiceException
-     *
+     * <p>
      * 例如说，商品库存不足，用户手机号已存在。
      */
     @ExceptionHandler(value = ServiceException.class)
@@ -335,7 +335,7 @@ public class GlobalExceptionHandler {
             // 执行插入 errorLog
             apiErrorLogApi.createApiErrorLogAsync(errorLog);
         } catch (Throwable th) {
-            log.error("[createExceptionLog][url({}) log({}) 发生异常]", req.getRequestURI(),  JsonUtils.toJsonString(errorLog), th);
+            log.error("[createExceptionLog][url({}) log({}) 发生异常]", req.getRequestURI(), JsonUtils.toJsonString(errorLog), th);
         }
     }
 

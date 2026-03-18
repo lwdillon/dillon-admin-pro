@@ -49,7 +49,6 @@ public class DillonSwingUiApplication {
         setupGlobalExceptionHandler();
 
 
-
         // 6. 在事件分发线程 (EDT) 中启动 UI
         SwingUtilities.invokeLater(() -> {
             // 初始化主题

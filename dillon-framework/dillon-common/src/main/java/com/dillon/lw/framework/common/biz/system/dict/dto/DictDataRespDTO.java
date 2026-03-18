@@ -25,7 +25,7 @@ public class DictDataRespDTO {
     private String dictType;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

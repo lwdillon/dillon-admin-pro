@@ -34,7 +34,7 @@ public class DeptDO extends TenantBaseDO {
     private String name;
     /**
      * 父部门ID
-     *
+     * <p>
      * 关联 {@link #id}
      */
     private Long parentId;
@@ -44,7 +44,7 @@ public class DeptDO extends TenantBaseDO {
     private Integer sort;
     /**
      * 负责人
-     *
+     * <p>
      * 关联 {@link AdminUserDO#getId()}
      */
     private Long leaderUserId;
@@ -58,7 +58,7 @@ public class DeptDO extends TenantBaseDO {
     private String email;
     /**
      * 部门状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

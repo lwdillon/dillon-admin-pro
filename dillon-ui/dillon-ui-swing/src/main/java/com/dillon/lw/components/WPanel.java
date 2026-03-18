@@ -16,7 +16,7 @@ public class WPanel extends JPanel {
     private boolean drawBoder = false;
 
 
-    public WPanel(LayoutManager layout){
+    public WPanel(LayoutManager layout) {
         super(layout);
     }
 

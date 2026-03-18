@@ -17,7 +17,7 @@ public class MailSendSingleToUserReqDTO {
 
     /**
      * 用户编号
-     *
+     * <p>
      * 如果非空，则加载对应用户的邮箱，添加到 {@link #toMails} 中
      */
     private Long userId;

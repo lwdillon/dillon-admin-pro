@@ -32,69 +32,69 @@ import java.util.function.Supplier;
 import static com.dillon.lw.fx.mvvm.mapping.BeanMapPropertyField.setAll;
 
 class ImmutableMapPropertyField<M, K, V, T extends ObservableMap<K, V>, R extends Property<T>>
-		implements ImmutablePropertyField<T, M, R> {
+        implements ImmutablePropertyField<T, M, R> {
 
-	private final MapGetter<M, K, V> getter;
+    private final MapGetter<M, K, V> getter;
 
-	private final MapImmutableSetter<M, K, V> immutableSetter;
+    private final MapImmutableSetter<M, K, V> immutableSetter;
 
-	private Map<K, V> defaultValue;
+    private Map<K, V> defaultValue;
 
-	private final MapProperty<K, V> targetProperty;
+    private final MapProperty<K, V> targetProperty;
 
-	ImmutableMapPropertyField(
-			SideEffect updateFunction,
-			MapGetter<M, K, V> getter, MapImmutableSetter<M, K, V> immutableSetter,
-			Supplier<MapProperty<K, V>> propertySupplier) {
-		this(updateFunction, getter, immutableSetter, propertySupplier, Collections.emptyMap());
-	}
+    ImmutableMapPropertyField(
+            SideEffect updateFunction,
+            MapGetter<M, K, V> getter, MapImmutableSetter<M, K, V> immutableSetter,
+            Supplier<MapProperty<K, V>> propertySupplier) {
+        this(updateFunction, getter, immutableSetter, propertySupplier, Collections.emptyMap());
+    }
 
-	ImmutableMapPropertyField(SideEffect updateFunction,
-			MapGetter<M, K, V> getter, MapImmutableSetter<M, K, V> immutableSetter,
-			Supplier<MapProperty<K, V>> propertySupplier, Map<K, V> defaultValue) {
-		this.defaultValue = defaultValue;
-		this.getter = getter;
-		this.immutableSetter = immutableSetter;
-		this.targetProperty = propertySupplier.get();
-		this.targetProperty.setValue(FXCollections.observableMap(new HashMap<>()));
-		this.targetProperty.addListener((MapChangeListener<K, V>) change -> updateFunction.call());
-	}
+    ImmutableMapPropertyField(SideEffect updateFunction,
+                              MapGetter<M, K, V> getter, MapImmutableSetter<M, K, V> immutableSetter,
+                              Supplier<MapProperty<K, V>> propertySupplier, Map<K, V> defaultValue) {
+        this.defaultValue = defaultValue;
+        this.getter = getter;
+        this.immutableSetter = immutableSetter;
+        this.targetProperty = propertySupplier.get();
+        this.targetProperty.setValue(FXCollections.observableMap(new HashMap<>()));
+        this.targetProperty.addListener((MapChangeListener<K, V>) change -> updateFunction.call());
+    }
 
-	@Override
-	public void commit(M wrappedObject) {
-		// commit is not supported because the model instance is immutable.
-	}
+    @Override
+    public void commit(M wrappedObject) {
+        // commit is not supported because the model instance is immutable.
+    }
 
-	@Override
-	public M commitImmutable(M wrappedObject) {
-		return immutableSetter.apply(wrappedObject, targetProperty.getValue());
-	}
+    @Override
+    public M commitImmutable(M wrappedObject) {
+        return immutableSetter.apply(wrappedObject, targetProperty.getValue());
+    }
 
-	@Override
-	public void reload(M wrappedObject) {
-		setAll(targetProperty, getter.apply(wrappedObject));
-	}
+    @Override
+    public void reload(M wrappedObject) {
+        setAll(targetProperty, getter.apply(wrappedObject));
+    }
 
-	@Override
-	public void resetToDefault() {
-		setAll(targetProperty, defaultValue);
-	}
+    @Override
+    public void resetToDefault() {
+        setAll(targetProperty, defaultValue);
+    }
 
-	@Override
-	public void updateDefault(M wrappedObject) {
-		defaultValue = new HashMap<>(getter.apply(wrappedObject));
-	}
+    @Override
+    public void updateDefault(M wrappedObject) {
+        defaultValue = new HashMap<>(getter.apply(wrappedObject));
+    }
 
-	@Override
-	public R getProperty() {
-		return (R) targetProperty;
-	}
+    @Override
+    public R getProperty() {
+        return (R) targetProperty;
+    }
 
-	@Override
-	public boolean isDifferent(M wrappedObject) {
-		final Map<K, V> modelValue = getter.apply(wrappedObject);
-		final Map<K, V> wrappedValue = targetProperty;
+    @Override
+    public boolean isDifferent(M wrappedObject) {
+        final Map<K, V> modelValue = getter.apply(wrappedObject);
+        final Map<K, V> wrappedValue = targetProperty;
 
-		return !Objects.equals(modelValue, wrappedValue);
-	}
+        return !Objects.equals(modelValue, wrappedValue);
+    }
 }

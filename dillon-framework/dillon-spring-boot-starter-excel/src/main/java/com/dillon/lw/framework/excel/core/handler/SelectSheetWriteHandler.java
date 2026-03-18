@@ -40,7 +40,7 @@ public class SelectSheetWriteHandler implements SheetWriteHandler {
 
     /**
      * 数据起始行从 0 开始
-     *
+     * <p>
      * 约定：本项目第一行有标题所以从 1 开始如果您的 Excel 有多行标题请自行更改
      */
     public static final int FIRST_ROW = 1;
@@ -63,7 +63,7 @@ public class SelectSheetWriteHandler implements SheetWriteHandler {
         for (Field field : head.getDeclaredFields()) {
             // 关联 https://github.com/YunaiV/ruoyi-vue-pro/pull/853
             // 1.1 忽略 static final 或 transient 的字段
-            if (isStaticFinalOrTransient(field) ) {
+            if (isStaticFinalOrTransient(field)) {
                 continue;
             }
             // 1.2 忽略的字段跳过

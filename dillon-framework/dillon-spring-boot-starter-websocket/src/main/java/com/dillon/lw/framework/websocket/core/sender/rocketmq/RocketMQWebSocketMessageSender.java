@@ -44,10 +44,10 @@ public class RocketMQWebSocketMessageSender extends AbstractWebSocketMessageSend
     /**
      * 通过 RocketMQ 广播消息
      *
-     * @param sessionId Session 编号
-     * @param userId 用户编号
-     * @param userType 用户类型
-     * @param messageType 消息类型
+     * @param sessionId      Session 编号
+     * @param userId         用户编号
+     * @param userType       用户类型
+     * @param messageType    消息类型
      * @param messageContent 消息内容
      */
     private void sendRocketMQMessage(String sessionId, Long userId, Integer userType,

@@ -31,10 +31,10 @@ import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil
 
 /**
  * API 加密过滤器，处理 {@link ApiEncrypt} 注解。
- *
+ * <p>
  * 1. 解密请求参数
  * 2. 加密响应结果
- *
+ * <p>
  * 疑问：为什么不使用 SpringMVC 的 RequestBodyAdvice 或 ResponseBodyAdvice 机制呢？
  * 回答：考虑到项目中会记录访问日志、异常日志，以及 HTTP API 签名等场景，最好是全局级、且提前做解析！！！
  *
@@ -88,7 +88,7 @@ public class ApiEncryptFilter extends ApiRequestFilter {
         boolean requestEnable = apiEncrypt != null && apiEncrypt.request();
         boolean responseEnable = apiEncrypt != null && apiEncrypt.response();
         String encryptHeader = request.getHeader(apiEncryptProperties.getHeader());
-        if (!requestEnable && !responseEnable && StrUtil.isBlank(encryptHeader))  {
+        if (!requestEnable && !responseEnable && StrUtil.isBlank(encryptHeader)) {
             chain.doFilter(request, response);
             return;
         }

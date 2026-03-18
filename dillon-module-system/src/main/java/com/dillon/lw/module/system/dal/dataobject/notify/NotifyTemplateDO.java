@@ -43,7 +43,7 @@ public class NotifyTemplateDO extends BaseDO {
     private String code;
     /**
      * 模版类型
-     *
+     * <p>
      * 对应 system_notify_template_type 字典
      */
     private Integer type;
@@ -62,7 +62,7 @@ public class NotifyTemplateDO extends BaseDO {
     private List<String> params;
     /**
      * 状态
-     *
+     * <p>
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

@@ -81,7 +81,7 @@ public interface MailTemplateService {
      * 邮件模版内容合成
      *
      * @param content 邮件模版
-     * @param params 合成参数
+     * @param params  合成参数
      * @return 格式化后的内容
      */
     String formatMailTemplateContent(String content, Map<String, Object> params);

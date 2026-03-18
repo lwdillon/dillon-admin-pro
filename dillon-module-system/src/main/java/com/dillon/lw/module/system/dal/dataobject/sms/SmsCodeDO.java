@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * 手机验证码 DO
- *
+ * <p>
  * idx_mobile 索引：基于 {@link #mobile} 字段
  *
  * @author liwen
@@ -39,7 +39,7 @@ public class SmsCodeDO extends BaseDO {
     private String code;
     /**
      * 发送场景
-     *
+     * <p>
      * 枚举 {@link SmsCodeDO}
      */
     private Integer scene;

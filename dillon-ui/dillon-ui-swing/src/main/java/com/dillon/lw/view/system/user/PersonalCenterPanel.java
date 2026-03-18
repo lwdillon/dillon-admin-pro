@@ -21,12 +21,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TRAILING_COMPONENT;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * 个人中心面板
@@ -38,16 +40,26 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
     private static final String SUCCESS_MESSAGE = "修改成功";
     private static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
-    /** 左侧个人信息展示区域 */
+    /**
+     * 左侧个人信息展示区域
+     */
     private JPanel personPanel;
-    /** 右侧编辑 Tab 容器 */
+    /**
+     * 右侧编辑 Tab 容器
+     */
     private JTabbedPane tabbedPane;
-    /** 基础信息面板 */
+    /**
+     * 基础信息面板
+     */
     private JPanel basicInfoPanel;
-    /** 密码修改面板 */
+    /**
+     * 密码修改面板
+     */
     private JPanel pwdPanel;
 
-    /** 头像标签 */
+    /**
+     * 头像标签
+     */
     private JLabel avatarLabel;
     /**
      * 用户名称标签
@@ -90,20 +102,32 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
      * 电子邮件文本字段
      */
     private JTextField emailTextField;
-    /** 性别选择框 */
+    /**
+     * 性别选择框
+     */
     private JComboBox<String> sexComboBox;
 
 
-    /** 旧密码输入框 */
+    /**
+     * 旧密码输入框
+     */
     private JPasswordField oldPwdField;
-    /** 新密码输入框 */
+    /**
+     * 新密码输入框
+     */
     private JPasswordField newPwdField;
-    /** 新密码确认输入框 */
+    /**
+     * 新密码确认输入框
+     */
     private JPasswordField newPwdField2;
 
-    /** 保存基础信息按钮 */
+    /**
+     * 保存基础信息按钮
+     */
     private JButton saveInfoBut;
-    /** 保存密码按钮 */
+    /**
+     * 保存密码按钮
+     */
     private JButton savePwdBut;
 
     /**
@@ -233,9 +257,16 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
      * 更新数据
      */
     public void updateData() {
-        executeAsync(
-                () -> Forest.client(UserProfileApi.class).getUserProfile().getCheckedData(),
-                userProfileRespVO -> {
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(UserProfileApi.class).getUserProfile().getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(userProfileRespVO -> {
                     userNameLabel.setText(userProfileRespVO.getUsername());
                     phoneNumberLabel.setText(userProfileRespVO.getMobile());
                     emailLabel.setText(userProfileRespVO.getEmail());
@@ -265,8 +296,7 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
                     phoneTextField.setText(userProfileRespVO.getMobile());
                     emailTextField.setText(userProfileRespVO.getEmail());
                     sexComboBox.setSelectedItem(userProfileRespVO.getSex());
-                }
-        );
+                }, SwingExceptionHandler::handle);
     }
 
 
@@ -281,13 +311,19 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
         sysUser.setEmail(emailTextField.getText());
         sysUser.setSex(sexComboBox.getSelectedIndex());
 
-        executeAsync(
-                () -> Forest.client(UserProfileApi.class).updateUserProfile(sysUser).getCheckedData(),
-                result -> {
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(UserProfileApi.class).updateUserProfile(sysUser).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
                     WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_MESSAGE);
                     updateData();
-                }
-        );
+                }, SwingExceptionHandler::handle);
 
     }
 
@@ -323,26 +359,23 @@ public class PersonalCenterPanel extends AbstractRefreshablePanel {
         reqVO.setNewPassword(newPwd);
         reqVO.setOldPassword(oldPwd);
 
-        executeAsync(
-                () -> Forest.client(UserProfileApi.class).updateUserProfilePassword(reqVO).getCheckedData(),
-                result -> {
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(UserProfileApi.class).updateUserProfilePassword(reqVO).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
                     WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_MESSAGE);
                     updateData();
-                }
-        );
+                }, SwingExceptionHandler::handle);
 
 
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     /**
      * 更新输入框错误样式并返回当前是否为错误状态。

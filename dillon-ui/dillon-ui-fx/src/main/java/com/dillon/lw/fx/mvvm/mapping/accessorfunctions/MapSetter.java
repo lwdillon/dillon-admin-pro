@@ -28,11 +28,10 @@ import java.util.function.BiConsumer;
 @FunctionalInterface
 public interface MapSetter<M, K, V> extends BiConsumer<M, Map<K, V>> {
 
-	/**
-	 * @param model the model instance
-	 *
-	 * @return the value of the field
-	 */
-	@Override
-	void accept(M model, Map<K, V> value);
+    /**
+     * @param model the model instance
+     * @return the value of the field
+     */
+    @Override
+    void accept(M model, Map<K, V> value);
 }

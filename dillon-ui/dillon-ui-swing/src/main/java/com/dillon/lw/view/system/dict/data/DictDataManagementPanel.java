@@ -28,16 +28,18 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static javax.swing.JOptionPane.*;
+
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import com.dillon.lw.swing.rx.SwingSchedulers;
+import com.dillon.lw.swing.rx.SwingRx;
 
 /**
  * @author wenli
  */
-public class DictDataManagementPanel extends JPanel {
+public class DictDataManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"字典编码", "字典标签", "字典键值", "字典顺序", "状态", "颜色类型", "CSS Class", "备注", "创建时间", "操作"};
     private static final int COL_DATA_ID = 0;
     private static final int COL_DATA_NAME = 1;
@@ -59,7 +61,7 @@ public class DictDataManagementPanel extends JPanel {
         scrollPane1 = new WScrollPane();
         centerPane = new JPanel();
         scrollPane2 = new WScrollPane();
-        table = new JXTable(tableModel = new DefaultTableModel(){
+        table = new JXTable(tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return "操作".equals(getColumnName(column));
@@ -281,10 +283,19 @@ public class DictDataManagementPanel extends JPanel {
             return;
         }
 
-        executeAsync(() -> Forest.client(DictDataApi.class).deleteDictData(id).getCheckedData(), aBoolean -> {
-            WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
-            updateData();
-        });
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).deleteDictData(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .compose(SwingRx.bindTo(this))
+                .subscribe(aBoolean -> {
+                    WMessage.showMessageSuccess(MainFrame.getInstance(), SUCCESS_DELETE);
+                    updateData();
+                }, SwingExceptionHandler::handle);
     }
 
     public void updateData() {
@@ -303,45 +314,68 @@ public class DictDataManagementPanel extends JPanel {
 
         queryMap.values().removeIf(Objects::isNull);
 
-        executeAsync(() -> Forest.client(DictDataApi.class).getDictTypePage(queryMap).getCheckedData(), result -> {
-            Vector<Vector> tableData = new Vector<>();
-            result.getList().forEach(roleRespVO -> {
-                Vector rowV = new Vector();
-                rowV.add(roleRespVO.getId());
-                rowV.add(roleRespVO.getLabel());
-                rowV.add(roleRespVO.getValue());
-                rowV.add(roleRespVO.getSort());
-                rowV.add(roleRespVO.getStatus());
-                rowV.add(roleRespVO.getColorType());
-                rowV.add(roleRespVO.getCssClass());
-                rowV.add(roleRespVO.getRemark());
-                rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-                rowV.add(roleRespVO);
-                tableData.add(rowV);
-            });
-            tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
-            table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
-            table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
+        Single
+                /*
+                 * 同步接口先通过 fromCallable 包装成懒执行的 RxJava 任务，
+                 * 请求放到 IO 线程执行，成功结果再切回 EDT 更新 Swing 组件。
+                 */
+                .fromCallable(() -> Forest.client(DictDataApi.class).getDictTypePage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .doOnSubscribe(disposable -> {
+                    /*
+                     * 搜索按钮在请求期间保持置灰，防止用户连续点击把同一页查询堆叠起来。
+                     * doOnSubscribe 本身没有 EDT 保证，所以这里显式切回 Swing 线程。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(false));
+                })
+                .doFinally(() -> {
+                    /*
+                     * 查询链无论以哪种方式结束，都需要把按钮恢复成可点击状态。
+                     * doFinally 也要通过 EDT 执行，避免跨线程修改 Swing 组件。
+                     */
+                    SwingSchedulers.runOnEdt(() -> searchBut.setEnabled(true));
+                })
+                .compose(SwingRx.bindTo(this))
+                .subscribe(result -> {
+                    Vector<Vector> tableData = new Vector<>();
+                    result.getList().forEach(roleRespVO -> {
+                        Vector rowV = new Vector();
+                        rowV.add(roleRespVO.getId());
+                        rowV.add(roleRespVO.getLabel());
+                        rowV.add(roleRespVO.getValue());
+                        rowV.add(roleRespVO.getSort());
+                        rowV.add(roleRespVO.getStatus());
+                        rowV.add(roleRespVO.getColorType());
+                        rowV.add(roleRespVO.getCssClass());
+                        rowV.add(roleRespVO.getRemark());
+                        rowV.add(DateUtil.format(roleRespVO.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+                        rowV.add(roleRespVO);
+                        tableData.add(rowV);
+                    });
+                    tableModel.setDataVector(tableData, new Vector<>(Arrays.asList(COLUMN_ID)));
+                    table.getColumn("操作").setCellRenderer(new OptButtonTableCellRenderer(createActionBar()));
+                    table.getColumn("操作").setCellEditor(new OptButtonTableCellEditor(createActionBar()));
 
-            table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                    Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                    JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                    JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
-                    label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
-                    FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
-                    icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
-                        return label.getForeground();
-                    }));
-                    label.setIcon(icon);
-                    panel.add(label);
-                    panel.setBackground(component.getBackground());
-                    panel.setOpaque(isSelected);
-                    return panel;
-                }
-            });
-        });
+                    table.getColumn("状态").setCellRenderer(new DefaultTableCellRenderer() {
+                        @Override
+                        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                            Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+                            JLabel label = new JLabel(ObjectUtil.equals(value, 0) ? "开启" : "停用");
+                            label.setForeground(ObjectUtil.equals(value, 0) ? new Color(96, 197, 104) : new Color(0xf56c6c));
+                            FlatSVGIcon icon = new FlatSVGIcon("icons/yuan.svg", 10, 10);
+                            icon.setColorFilter(new FlatSVGIcon.ColorFilter(color -> {
+                                return label.getForeground();
+                            }));
+                            label.setIcon(icon);
+                            panel.add(label);
+                            panel.setBackground(component.getBackground());
+                            panel.setOpaque(isSelected);
+                            return panel;
+                        }
+                    });
+                }, SwingExceptionHandler::handle);
     }
 
     private Long getSelectedDataId() {
@@ -360,16 +394,6 @@ public class DictDataManagementPanel extends JPanel {
         return Convert.toStr(table.getValueAt(selectedRow, COL_DATA_NAME));
     }
 
-    private <T> void executeAsync(Supplier<T> request, Consumer<T> onSuccess) {
-        // 统一异步模板：后台请求 + EDT 回调 + 异常统一处理。
-        CompletableFuture
-                .supplyAsync(request)
-                .thenAcceptAsync(onSuccess, SwingUtilities::invokeLater)
-                .exceptionally(throwable -> {
-                    SwingUtilities.invokeLater(() -> SwingExceptionHandler.handle(throwable));
-                    return null;
-                });
-    }
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     // Generated using JFormDesigner non-commercial license

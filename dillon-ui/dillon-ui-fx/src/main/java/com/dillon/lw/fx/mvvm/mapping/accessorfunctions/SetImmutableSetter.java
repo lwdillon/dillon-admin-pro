@@ -27,11 +27,11 @@ import java.util.function.BiFunction;
 @FunctionalInterface
 public interface SetImmutableSetter<M, E> extends BiFunction<M, Set<E>, M> {
 
-	/**
-	 * @param model       the model instance
-	 * @param newElements the new elements of this set field.
-	 * @return a new model instance with the new values
-	 */
-	@Override
-	M apply(M model, Set<E> newElements);
+    /**
+     * @param model       the model instance
+     * @param newElements the new elements of this set field.
+     * @return a new model instance with the new values
+     */
+    @Override
+    M apply(M model, Set<E> newElements);
 }

@@ -2,7 +2,10 @@
 
 package com.dillon.lw.fx.utils;
 
+import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.fx.Resources;
 import com.dillon.lw.fx.icon.WIcon;
+import com.dlsc.gemsfx.SVGImageView;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -14,6 +17,8 @@ import javafx.scene.layout.AnchorPane;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,6 +79,7 @@ public final class NodeUtils {
         }
         return false;
     }
+
     public static void addStyleClass(TableColumn<?, ?> c, String styleClass, String... excludes) {
         Objects.requireNonNull(c);
         Objects.requireNonNull(styleClass);
@@ -88,14 +94,46 @@ public final class NodeUtils {
         try {
             String[] iconStr = icon.split(":");
             if (iconStr.length > 1) {
-                icon = "lw-"+iconStr[1];
+                icon = "lw-" + iconStr[1];
             }
-            if(icon.startsWith("fth-")) {
-                return FontIcon.of(Feather.findByDescription( icon));
+            if (icon.startsWith("fth-")) {
+                return FontIcon.of(Feather.findByDescription(icon));
             }
-            return FontIcon.of(WIcon.findByDescription( icon));
+            return FontIcon.of(WIcon.findByDescription(icon));
         } catch (Exception e) {
             return FontIcon.of(Feather.STAR);
         }
+    }
+
+    public static Node getMenuIcon(String iconPath, int size) {
+        String path = "/icons/item.svg";
+
+        if (StrUtil.isNotBlank(iconPath)) {
+            if (iconPath.contains(":")) {
+                String[] arr = iconPath.split(":", 2);
+                if (arr.length == 2 && StrUtil.isNotBlank(arr[1])) {
+                    path = "/icons/menu/" + arr[1] + ".svg";
+                }
+            } else {
+                path = iconPath.startsWith("/") ? iconPath : "/" + iconPath;
+            }
+        }
+
+        URL resource = NodeUtils.class.getResource(path);
+        if (resource == null) {
+            resource = NodeUtils.class.getResource("/icons/item.svg");
+        }
+
+        if (resource == null) {
+            throw new IllegalArgumentException("找不到SVG资源: " + path);
+        }
+
+        SVGImageView svgImageView = new SVGImageView();
+        svgImageView.setId("menu-icon");
+        svgImageView.setSvgUrl(resource.toExternalForm());
+        svgImageView.setFitHeight(size);
+        svgImageView.setFitWidth(size);
+        svgImageView.setPreserveRatio(true);
+        return svgImageView;
     }
 }

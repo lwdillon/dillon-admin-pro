@@ -149,7 +149,4 @@ public abstract class MultiCellSelectionTable extends WTable {
     }
 
 
-
-
-
 }

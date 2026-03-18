@@ -41,7 +41,7 @@ public class LoginLogDetailViewModel extends BaseViewModel {
     }
 
     public IntegerProperty logTypeProperty() {
-        return wrapper.field("logType", LoginLogRespVO::getLogType, LoginLogRespVO::setLogType,-1);
+        return wrapper.field("logType", LoginLogRespVO::getLogType, LoginLogRespVO::setLogType, -1);
     }
 
 

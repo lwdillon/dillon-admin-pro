@@ -8,18 +8,15 @@ import java.util.function.BiFunction;
  * Instead it returns a new immutable copy of the original model element that has the
  * specified field updated to the new value.
  *
- * @param <M>
- *            the generic type of the model.
+ * @param <M> the generic type of the model.
  */
 @FunctionalInterface
 public interface FloatImmutableSetter<M> extends BiFunction<M, Float, M> {
 
-	/**
-	 * @param model
-	 *            the model instance.
-	 * @param newValue
-	 *            the new value to be set.
-	 */
-	@Override
-	M apply(M model, Float newValue);
+    /**
+     * @param model    the model instance.
+     * @param newValue the new value to be set.
+     */
+    @Override
+    M apply(M model, Float newValue);
 }

@@ -262,7 +262,7 @@ public class UserView extends BaseView<UserViewModel> implements Initializable {
             statusComboBox.getSelectionModel().select(null);
             createTimePicker.setValue(null);
 
-           viewModel.loadTableData();
+            viewModel.loadTableData();
 
         });
         createTimePicker.setCustomRangeText("创建日期");

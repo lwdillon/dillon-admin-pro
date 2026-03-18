@@ -33,19 +33,22 @@ public class TotalProfitPanel extends WPanel {
         JPanel leftPanel = new JPanel(new GridBagLayout());
         leftPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.WEST;
 
         // 标题
         JLabel lblTitle = new JLabel(title);
         lblTitle.setForeground(new Color(150, 160, 180));
         lblTitle.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        gbc.gridy = 0; gbc.insets = new Insets(0, 0, 15, 0);
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 15, 0);
         leftPanel.add(lblTitle, gbc);
 
         // 主数值
         JLabel lblValue = new JLabel(value);
         lblValue.setFont(new Font("SansSerif", Font.BOLD, 28));
-        gbc.gridy = 1; gbc.insets = new Insets(0, 0, 15, 0);
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 15, 0);
         leftPanel.add(lblValue, gbc);
 
         // 底部链接
@@ -53,7 +56,8 @@ public class TotalProfitPanel extends WPanel {
         lblLink.setForeground(new Color(64, 158, 255));
         lblLink.setFont(new Font("SansSerif", Font.PLAIN, 14));
         lblLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 0, 0);
         leftPanel.add(lblLink, gbc);
 
         add(leftPanel, BorderLayout.CENTER);
@@ -68,14 +72,13 @@ public class TotalProfitPanel extends WPanel {
         lblTrend.setHorizontalAlignment(SwingConstants.RIGHT);
         rightPanel.add(lblTrend, BorderLayout.NORTH);
         // 右下角带发光效果的图标
-        JLabel lbSvg =new JLabel("", JLabel.CENTER);
+        JLabel lbSvg = new JLabel("", JLabel.CENTER);
         lbSvg.setOpaque(true);
-        lbSvg.setIcon(new FlatSVGIcon("icons/jinbi.svg",60,60));
+        lbSvg.setIcon(new FlatSVGIcon("icons/jinbi.svg", 60, 60));
         rightPanel.add(lbSvg, BorderLayout.CENTER);
 
         add(rightPanel, BorderLayout.EAST);
     }
-
 
 
     // 测试

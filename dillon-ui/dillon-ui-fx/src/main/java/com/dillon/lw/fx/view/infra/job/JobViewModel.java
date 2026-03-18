@@ -8,22 +8,24 @@ import com.dillon.lw.fx.eventbus.event.MessageEvent;
 import com.dillon.lw.fx.eventbus.event.RefreshEvent;
 import com.dillon.lw.fx.eventbus.event.UpdateDataEvent;
 import com.dillon.lw.fx.mvvm.base.BaseViewModel;
+import com.dillon.lw.fx.rx.FxSchedulers;
+import com.dillon.lw.fx.rx.FxRx;
 import com.dillon.lw.fx.utils.MessageType;
 import com.dillon.lw.fx.view.layout.ConfirmDialog;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobRespVO;
 import com.dillon.lw.module.system.controller.admin.dict.vo.data.DictDataSimpleRespVO;
 import com.dtflys.forest.Forest;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class JobViewModel extends BaseViewModel {
     private SimpleIntegerProperty total = new SimpleIntegerProperty(0);
@@ -57,72 +59,78 @@ public class JobViewModel extends BaseViewModel {
         queryMap.values().removeAll(Collections.singleton(null));
 
 
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            tableItems.setAll(data.getList());
-            total.set(data.getTotal().intValue());
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                /*
+                 * 任务分页查询放到 IO 线程执行，
+                 * 任务表格和分页属性的回填再切回 JavaFX UI 线程。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).getJobPage(queryMap).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    tableItems.setAll(data.getList());
+                    total.set(data.getTotal().intValue());
+                }, DefaultExceptionHandler::handle);
 
 
     }
 
     public void getJobNextTimes(Long id, Integer count) {
         nextDateTimes.clear();
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).getJobNextTimes(id, count).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            nextDateTimes.setAll(data);
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                /*
+                 * 下次执行时间查询只负责后台取数，
+                 * 拿到结果后回到 JavaFX UI 线程刷新预览列表。
+                 */
+                .fromCallable(() -> Forest.client(JobApi.class).getJobNextTimes(id, count).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> nextDateTimes.setAll(data), DefaultExceptionHandler::handle);
     }
 
     public void deleteJob(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).deleteJob(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-            EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).deleteJob(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("删除成功", MessageType.SUCCESS));
+                }, DefaultExceptionHandler::handle);
     }
 
     public void triggerJob(Long id, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).triggerJob(id).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new MessageEvent("执行成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).triggerJob(id).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new MessageEvent("执行成功", MessageType.SUCCESS));
+                }, DefaultExceptionHandler::handle);
     }
 
     public void updateJobStatus(Long id, Integer status, ConfirmDialog confirmDialog) {
-        CompletableFuture.supplyAsync(() -> {
-            return Forest.client(JobApi.class).updateJobStatus(id, status).getCheckedData();
-        }).thenAcceptAsync(data -> {
-            confirmDialog.close();
-            EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
-            EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
-        }, Platform::runLater).exceptionally(e -> {
-            DefaultExceptionHandler.handle(e);
-            return null;
-        });
+        Single
+                .fromCallable(() -> Forest.client(JobApi.class).updateJobStatus(id, status).getCheckedData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(FxSchedulers.fx())
+                .compose(FxRx.bindTo(this))
+                .subscribe(data -> {
+                    confirmDialog.close();
+                    EventBusCenter.get().post(new UpdateDataEvent("更新job配置列表"));
+                    EventBusCenter.get().post(new MessageEvent("操作成功", MessageType.SUCCESS));
+                }, DefaultExceptionHandler::handle);
     }
 
     @Subscribe
     private void updateData(UpdateDataEvent menuEvent) {
-        Platform.runLater(() -> {
+        FxSchedulers.runOnFx(() -> {
             if ("更新job配置列表".equals(menuEvent.getMessage())) {
                 loadTableData();
             }
@@ -132,7 +140,7 @@ public class JobViewModel extends BaseViewModel {
 
     @Subscribe
     private void refresh(RefreshEvent event) {
-        Platform.runLater(() -> loadTableData());
+        FxSchedulers.runOnFx(() -> loadTableData());
     }
 
     public int getTotal() {

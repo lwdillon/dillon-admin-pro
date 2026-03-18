@@ -23,6 +23,6 @@ public class SseController {
             @RequestParam String clientId,
             @RequestParam String userId) {
 
-        return sseClientManager.connect(taskId, userId,clientId);
+        return sseClientManager.connect(taskId, userId, clientId);
     }
 }

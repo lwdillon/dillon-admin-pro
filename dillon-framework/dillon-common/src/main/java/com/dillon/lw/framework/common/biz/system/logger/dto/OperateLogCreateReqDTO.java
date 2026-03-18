@@ -16,20 +16,20 @@ public class OperateLogCreateReqDTO {
 
     /**
      * 链路追踪编号
-     *
+     * <p>
      * 一般来说，通过链路追踪编号，可以将访问日志，错误日志，链路追踪日志，logger 打印日志等，结合在一起，从而进行排错。
      */
     private String traceId;
     /**
      * 用户编号
-     *
+     * <p>
      * 关联 MemberUserDO 的 id 属性，或者 AdminUserDO 的 id 属性
      */
     @NotNull(message = "用户编号不能为空")
     private Long userId;
     /**
      * 用户类型
-     *
+     * <p>
      * 关联 {@link  UserTypeEnum}
      */
     @NotNull(message = "用户类型不能为空")
