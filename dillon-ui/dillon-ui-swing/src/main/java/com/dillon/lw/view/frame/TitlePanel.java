@@ -68,6 +68,8 @@ public class TitlePanel extends JPanel {
 
         //======== this ========
         setOpaque(false);
+        setMinimumSize(new Dimension(113, 55));
+        setPreferredSize(new Dimension(55, 55));
         setLayout(new BorderLayout());
 
         //======== macFullWindowContentButtonsPlaceholder ========
@@ -124,7 +126,7 @@ public class TitlePanel extends JPanel {
 
         toolPanel.add(toolBar, BorderLayout.EAST);
         toolPanel.setOpaque(false);
-        titleLabel.setIcon(new FlatSVGIcon("icons/guanli.svg", 25, 25));
+        titleLabel.setIcon(new FlatSVGIcon("icons/logo.svg", 25, 25));
 
         titleLabel.setText(System.getProperty("app.name"));
         // on macOS, panel left to toolBar is a placeholder for title bar buttons in fullWindowContent mode

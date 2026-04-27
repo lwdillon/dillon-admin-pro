@@ -2,6 +2,7 @@ package com.dillon.lw.fx.http.forest;
 
 import com.dillon.lw.forest.interceptors.ErrorInterceptor;
 import com.dillon.lw.forest.interceptors.HASmartSource;
+import com.dillon.lw.forest.logging.SensitiveLogHandler;
 import com.dillon.lw.fx.http.forest.interceptors.TokenInterceptor;
 import com.dtflys.forest.Forest;
 import com.dtflys.forest.config.ForestConfiguration;
@@ -23,6 +24,7 @@ public class ForestConfig {
         interceptors.add(ErrorInterceptor.class);
         interceptors.add(TokenInterceptor.class);
         configuration.setInterceptors(interceptors);
+        configuration.setLogHandler(new SensitiveLogHandler());
         configuration.setBaseAddressSourceClass(HASmartSource.class);
     }
 }

@@ -6,6 +6,7 @@ import com.dillon.lw.http.ForestConfig;
 import com.dillon.lw.theme.LightTheme;
 import com.dillon.lw.updater.ClientAutoUpdater;
 import com.dillon.lw.view.frame.MainFrame;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.util.SystemInfo;
 import org.jdesktop.core.animation.timing.Animator;
@@ -43,7 +44,8 @@ public class DillonSwingUiApplication {
         ForestConfig.init();
 
         // 3. 针对不同操作系统进行 UI 适配
-        setupPlatformEnvironment();
+        configurePlatformSystemProperties();
+        configureLinuxWindowDecorations();
 
         // 4. 全局异常捕捉机制
         setupGlobalExceptionHandler();
@@ -149,5 +151,46 @@ public class DillonSwingUiApplication {
         chartTheme.setRegularFont(baseFont);                               // 图例/普通文字
 
         ChartFactory.setChartTheme(chartTheme);
+    }
+
+    /**
+     * 配置平台相关系统属性。
+     * <p>
+     * 这些属性必须在 AWT/Swing 初始化之前设置，否则 macOS 的菜单栏与标题栏行为
+     * 不会按预期生效，所以单独抽成一个最先执行的方法。
+     * </p>
+     */
+    private static void configurePlatformSystemProperties() {
+        if (!SystemInfo.isMacOS) {
+            return;
+        }
+
+        // 把 Swing 菜单栏挂到 macOS 顶部系统菜单栏，而不是停留在窗口内部。
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+        // 应用名称会显示在 macOS 左上角应用菜单中。
+        System.setProperty("apple.awt.application.name", "Dillon-Swing-UI");
+
+        // 告诉 macOS 标题栏始终跟随系统浅色/深色外观。
+        // 这个属性要求在主线程、且在 AWT 初始化之前设置。
+        System.setProperty("apple.awt.application.appearance", "system");
+
+        // macOS 的标题栏延伸通过 apple.awt.fullWindowContent 等属性完成，
+        // 不需要 FlatLaf 的 native window decorations。
+        // 某些打包出来的 JAR URL 可能形如 file://Mac/...，会让 FlatLaf 在解析原生库位置时失败。
+        System.setProperty("flatlaf.useNativeWindowDecorations", "false");
+        FlatLaf.setUseNativeWindowDecorations(false);
+    }
+
+    /**
+     * Linux 平台默认不会自动启用自定义窗口装饰，这里显式打开。
+     */
+    private static void configureLinuxWindowDecorations() {
+        if (!SystemInfo.isLinux) {
+            return;
+        }
+
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JDialog.setDefaultLookAndFeelDecorated(true);
     }
 }

@@ -1,11 +1,11 @@
 package com.dillon.lw.view.mainpane;
 
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.dillon.lw.api.system.AuthApi;
-import com.dillon.lw.components.SwingLifecycleUtils;
+import com.dillon.lw.components.ToolDescriptor;
 import com.dillon.lw.components.WPanel;
+import com.dillon.lw.components.WToolTabbedPane;
 import com.dillon.lw.eventbus.EventBusCenter;
 import com.dillon.lw.eventbus.event.AddMainTabEvent;
 import com.dillon.lw.eventbus.event.MenuRefreshEvent;
@@ -13,24 +13,27 @@ import com.dillon.lw.eventbus.event.RefreshDataEvent;
 import com.dillon.lw.exception.SwingExceptionHandler;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.store.AppStore;
+import com.dillon.lw.utils.ColorUtils;
 import com.dillon.lw.utils.IconLoader;
 import com.dillon.lw.view.home.HomePanel;
 import com.dillon.lw.view.system.menu.MenuManagementPanel;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import com.google.common.eventbus.Subscribe;
-import com.jidesoft.swing.JideTabbedPane;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.ColorHighlighter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -53,6 +56,7 @@ import com.dillon.lw.swing.rx.SwingSchedulers;
 public class MainPane extends JPanel {
     private static final String CARD_EXPANDED_MENU = "ExpandedMenu";
     private static final String CARD_COLLAPSED_MENU = "CollapsedMenu";
+    private static final String HOME_TOOL_ID = "home";
     private static final int NAV_BAR_COLLAPSED_WIDTH = 60;
     private static final int MENU_ICON_SIZE = 20;
     private static final int COLLAPSED_MENU_ICON_SIZE = 25;
@@ -62,7 +66,7 @@ public class MainPane extends JPanel {
     // --- 核心 UI 组件 ---
     private JPanel navBarPane;            // 侧边栏容器 (CardLayout)
     private JXTreeTable navBarTreeTable;  // 导航树表
-    private JideTabbedPane tabbedPane;    // 标签页
+    private WToolTabbedPane toolTabbedPane;    // 标签页
     private JToolBar statusPane;          // 底部状态栏
     private JButton menuToggleBut;  // 菜单切换按钮
     private JPanel collapsedIconPanel;    // 折叠后的图标面板
@@ -75,6 +79,7 @@ public class MainPane extends JPanel {
     private int navBarExpandedWidth = 300;
 
     private boolean isExpanded = true;
+    private boolean syncingTreeSelection;
 
     public MainPane() {
         initComponents();
@@ -129,7 +134,7 @@ public class MainPane extends JPanel {
 
         // 组装主框架
         add(navBarPane, BorderLayout.WEST);
-        add(tabbedPane, BorderLayout.CENTER);
+        add(createWorkspaceSurface(), BorderLayout.CENTER);
         add(statusPane, BorderLayout.SOUTH);
 
         // 默认显示展开状态
@@ -194,41 +199,14 @@ public class MainPane extends JPanel {
      * 配置中央标签页及 UI 装饰
      */
     private void setupTabbedPane() {
-        tabbedPane = new JideTabbedPane() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                // 自定义绘制：实现圆角背景和主内容区阴影感
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int arc = Convert.toInt(UIManager.getInt("App.arc"), 21);
-                g2.setColor(UIManager.getColor("App.baseBackground"));
-                g2.fillRoundRect(0, 0, getWidth(), 80, arc, arc);
-
-                g2.setPaint(UIManager.getColor("App.mainTabbedPaneBackground"));
-                g2.fillRoundRect(0, 50, getWidth(), getHeight() - 50, arc, arc);
-                g2.fillRect(0, 50, getWidth(), arc); // 衔接部分
-                g2.dispose();
-            }
-        };
-
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        tabbedPane.setShowCloseButton(true);
-        tabbedPane.setShowCloseButtonOnTab(true);
-        tabbedPane.setShowCloseButtonOnMouseOver(true);
-        tabbedPane.setFont(UIManager.getFont("Label.font").deriveFont(16f));
-        tabbedPane.setTabInsets(new Insets(0, 20, 0, 5));
-        tabbedPane.setTabAreaInsets(new Insets(0, 0, 0, 0));
-        // 默认主页
-        tabbedPane.addTab("主页", IconLoader.getSvgIcon("icons/menu/zhuye.svg", 20, 20), AppStore.getNavigationPanel(HomePanel.class.getName()));
-        tabbedPane.setTabClosableAt(0, false);
-
-        // 设置标签栏辅助组件
-        tabbedPane.setTabLeadingComponent(createTabLeadingBar());
-        tabbedPane.setTabTrailingComponent(new JToolBar() {{
+        toolTabbedPane = new WToolTabbedPane();
+        toolTabbedPane.setLeadingComponent(createTabLeadingBar());
+        toolTabbedPane.setTrailingComponent(new JToolBar() {{
             setOpaque(false);
         }});
-
-        tabbedPane.addChangeListener(e -> updateTabStyles());
+        toolTabbedPane.setSelectionListener(descriptor ->
+                syncTreeSelectionToToolId(descriptor == null ? null : descriptor.getId()));
+        toolTabbedPane.openTool(buildHomeToolDescriptor());
     }
 
     // ===================================================================================
@@ -327,25 +305,17 @@ public class MainPane extends JPanel {
         initCollapsedIconPanel();
         collapsedIconPanel.revalidate();
         collapsedIconPanel.repaint();
+        syncTreeSelectionToToolId(toolTabbedPane.getSelectedToolId());
     }
 
     /**
      * 打开新标签页逻辑
      */
     public void addTab(AuthPermissionInfoRespVO.MenuVO menuVO) {
-        int index = tabbedPane.indexOfTab(menuVO.getName());
-        if (index == -1) {
-            if (StrUtil.equals(menuVO.getName(), "菜单管理")) {
-                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
-                        AppStore.getNavigationPanel(MenuManagementPanel.class.getName()));
-            } else {
-                tabbedPane.addTab(menuVO.getName(), getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
-                        AppStore.getNavigationPanel(menuVO.getComponentSwing()));
-            }
-
-            index = tabbedPane.getTabCount() - 1;
+        if (menuVO == null || StrUtil.isBlank(menuVO.getComponentSwing())) {
+            return;
         }
-        tabbedPane.setSelectedIndex(index);
+        toolTabbedPane.openTool(buildMenuToolDescriptor(menuVO));
     }
 
     // ===================================================================================
@@ -353,25 +323,16 @@ public class MainPane extends JPanel {
     // ===================================================================================
 
     private void initListeners() {
-        // 树表点击监听
-        navBarTreeTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int row = navBarTreeTable.rowAtPoint(e.getPoint());
-                if (row < 0) return;
-                Object obj = navBarTreeTable.getPathForRow(row).getLastPathComponent();
-                if (obj instanceof AuthPermissionInfoRespVO.MenuVO) {
-                    AuthPermissionInfoRespVO.MenuVO menu = (AuthPermissionInfoRespVO.MenuVO) obj;
-                    if (StrUtil.isNotBlank(menu.getComponentSwing())) addTab(menu);
-                }
+        navBarTreeTable.addTreeSelectionListener(e -> {
+            if (syncingTreeSelection || e.getNewLeadSelectionPath() == null) {
+                return;
             }
-        });
-
-        // 标签页右键菜单
-        tabbedPane.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) showPopupMenu(e);
+            Object obj = e.getNewLeadSelectionPath().getLastPathComponent();
+            if (obj instanceof AuthPermissionInfoRespVO.MenuVO) {
+                AuthPermissionInfoRespVO.MenuVO menu = (AuthPermissionInfoRespVO.MenuVO) obj;
+                if (StrUtil.isNotBlank(menu.getComponentSwing())) {
+                    addTab(menu);
+                }
             }
         });
     }
@@ -447,8 +408,8 @@ public class MainPane extends JPanel {
         return btn;
     }
 
-    public JideTabbedPane getTabbedPane() {
-        return tabbedPane;
+    public FlatTabbedPane getTabbedPane() {
+        return toolTabbedPane.getTabbedPane();
     }
 
     private JPopupMenu createFloatingMenu(List<AuthPermissionInfoRespVO.MenuVO> children) {
@@ -476,7 +437,7 @@ public class MainPane extends JPanel {
                 return new Dimension(super.getPreferredSize().width, 50);
             }
         };
-        bar.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        bar.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
         bar.setOpaque(false);
         menuToggleBut = createToolbarButton("icons/bars.svg", "折叠/展开菜单栏", e -> toggleNavBarState());
 
@@ -500,43 +461,8 @@ public class MainPane extends JPanel {
         timeTimer.start();
     }
 
-    private void showPopupMenu(MouseEvent e) {
-        int index = tabbedPane.getUI().tabForCoordinate(tabbedPane, e.getX(), e.getY());
-        if (index == -1) return;
-
-        JPopupMenu menu = new JPopupMenu();
-        menu.add(createMenuItem("关闭当前", () -> {
-            if (tabbedPane.isTabClosableAt(index)) {
-                closeTabAt(index);
-            }
-        }));
-        menu.addSeparator();
-        menu.add(createMenuItem("关闭其它", () -> {
-            String title = tabbedPane.getTitleAt(index);
-            for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
-                if (tabbedPane.isTabClosableAt(i) && !tabbedPane.getTitleAt(i).equals(title)) {
-                    closeTabAt(i);
-                }
-            }
-        }));
-        menu.add(createMenuItem("关闭所有", () -> {
-            closeAllTab();
-        }));
-        menu.show(e.getComponent(), e.getX(), e.getY());
-    }
-
     public void closeAllTab() {
-        for (int i = tabbedPane.getTabCount() - 1; i >= 0; i--) {
-            if (tabbedPane.isTabClosableAt(i)) {
-                closeTabAt(i);
-            }
-        }
-    }
-
-    private void closeTabAt(int index) {
-        Component tabComponent = tabbedPane.getComponentAt(index);
-        SwingLifecycleUtils.disposeComponentTree(tabComponent);
-        tabbedPane.removeTabAt(index);
+        toolTabbedPane.closeAllTabs();
     }
 
     // ===================================================================================
@@ -592,16 +518,12 @@ public class MainPane extends JPanel {
 
     private AuthPermissionInfoRespVO.MenuVO copyMenuNode(AuthPermissionInfoRespVO.MenuVO source) {
         AuthPermissionInfoRespVO.MenuVO copy = new AuthPermissionInfoRespVO.MenuVO();
+        copy.setId(source.getId());
+        copy.setParentId(source.getParentId());
         copy.setName(source.getName());
         copy.setIcon(source.getIcon());
         copy.setComponentSwing(source.getComponentSwing());
         return copy;
-    }
-
-    private JMenuItem createMenuItem(String text, Runnable action) {
-        JMenuItem item = new JMenuItem(text);
-        item.addActionListener(e -> action.run());
-        return item;
     }
 
     private FlatSVGIcon getMenuIcon(String iconPath, int size) {
@@ -610,15 +532,6 @@ public class MainPane extends JPanel {
             path = iconPath.contains(":") ? "icons/menu/" + iconPath.split(":")[1] + ".svg" : iconPath;
         }
         return IconLoader.getSvgIcon(path, size, size);
-    }
-
-    private void updateTabStyles() {
-        int selected = tabbedPane.getSelectedIndex();
-        Color selCol = UIManager.getColor("TabbedPane.selectedForeground");
-        Color defCol = UIManager.getColor("Label.foreground");
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            tabbedPane.setForegroundAt(i, (i == selected) ? selCol : defCol);
-        }
     }
 
     // ===================================================================================
@@ -701,5 +614,142 @@ public class MainPane extends JPanel {
             timeTimer.stop(); // 停止定时器
         }
         super.removeNotify();
+    }
+
+    private ToolDescriptor buildHomeToolDescriptor() {
+        return new ToolDescriptor(
+                HOME_TOOL_ID,
+                "主页",
+                "系统",
+                "主页",
+                IconLoader.getSvgIcon("icons/menu/zhuye.svg", MENU_ICON_SIZE, MENU_ICON_SIZE),
+                false,
+                false,
+                () -> (JComponent) AppStore.getNavigationPanel(HomePanel.class.getName())
+        );
+    }
+
+    private ToolDescriptor buildMenuToolDescriptor(AuthPermissionInfoRespVO.MenuVO menuVO) {
+        String componentClass = StrUtil.equals(menuVO.getName(), "菜单管理")
+                ? MenuManagementPanel.class.getName()
+                : menuVO.getComponentSwing();
+        return new ToolDescriptor(
+                buildToolId(menuVO),
+                menuVO.getName(),
+                "菜单",
+                menuVO.getName(),
+                getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
+                false,
+                true,
+                () -> (JComponent) AppStore.getNavigationPanel(componentClass)
+        );
+    }
+
+    private String buildToolId(AuthPermissionInfoRespVO.MenuVO menuVO) {
+        if (menuVO == null) {
+            return null;
+        }
+        if (menuVO.getId() != null) {
+            return "menu:" + menuVO.getId();
+        }
+        if (StrUtil.isNotBlank(menuVO.getComponentSwing())) {
+            return "menu:" + menuVO.getComponentSwing();
+        }
+        return "menu:" + menuVO.getName();
+    }
+
+    private void syncTreeSelectionToToolId(String toolId) {
+        syncingTreeSelection = true;
+        try {
+            if (StrUtil.isBlank(toolId) || StrUtil.equals(toolId, HOME_TOOL_ID)) {
+                navBarTreeTable.clearSelection();
+                return;
+            }
+            TreePath path = findTreePathForToolId(toolId);
+            if (path == null) {
+                navBarTreeTable.clearSelection();
+                return;
+            }
+            navBarTreeTable.expandPath(path);
+            navBarTreeTable.scrollPathToVisible(path);
+            navBarTreeTable.getTreeSelectionModel().setSelectionPath(path);
+            int row = navBarTreeTable.getRowForPath(path);
+            if (row >= 0) {
+                navBarTreeTable.setRowSelectionInterval(row, row);
+            }
+        } finally {
+            syncingTreeSelection = false;
+        }
+    }
+
+    private TreePath findTreePathForToolId(String toolId) {
+        if (StrUtil.isBlank(toolId) || navBarTreeTable == null || navBarTreeTable.getTreeTableModel() == null) {
+            return null;
+        }
+        Object root = navBarTreeTable.getTreeTableModel().getRoot();
+        if (!(root instanceof AuthPermissionInfoRespVO.MenuVO)) {
+            return null;
+        }
+        return findTreePath((AuthPermissionInfoRespVO.MenuVO) root, new TreePath(root), toolId);
+    }
+
+    private TreePath findTreePath(AuthPermissionInfoRespVO.MenuVO current, TreePath currentPath, String toolId) {
+        if (StrUtil.equals(toolId, buildToolId(current))) {
+            return currentPath;
+        }
+        List<AuthPermissionInfoRespVO.MenuVO> children = current.getChildren();
+        if (children == null) {
+            return null;
+        }
+        for (AuthPermissionInfoRespVO.MenuVO child : children) {
+            TreePath childPath = findTreePath(child, currentPath.pathByAddingChild(child), toolId);
+            if (childPath != null) {
+                return childPath;
+            }
+        }
+        return null;
+    }
+
+
+    private JPanel createWorkspaceSurface() {
+        RoundedPanel workspaceSurface = new RoundedPanel();
+        workspaceSurface.setLayout(new BorderLayout());
+        workspaceSurface.setBorder(new EmptyBorder(0, 12, 10, 12));
+
+        workspaceSurface.add(toolTabbedPane, BorderLayout.CENTER);
+        return workspaceSurface;
+    }
+
+    private static class RoundedPanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                Color panelBackground = UIManager.getColor("Panel.background");
+                if (panelBackground == null) {
+                    panelBackground = getBackground();
+                }
+                g2.setColor(panelBackground);
+                int arc = UIManager.getInt("App.arc");
+                if (arc <= 0) {
+                    arc = 21;
+                }
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
+
+                g2.setColor(UIManager.getColor("App.mainTabbedPaneBackground"));
+                g2.fillRoundRect(0, 50, getWidth(), Math.max(0, getHeight()- 50 ), arc, arc);
+                g2.fillRect(0, 50, getWidth(), 50);
+//                g2.fillRect(0, 25, getWidth(), arc);
+            } finally {
+                g2.dispose();
+            }
+            super.paintComponent(g);
+        }
+
+        @Override
+        public boolean isOpaque() {
+            return false;
+        }
     }
 }

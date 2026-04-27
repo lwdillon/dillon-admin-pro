@@ -2,6 +2,7 @@ package com.dillon.lw.http;
 
 import com.dillon.lw.forest.interceptors.ErrorInterceptor;
 import com.dillon.lw.forest.interceptors.HASmartSource;
+import com.dillon.lw.forest.logging.SensitiveLogHandler;
 import com.dillon.lw.http.interceptors.TokenInterceptor;
 import com.dtflys.forest.Forest;
 import com.dtflys.forest.config.ForestConfiguration;
@@ -60,6 +61,7 @@ public class ForestConfig {
 
         // 设置全局拦截器链
         configuration.setInterceptors(interceptors);
+        configuration.setLogHandler(new SensitiveLogHandler());
 
         // ========== 高可用地址策略 ==========
         // 自定义地址源：

@@ -16,7 +16,9 @@ import com.dillon.lw.components.notice.WMessage;
 import com.dtflys.forest.Forest;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatSVGUtils;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
+import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import com.formdev.flatlaf.util.LoggingFacade;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.formdev.flatlaf.util.UIScale;
@@ -74,9 +76,9 @@ public class MainFrame extends JFrame {
         super(System.getProperty("app.name", "LwAdmin"));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        initPlatformWindowStyle(); // 适配平台特性
+        configureWindowChrome(); // 适配平台特性
         initInterfaceCards();      // 初始化卡片页面内容
-
+        configureWindowIcon();
         setContentPane(cardPanel);
         EventBusCenter.get().register(this);
     }
@@ -107,6 +109,47 @@ public class MainFrame extends JFrame {
 
         // 设置通用的标题栏属性
         root.putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, Color.GRAY);
+    }
+
+
+    private void configureWindowChrome() {
+        JRootPane rootPane = getRootPane();
+
+        if (SystemInfo.isMacOS) {
+            configureMacWindowChrome(rootPane);
+            return;
+        }
+
+        if (supportsFlatLafWindowDecorations()) {
+            rootPane.putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
+            rootPane.putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+            rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICON, false);
+            rootPane.putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_TITLE, false);
+        }
+    }
+
+
+
+    private boolean supportsFlatLafWindowDecorations() {
+        return FlatLaf.supportsNativeWindowDecorations() || SystemInfo.isLinux;
+    }
+    private void configureMacWindowChrome(JRootPane rootPane) {
+        if (SystemInfo.isMacFullWindowContentSupported) {
+            rootPane.putClientProperty("apple.awt.fullWindowContent", true);
+            rootPane.putClientProperty("apple.awt.transparentTitleBar", true);
+            rootPane.putClientProperty(FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING,
+                    FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_LARGE);
+
+            if (SystemInfo.isJava_17_orLater) {
+                rootPane.putClientProperty("apple.awt.windowTitleVisible", false);
+            } else {
+                setTitle(null);
+            }
+        }
+
+        if (!SystemInfo.isJava_11_orLater) {
+            rootPane.putClientProperty("apple.awt.fullscreenable", true);
+        }
     }
 
     /**
@@ -359,7 +402,7 @@ public class MainFrame extends JFrame {
     }
 
     // --- Getters ---
-    public JideTabbedPane getTabbedPane() {
+    public FlatTabbedPane getTabbedPane() {
         return mainPane != null ? mainPane.getTabbedPane() : null;
     }
 
@@ -369,5 +412,15 @@ public class MainFrame extends JFrame {
 
     public TitlePanel getTitlePanel() {
         return titlePanel;
+    }
+    /**
+     * 为窗口设置应用图标。
+     * <p>
+     * FlatLaf 提供了 SVG 工具类，这里直接从矢量图生成多分辨率图标，
+     * 可以兼顾高分屏与不同平台的窗口展示效果。
+     * </p>
+     */
+    private void configureWindowIcon() {
+        setIconImages(FlatSVGUtils.createWindowIconImages("/icons/logo.svg"));
     }
 }

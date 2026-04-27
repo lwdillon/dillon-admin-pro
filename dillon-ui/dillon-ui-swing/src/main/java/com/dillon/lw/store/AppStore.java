@@ -46,7 +46,7 @@ public class AppStore {
         try {
             Class<?> clazz = Class.forName(className);
             JComponent container = (JComponent) clazz.getDeclaredConstructor().newInstance();
-            container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            container.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
             container.setOpaque(false);
             return container;
         } catch (Exception ex) {
