@@ -196,6 +196,8 @@ public class NotifyMessagePane extends com.dillon.lw.components.AbstractDisposab
         });
         userTypeComboBox.setSelectedItem(null);
         templateTypeComboBox.setSelectedItem(null);
+        userTypeComboBox.setRenderer(createDictLabelRenderer());
+        templateTypeComboBox.setRenderer(createDictLabelRenderer());
 
     }
 
@@ -300,11 +302,30 @@ public class NotifyMessagePane extends com.dillon.lw.components.AbstractDisposab
 
 
         JLabel label = new JLabel(text);
-        JLabel badge = BadgeLabelUtil.getBadgeLabel(dictType, value);
+        JLabel dictLabel = USER_TYPE.equals(dictType) ? new JLabel(getDictLabel(dictType, value)) : BadgeLabelUtil.getBadgeLabel(dictType, value);
 
 
         panel.add(label, "cell 0 " + row);
-        panel.add(badge, "cell 1 " + row + ",alignx left,growx 0");
+        panel.add(dictLabel, "cell 1 " + row + ",alignx left,growx 0");
+    }
+
+    private DefaultListCellRenderer createDictLabelRenderer() {
+        return new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (component instanceof JLabel && value instanceof DictDataSimpleRespVO) {
+                    ((JLabel) component).setText(((DictDataSimpleRespVO) value).getLabel());
+                }
+                return component;
+            }
+        };
+    }
+
+    private String getDictLabel(DictTypeEnum dictType, Object value) {
+        Map<String, DictDataSimpleRespVO> dictMap = AppStore.getDictDataValueMap(dictType);
+        DictDataSimpleRespVO dict = dictMap == null ? null : dictMap.get(Convert.toStr(value));
+        return dict == null ? Convert.toStr(value) : dict.getLabel();
     }
 
 
@@ -411,12 +432,11 @@ public class NotifyMessagePane extends com.dillon.lw.components.AbstractDisposab
                         @Override
                         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                             Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                            JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-                            JLabel label = BadgeLabelUtil.getBadgeLabel(USER_TYPE, value);
-                            panel.add(label);
-                            panel.setBackground(component.getBackground());
-                            panel.setOpaque(isSelected);
-                            return panel;
+                            if (component instanceof JLabel) {
+                                ((JLabel) component).setText(getDictLabel(USER_TYPE, value));
+                                ((JLabel) component).setHorizontalAlignment(SwingConstants.CENTER);
+                            }
+                            return component;
                         }
                     });
                     table.getColumn("模版类型").setCellRenderer(new DefaultTableCellRenderer() {

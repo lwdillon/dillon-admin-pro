@@ -48,9 +48,9 @@ import com.dillon.lw.swing.rx.SwingSchedulers;
 
 /**
  * 主应用界面面板 (MainPane)
- * 采用 BorderLayout 布局：
- * - 西部 (WEST)：侧边导航栏（支持展开/折叠）
- * - 中部 (CENTER)：多标签页容器 (JideTabbedPane)
+ * 采用 BorderLayout + JSplitPane 布局：
+ * - 左侧：侧边导航栏（支持展开/折叠）
+ * - 右侧：多标签页容器 (JideTabbedPane)
  * - 南部 (SOUTH)：状态栏
  */
 public class MainPane extends JPanel {
@@ -58,6 +58,10 @@ public class MainPane extends JPanel {
     private static final String CARD_COLLAPSED_MENU = "CollapsedMenu";
     private static final String HOME_TOOL_ID = "home";
     private static final int NAV_BAR_COLLAPSED_WIDTH = 60;
+    private static final int NAV_BAR_MIN_EXPANDED_WIDTH = 240;
+    private static final int NAV_BAR_MAX_EXPANDED_WIDTH = 420;
+    private static final int SPLIT_PANE_DIVIDER_SIZE = 7;
+    private static final int SPLIT_PANE_COLLAPSED_GAP = 7;
     private static final int MENU_ICON_SIZE = 20;
     private static final int COLLAPSED_MENU_ICON_SIZE = 25;
     private static final int TOOLBAR_ICON_SIZE = 22;
@@ -65,6 +69,7 @@ public class MainPane extends JPanel {
 
     // --- 核心 UI 组件 ---
     private JPanel navBarPane;            // 侧边栏容器 (CardLayout)
+    private JSplitPane mainSplitPane;     // 侧边栏与主工作区分隔容器
     private JXTreeTable navBarTreeTable;  // 导航树表
     private WToolTabbedPane toolTabbedPane;    // 标签页
     private JToolBar statusPane;          // 底部状态栏
@@ -80,6 +85,7 @@ public class MainPane extends JPanel {
 
     private boolean isExpanded = true;
     private boolean syncingTreeSelection;
+    private boolean syncingDividerLocation;
 
     public MainPane() {
         initComponents();
@@ -133,8 +139,8 @@ public class MainPane extends JPanel {
         setupStatusPane();
 
         // 组装主框架
-        add(navBarPane, BorderLayout.WEST);
-        add(createWorkspaceSurface(), BorderLayout.CENTER);
+        mainSplitPane = createMainSplitPane(createWorkspaceSurface());
+        add(mainSplitPane, BorderLayout.CENTER);
         add(statusPane, BorderLayout.SOUTH);
 
         // 默认显示展开状态
@@ -206,7 +212,6 @@ public class MainPane extends JPanel {
         }});
         toolTabbedPane.setSelectionListener(descriptor ->
                 syncTreeSelectionToToolId(descriptor == null ? null : descriptor.getId()));
-        toolTabbedPane.openTool(buildHomeToolDescriptor());
     }
 
     // ===================================================================================
@@ -258,14 +263,24 @@ public class MainPane extends JPanel {
         CardLayout cl = (CardLayout) navBarPane.getLayout();
         isExpanded = !isExpanded;
         if (isExpanded) {
+            navBarExpandedWidth = clampExpandedNavBarWidth(navBarExpandedWidth);
+            navBarPane.setMinimumSize(new Dimension(NAV_BAR_MIN_EXPANDED_WIDTH, 0));
             navBarPane.setPreferredSize(new Dimension(navBarExpandedWidth, navBarPane.getHeight()));
             cl.show(navBarPane, CARD_EXPANDED_MENU);
+            mainSplitPane.setEnabled(true);
+            mainSplitPane.setDividerSize(SPLIT_PANE_DIVIDER_SIZE);
+            mainSplitPane.setDividerLocation(navBarExpandedWidth);
         } else {
+            navBarExpandedWidth = clampExpandedNavBarWidth(mainSplitPane.getDividerLocation());
+            navBarPane.setMinimumSize(new Dimension(NAV_BAR_COLLAPSED_WIDTH, 0));
             navBarPane.setPreferredSize(new Dimension(NAV_BAR_COLLAPSED_WIDTH, navBarPane.getHeight()));
             cl.show(navBarPane, CARD_COLLAPSED_MENU);
+            mainSplitPane.setDividerSize(SPLIT_PANE_COLLAPSED_GAP);
+            mainSplitPane.setEnabled(false);
+            mainSplitPane.setDividerLocation(NAV_BAR_COLLAPSED_WIDTH);
         }
-        revalidate();
-        repaint();
+        mainSplitPane.revalidate();
+        mainSplitPane.repaint();
     }
 
     /**
@@ -305,6 +320,8 @@ public class MainPane extends JPanel {
         initCollapsedIconPanel();
         collapsedIconPanel.revalidate();
         collapsedIconPanel.repaint();
+
+        openMenuHomeIfNeeded(menuList);
         syncTreeSelectionToToolId(toolTabbedPane.getSelectedToolId());
     }
 
@@ -629,6 +646,40 @@ public class MainPane extends JPanel {
         );
     }
 
+    private void openMenuHomeIfNeeded(List<AuthPermissionInfoRespVO.MenuVO> menuList) {
+        String selectedToolId = toolTabbedPane.getSelectedToolId();
+        if (toolTabbedPane.hasOpenTabs() && !StrUtil.equals(selectedToolId, HOME_TOOL_ID)) {
+            return;
+        }
+
+        AuthPermissionInfoRespVO.MenuVO homeMenu = findHomeMenu(menuList);
+        toolTabbedPane.openTool(homeMenu == null ? buildHomeToolDescriptor() : buildMenuToolDescriptor(homeMenu));
+    }
+
+    private AuthPermissionInfoRespVO.MenuVO findHomeMenu(List<AuthPermissionInfoRespVO.MenuVO> menuList) {
+        if (menuList == null) {
+            return null;
+        }
+        for (AuthPermissionInfoRespVO.MenuVO menu : menuList) {
+            if (isHomeMenu(menu)) {
+                return menu;
+            }
+            AuthPermissionInfoRespVO.MenuVO childHomeMenu = findHomeMenu(menu.getChildren());
+            if (childHomeMenu != null) {
+                return childHomeMenu;
+            }
+        }
+        return null;
+    }
+
+    private boolean isHomeMenu(AuthPermissionInfoRespVO.MenuVO menu) {
+        if (menu == null) {
+            return false;
+        }
+        return StrUtil.equals(menu.getName(), "主页")
+                || StrUtil.equals(menu.getComponentSwing(), HomePanel.class.getName());
+    }
+
     private ToolDescriptor buildMenuToolDescriptor(AuthPermissionInfoRespVO.MenuVO menuVO) {
         String componentClass = StrUtil.equals(menuVO.getName(), "菜单管理")
                 ? MenuManagementPanel.class.getName()
@@ -640,7 +691,7 @@ public class MainPane extends JPanel {
                 menuVO.getName(),
                 getMenuIcon(menuVO.getIcon(), MENU_ICON_SIZE),
                 false,
-                true,
+                !isHomeMenu(menuVO),
                 () -> (JComponent) AppStore.getNavigationPanel(componentClass)
         );
     }
@@ -694,6 +745,9 @@ public class MainPane extends JPanel {
     }
 
     private TreePath findTreePath(AuthPermissionInfoRespVO.MenuVO current, TreePath currentPath, String toolId) {
+        if (StrUtil.equals(toolId, HOME_TOOL_ID) && isHomeMenu(current)) {
+            return currentPath;
+        }
         if (StrUtil.equals(toolId, buildToolId(current))) {
             return currentPath;
         }
@@ -718,6 +772,46 @@ public class MainPane extends JPanel {
 
         workspaceSurface.add(toolTabbedPane, BorderLayout.CENTER);
         return workspaceSurface;
+    }
+
+    private JSplitPane createMainSplitPane(JComponent workspaceSurface) {
+        navBarPane.setMinimumSize(new Dimension(NAV_BAR_MIN_EXPANDED_WIDTH, 0));
+        workspaceSurface.setMinimumSize(new Dimension(0, 0));
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, navBarPane, workspaceSurface);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.setOpaque(false);
+        splitPane.setContinuousLayout(true);
+        splitPane.setResizeWeight(0);
+        splitPane.setDividerSize(SPLIT_PANE_DIVIDER_SIZE);
+        splitPane.setDividerLocation(navBarExpandedWidth);
+        splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, event -> clampSplitPaneDividerLocation());
+        return splitPane;
+    }
+
+    private void clampSplitPaneDividerLocation() {
+        if (!isExpanded || syncingDividerLocation || mainSplitPane == null) {
+            return;
+        }
+
+        int currentLocation = mainSplitPane.getDividerLocation();
+        int clampedLocation = clampExpandedNavBarWidth(currentLocation);
+        navBarExpandedWidth = clampedLocation;
+        navBarPane.setPreferredSize(new Dimension(clampedLocation, navBarPane.getHeight()));
+        if (currentLocation == clampedLocation) {
+            return;
+        }
+
+        syncingDividerLocation = true;
+        try {
+            mainSplitPane.setDividerLocation(clampedLocation);
+        } finally {
+            syncingDividerLocation = false;
+        }
+    }
+
+    private int clampExpandedNavBarWidth(int width) {
+        return Math.max(NAV_BAR_MIN_EXPANDED_WIDTH, Math.min(width, NAV_BAR_MAX_EXPANDED_WIDTH));
     }
 
     private static class RoundedPanel extends JPanel {

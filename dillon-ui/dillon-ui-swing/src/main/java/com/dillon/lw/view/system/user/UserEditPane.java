@@ -46,6 +46,8 @@ import com.dillon.lw.swing.rx.SwingRx;
  */
 public class UserEditPane extends com.dillon.lw.components.AbstractDisposablePanel {
 
+    private static final Dimension FORM_PANEL_SIZE = new Dimension(720, 360);
+
     private Long id;
     private Long deptId = null;
     private JTree deptTree;
@@ -91,7 +93,7 @@ public class UserEditPane extends com.dillon.lw.components.AbstractDisposablePan
                 "fill,insets dialog,hidemode 3",
                 // columns
                 "[right]" +
-                "[grow,shrink 0,sizegroup 1,fill]15" +
+                "[180,grow,shrink 0,sizegroup 1,fill]15" +
                 "[right]" +
                 "[180,grow,shrink 0,sizegroup 1,fill]",
                 // rows
@@ -100,6 +102,7 @@ public class UserEditPane extends com.dillon.lw.components.AbstractDisposablePan
                 "[]" +
                 "[45!]" +
                 "[180,grow,shrink 0]"));
+            contentPanel.setPreferredSize(FORM_PANEL_SIZE);
 
             //---- label1 ----
             label1.setText("*\u7528\u6237\u6635\u79f0");

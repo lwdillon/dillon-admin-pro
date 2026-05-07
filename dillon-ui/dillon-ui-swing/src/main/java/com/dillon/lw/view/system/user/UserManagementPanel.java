@@ -55,6 +55,8 @@ import com.dillon.lw.swing.rx.SwingRx;
  */
 public class UserManagementPanel extends com.dillon.lw.components.AbstractDisposablePanel {
     private static final String[] COLUMN_ID = {"用户编号", "用户名称", "用户昵称", "部门", "手机号", "状态", "创建时间", "操作"};
+    private static final Dimension SEARCH_TEXT_FIELD_SIZE = new Dimension(150, 34);
+    private static final Dimension SEARCH_COMBO_BOX_SIZE = new Dimension(100, 34);
     private static final int COL_USER_ID = 0;
     private static final int COL_USER_NAME = 1;
     private static final int COL_USER_NICKNAME = 2;
@@ -148,11 +150,11 @@ public class UserManagementPanel extends com.dillon.lw.components.AbstractDispos
             //======== toolPane ========
             {
                 toolPane.setLayout(new MigLayout(
-                        "fill,insets 0,hidemode 3",
+                        "fillx,insets 0,hidemode 3",
                         // columns
-                        "[left]",
+                        "[right][150!][right][150!][right][100!][right][150!][][150!][grow]",
                         // rows
-                        "[]"));
+                        "[][]"));
                 toolPane.setBorder(new EmptyBorder(10, 10, 10, 10));
                 //---- label7 ----
                 label7.setText("\u7528\u6237\u540d\u79f0");
@@ -160,46 +162,51 @@ public class UserManagementPanel extends com.dillon.lw.components.AbstractDispos
 
                 //---- userNameTextField ----
                 userNameTextField.setColumns(15);
-                toolPane.add(userNameTextField, "cell 0 0");
+                keepSearchFieldWidth(userNameTextField, SEARCH_TEXT_FIELD_SIZE);
+                toolPane.add(userNameTextField, "cell 1 0,w 150!");
 
                 //---- label8 ----
                 label8.setText("\u624b\u673a\u53f7\u7801");
-                toolPane.add(label8, "cell 0 0");
+                toolPane.add(label8, "cell 2 0");
 
                 //---- phoneTextField ----
                 phoneTextField.setColumns(15);
-                toolPane.add(phoneTextField, "cell 0 0");
+                keepSearchFieldWidth(phoneTextField, SEARCH_TEXT_FIELD_SIZE);
+                toolPane.add(phoneTextField, "cell 3 0,w 150!");
 
                 //---- label9 ----
                 label9.setText("\u72b6\u6001");
-                toolPane.add(label9, "cell 0 0");
-                toolPane.add(stautsComboBox, "cell 0 0");
+                toolPane.add(label9, "cell 4 0");
+                keepSearchFieldWidth(stautsComboBox, SEARCH_COMBO_BOX_SIZE);
+                toolPane.add(stautsComboBox, "cell 5 0,w 100!");
 
                 //---- label10 ----
                 label10.setText("\u521b\u5efa\u65f6\u95f4");
-                toolPane.add(label10, "cell 0 0");
+                toolPane.add(label10, "cell 0 1");
 
                 //---- startDateTextField ----
-                toolPane.add(startDateTextField, "cell 0 0");
+                keepSearchFieldWidth(startDateTextField, SEARCH_TEXT_FIELD_SIZE);
+                toolPane.add(startDateTextField, "cell 1 1,w 150!");
 
                 //---- label11 ----
                 label11.setText("-");
-                toolPane.add(label11, "cell 0 0");
+                toolPane.add(label11, "cell 2 1,alignx center");
 
                 //---- endDateTextField ----
-                toolPane.add(endDateTextField, "cell 0 0");
+                keepSearchFieldWidth(endDateTextField, SEARCH_TEXT_FIELD_SIZE);
+                toolPane.add(endDateTextField, "cell 3 1,w 150!");
 
                 //---- button1 ----
                 searchBut.setText("\u641c\u7d22");
-                toolPane.add(searchBut, "cell 0 0");
+                toolPane.add(searchBut, "cell 4 1");
 
                 //---- reseBut ----
                 reseBut.setText("\u91cd\u7f6e");
-                toolPane.add(reseBut, "cell 0 0");
+                toolPane.add(reseBut, "cell 5 1");
 
                 //---- newBut ----
                 newBut.setText("\u65b0\u589e");
-                toolPane.add(newBut, "cell 0 0");
+                toolPane.add(newBut, "cell 6 1");
             }
             centerPane.add(toolPane, BorderLayout.NORTH);
         }
@@ -231,6 +238,11 @@ public class UserManagementPanel extends com.dillon.lw.components.AbstractDispos
 
         table.setDefaultRenderer(Object.class, new CenterTableCellRenderer());
 
+    }
+
+    private void keepSearchFieldWidth(JComponent component, Dimension size) {
+        component.setMinimumSize(size);
+        component.setPreferredSize(size);
     }
 
     /**
