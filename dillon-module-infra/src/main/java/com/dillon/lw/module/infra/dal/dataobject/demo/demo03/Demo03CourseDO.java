@@ -1,15 +1,15 @@
 package com.dillon.lw.module.infra.dal.dataobject.demo.demo03;
 
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import lombok.*;
 
 /**
  * 学生课程 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName("dillon_demo03_course")
 @KeySequence("dillon_demo03_course_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。

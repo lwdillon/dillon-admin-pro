@@ -5,18 +5,18 @@ import com.dillon.lw.module.infra.controller.admin.job.vo.log.JobLogPageReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.job.JobLogDO;
 import com.dillon.lw.module.infra.dal.mysql.job.JobLogMapper;
 import com.dillon.lw.module.infra.enums.job.JobLogStatusEnum;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 /**
  * Job 日志 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

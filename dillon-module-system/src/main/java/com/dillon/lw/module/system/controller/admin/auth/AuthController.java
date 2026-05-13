@@ -3,7 +3,9 @@ package com.dillon.lw.module.system.controller.admin.auth;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.framework.common.pojo.CommonResult;
+import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
 import com.dillon.lw.framework.security.config.SecurityProperties;
 import com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils;
 import com.dillon.lw.module.system.controller.admin.auth.vo.*;
@@ -16,19 +18,20 @@ import com.dillon.lw.module.system.service.auth.AdminAuthService;
 import com.dillon.lw.module.system.service.permission.MenuService;
 import com.dillon.lw.module.system.service.permission.PermissionService;
 import com.dillon.lw.module.system.service.permission.RoleService;
+import com.dillon.lw.module.system.service.social.SocialClientService;
 import com.dillon.lw.module.system.service.user.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +57,8 @@ public class AuthController {
     private MenuService menuService;
     @Resource
     private PermissionService permissionService;
+    @Resource
+    private SocialClientService socialClientService;
 
     @Resource
     private SecurityProperties securityProperties;
@@ -87,6 +92,7 @@ public class AuthController {
 
     @GetMapping("/get-permission-info")
     @Operation(summary = "获取登录用户的权限信息")
+    @DataPermission(enable = false) // 忽略数据权限，避免因为过滤，导致无法查询用户。类似：https://t.zsxq.com/LHnrp
     public CommonResult<AuthPermissionInfoRespVO> getPermissionInfo() {
         // 1.1 获得用户信息
         AdminUserDO user = userService.getUser(getLoginUserId());
@@ -156,7 +162,8 @@ public class AuthController {
     })
     public CommonResult<String> socialLogin(@RequestParam("type") Integer type,
                                             @RequestParam("redirectUri") String redirectUri) {
-        return success(null);
+        return success(socialClientService.getAuthorizeUrl(
+                type, UserTypeEnum.ADMIN.getValue(), redirectUri));
     }
 
     @PostMapping("/social-login")

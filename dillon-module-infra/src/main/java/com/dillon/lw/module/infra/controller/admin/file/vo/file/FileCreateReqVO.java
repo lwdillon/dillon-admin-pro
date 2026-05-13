@@ -1,9 +1,8 @@
 package com.dillon.lw.module.infra.controller.admin.file.vo.file;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
-import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 文件创建 Request VO")
 @Data
@@ -29,6 +28,6 @@ public class FileCreateReqVO {
     private String type;
 
     @Schema(description = "文件大小", example = "2048", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Integer size;
+    private Long size;
 
 }

@@ -4,6 +4,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.func.Func1;
 import cn.hutool.core.lang.func.LambdaUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.framework.common.pojo.PageParam;
+import com.dillon.lw.framework.common.pojo.SortingField;
+import com.dillon.lw.framework.mybatis.core.enums.DbTypeEnum;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -13,9 +16,6 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.dillon.lw.framework.common.pojo.PageParam;
-import com.dillon.lw.framework.common.pojo.SortingField;
-import com.dillon.lw.framework.mybatis.core.enums.DbTypeEnum;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -38,6 +38,7 @@ public class MyBatisUtils {
     public static <T> Page<T> buildPage(PageParam pageParam, Collection<SortingField> sortingFields) {
         // 页码 + 数量
         Page<T> page = new Page<>(pageParam.getPageNo(), pageParam.getPageSize());
+        page.setOptimizeJoinOfCountSql(false); // 关联 issue：https://gitee.com/zhijiantianya/dillon-cloud/issues/ID2QLL
         // 排序字段
         if (CollUtil.isNotEmpty(sortingFields)) {
             for (SortingField sortingField : sortingFields) {
@@ -53,14 +54,14 @@ public class MyBatisUtils {
         if (CollUtil.isEmpty(sortingFields)) {
             return;
         }
-        if (wrapper instanceof QueryWrapper) {
+        if (wrapper instanceof QueryWrapper<T>) {
             QueryWrapper<T> query = (QueryWrapper<T>) wrapper;
             for (SortingField sortingField : sortingFields) {
                 query.orderBy(true,
                         SortingField.ORDER_ASC.equals(sortingField.getOrder()),
                         StrUtil.toUnderlineCase(sortingField.getField()));
             }
-        } else if (wrapper instanceof LambdaQueryWrapper) {
+        } else if (wrapper instanceof LambdaQueryWrapper<T>) {
             // LambdaQueryWrapper 不直接支持字符串字段排序，使用 last 方法拼接 ORDER BY
             LambdaQueryWrapper<T> lambdaQuery = (LambdaQueryWrapper<T>) wrapper;
             StringBuilder orderBy = new StringBuilder();
@@ -69,8 +70,8 @@ public class MyBatisUtils {
                     orderBy.append(", ");
                 }
                 orderBy.append(StrUtil.toUnderlineCase(sortingField.getField()))
-                        .append(" ")
-                        .append(SortingField.ORDER_ASC.equals(sortingField.getOrder()) ? "ASC" : "DESC");
+                       .append(" ")
+                       .append(SortingField.ORDER_ASC.equals(sortingField.getOrder()) ? "ASC" : "DESC");
             }
             lambdaQuery.last("ORDER BY " + orderBy);
             // 另外个思路：https://blog.csdn.net/m0_59084856/article/details/138450913
@@ -141,7 +142,7 @@ public class MyBatisUtils {
 
     /**
      * 将驼峰命名转换为下划线命名
-     * <p>
+     *
      * 使用场景：
      * 1. <a href="https://gitee.com/zhijiantianya/ruoyi-vue-pro/pulls/1357/files">fix:修复"商品统计聚合函数的别名与排序字段不符"导致的 SQL 异常</a>
      *

@@ -3,13 +3,13 @@ package com.dillon.lw.module.system.api.sms.dto.send;
 import com.dillon.lw.framework.common.validation.Mobile;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Map;
 
 /**
  * 短信发送给 Admin 或者 Member 用户
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class SmsSendSingleToUserReqDTO {

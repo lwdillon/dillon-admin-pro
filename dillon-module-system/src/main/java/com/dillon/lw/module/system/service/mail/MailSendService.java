@@ -3,6 +3,7 @@ package com.dillon.lw.module.system.service.mail;
 import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.module.system.mq.message.mail.MailSendMessage;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
@@ -17,54 +18,60 @@ public interface MailSendService {
     /**
      * 发送单条邮件给管理后台的用户
      *
-     * @param userId         用户编码
-     * @param toMails        收件邮箱
-     * @param ccMails        抄送邮箱
-     * @param bccMails       密送邮箱
-     * @param templateCode   邮件模版编码
+     * @param userId 用户编码
+     * @param toMails 收件邮箱
+     * @param ccMails 抄送邮箱
+     * @param bccMails 密送邮箱
+     * @param templateCode 邮件模版编码
      * @param templateParams 邮件模版参数
+     * @param attachments 附件
      * @return 发送日志编号
      */
     default Long sendSingleMailToAdmin(Long userId,
                                        Collection<String> toMails, Collection<String> ccMails, Collection<String> bccMails,
-                                       String templateCode, Map<String, Object> templateParams) {
+                                       String templateCode, Map<String, Object> templateParams,
+                                       File... attachments) {
         return sendSingleMail(toMails, ccMails, bccMails, userId, UserTypeEnum.ADMIN.getValue(),
-                templateCode, templateParams);
+                templateCode, templateParams, attachments);
     }
 
     /**
      * 发送单条邮件给用户 APP 的用户
      *
-     * @param userId         用户编码
-     * @param toMails        收件邮箱
-     * @param ccMails        抄送邮箱
-     * @param bccMails       密送邮箱
-     * @param templateCode   邮件模版编码
+     * @param userId 用户编码
+     * @param toMails 收件邮箱
+     * @param ccMails 抄送邮箱
+     * @param bccMails 密送邮箱
+     * @param templateCode 邮件模版编码
      * @param templateParams 邮件模版参数
+     * @param attachments 附件
      * @return 发送日志编号
      */
     default Long sendSingleMailToMember(Long userId,
                                         Collection<String> toMails, Collection<String> ccMails, Collection<String> bccMails,
-                                        String templateCode, Map<String, Object> templateParams) {
+                                        String templateCode, Map<String, Object> templateParams,
+                                        File... attachments) {
         return sendSingleMail(toMails, ccMails, bccMails, userId, UserTypeEnum.MEMBER.getValue(),
-                templateCode, templateParams);
+                templateCode, templateParams, attachments);
     }
 
     /**
      * 发送单条邮件
      *
-     * @param toMails        收件邮箱
-     * @param ccMails        抄送邮箱
-     * @param bccMails       密送邮箱
-     * @param userId         用户编号
-     * @param userType       用户类型
-     * @param templateCode   邮件模版编码
+     * @param toMails 收件邮箱
+     * @param ccMails 抄送邮箱
+     * @param bccMails 密送邮箱
+     * @param userId 用户编号
+     * @param userType 用户类型
+     * @param templateCode 邮件模版编码
      * @param templateParams 邮件模版参数
+     * @param attachments 附件
      * @return 发送日志编号
      */
     Long sendSingleMail(Collection<String> toMails, Collection<String> ccMails, Collection<String> bccMails,
                         Long userId, Integer userType,
-                        String templateCode, Map<String, Object> templateParams);
+                        String templateCode, Map<String, Object> templateParams,
+                        File... attachments);
 
     /**
      * 执行真正的邮件发送

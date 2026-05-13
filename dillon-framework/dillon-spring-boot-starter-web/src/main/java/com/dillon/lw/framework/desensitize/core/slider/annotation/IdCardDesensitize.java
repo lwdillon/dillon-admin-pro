@@ -4,7 +4,11 @@ import com.dillon.lw.framework.desensitize.core.base.annotation.DesensitizeBy;
 import com.dillon.lw.framework.desensitize.core.slider.handler.IdCardDesensitization;
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * 身份证
@@ -35,7 +39,7 @@ public @interface IdCardDesensitize {
 
     /**
      * 是否禁用脱敏
-     * <p>
+     *
      * 支持 Spring EL 表达式，如果返回 true 则跳过脱敏
      */
     String disable() default "";

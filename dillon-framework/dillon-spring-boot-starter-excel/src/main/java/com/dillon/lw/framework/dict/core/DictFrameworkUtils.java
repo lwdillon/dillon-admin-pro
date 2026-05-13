@@ -2,8 +2,8 @@ package com.dillon.lw.framework.dict.core;
 
 import cn.hutool.core.collection.CollUtil;
 import com.dillon.lw.framework.common.biz.system.dict.DictDataCommonApi;
-import com.dillon.lw.framework.common.biz.system.dict.dto.DictDataRespDTO;
 import com.dillon.lw.framework.common.util.cache.CacheUtils;
+import com.dillon.lw.framework.common.biz.system.dict.dto.DictDataRespDTO;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.SneakyThrows;
@@ -18,7 +18,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * 字典工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class DictFrameworkUtils {
@@ -60,7 +60,7 @@ public class DictFrameworkUtils {
     public static String parseDictDataLabel(String dictType, String value) {
         List<DictDataRespDTO> dictDatas = GET_DICT_DATA_CACHE.get(dictType);
         DictDataRespDTO dictData = CollUtil.findOne(dictDatas, data -> Objects.equals(data.getValue(), value));
-        return dictData != null ? dictData.getLabel() : null;
+        return dictData != null ? dictData.getLabel(): null;
     }
 
     @SneakyThrows
@@ -73,7 +73,7 @@ public class DictFrameworkUtils {
     public static String parseDictDataValue(String dictType, String label) {
         List<DictDataRespDTO> dictDatas = GET_DICT_DATA_CACHE.get(dictType);
         DictDataRespDTO dictData = CollUtil.findOne(dictDatas, data -> Objects.equals(data.getLabel(), label));
-        return dictData != null ? dictData.getValue() : null;
+        return dictData!= null ? dictData.getValue(): null;
     }
 
     @SneakyThrows

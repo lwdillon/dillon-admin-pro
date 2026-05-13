@@ -17,13 +17,12 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.hutool.core.date.DatePattern.UTC_MS_WITH_XXX_OFFSET_PATTERN;
-import static cn.hutool.core.date.DatePattern.createFormatter;
+import static cn.hutool.core.date.DatePattern.*;
 
 /**
  * 时间工具类，用于 {@link LocalDateTime}
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class LocalDateTimeUtils {
 
@@ -36,7 +35,7 @@ public class LocalDateTimeUtils {
 
     /**
      * 解析时间
-     * <p>
+     *
      * 相比 {@link LocalDateTimeUtil#parse(CharSequence)} 方法来说，会尽量去解析，直到成功
      *
      * @param time 时间
@@ -87,8 +86,8 @@ public class LocalDateTimeUtils {
      * 判指定断时间，是否在该时间范围内
      *
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @param time      指定时间
+     * @param endTime 结束时间
+     * @param time 指定时间
      * @return 是否
      */
     public static boolean isBetween(LocalDateTime startTime, LocalDateTime endTime, Timestamp time) {
@@ -102,8 +101,8 @@ public class LocalDateTimeUtils {
      * 判指定断时间，是否在该时间范围内
      *
      * @param startTime 开始时间
-     * @param endTime   结束时间
-     * @param time      指定时间
+     * @param endTime 结束时间
+     * @param time 指定时间
      * @return 是否
      */
     public static boolean isBetween(LocalDateTime startTime, LocalDateTime endTime, String time) {
@@ -337,12 +336,33 @@ public class LocalDateTimeUtils {
     }
 
     /**
+     * 获取指定日期所在季度的第一天
+     *
+     * @param date 日期
+     * @return 所在季度的第一天
+     */
+    public static LocalDate getQuarterStart(LocalDate date) {
+        Month firstMonthOfQuarter = date.getMonth().firstMonthOfQuarter();
+        return LocalDate.of(date.getYear(), firstMonthOfQuarter, 1);
+    }
+
+    /**
+     * 获取指定日期所在周的第一天（周一）
+     *
+     * @param date 日期
+     * @return 所在周的周一
+     */
+    public static LocalDate getWeekStart(LocalDate date) {
+        return date.with(DayOfWeek.MONDAY);
+    }
+
+    /**
      * 将给定的 {@link LocalDateTime} 转换为自 Unix 纪元时间（1970-01-01T00:00:00Z）以来的秒数。
      *
      * @param sourceDateTime 需要转换的本地日期时间，不能为空
      * @return 自 1970-01-01T00:00:00Z 起的秒数（epoch second）
      * @throws NullPointerException 如果 {@code sourceDateTime} 为 {@code null}
-     * @throws DateTimeException    如果转换过程中发生时间超出范围或其他时间处理异常
+     * @throws DateTimeException 如果转换过程中发生时间超出范围或其他时间处理异常
      */
     public static Long toEpochSecond(LocalDateTime sourceDateTime) {
         return TemporalAccessorUtil.toInstant(sourceDateTime).getEpochSecond();

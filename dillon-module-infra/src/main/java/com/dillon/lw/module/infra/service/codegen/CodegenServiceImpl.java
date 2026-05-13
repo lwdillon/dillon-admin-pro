@@ -2,16 +2,16 @@ package com.dillon.lw.module.infra.service.codegen;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
+import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.CodegenCreateListReqVO;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.CodegenUpdateReqVO;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.table.CodegenTablePageReqVO;
 import com.dillon.lw.module.infra.controller.admin.codegen.vo.table.DatabaseTableRespVO;
 import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenColumnDO;
 import com.dillon.lw.module.infra.dal.dataobject.codegen.CodegenTableDO;
+import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
 import com.dillon.lw.module.infra.dal.mysql.codegen.CodegenColumnMapper;
 import com.dillon.lw.module.infra.dal.mysql.codegen.CodegenTableMapper;
 import com.dillon.lw.module.infra.enums.codegen.CodegenSceneEnum;
@@ -19,12 +19,16 @@ import com.dillon.lw.module.infra.enums.codegen.CodegenTemplateTypeEnum;
 import com.dillon.lw.module.infra.framework.codegen.config.CodegenProperties;
 import com.dillon.lw.module.infra.service.codegen.inner.CodegenBuilder;
 import com.dillon.lw.module.infra.service.codegen.inner.CodegenEngine;
+import com.dillon.lw.module.infra.service.db.DataSourceConfigService;
 import com.dillon.lw.module.infra.service.db.DatabaseTableService;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
+import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
@@ -38,13 +42,15 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.*;
 /**
  * 代码生成 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class CodegenServiceImpl implements CodegenService {
 
     @Resource
     private DatabaseTableService databaseTableService;
+    @Resource
+    private DataSourceConfigService dataSourceConfigService;
 
     @Resource
     private CodegenTableMapper codegenTableMapper;
@@ -284,8 +290,11 @@ public class CodegenServiceImpl implements CodegenService {
             }
         }
 
+        // 获取数据源对应的数据库类型
+        DataSourceConfigDO dataSourceConfig = dataSourceConfigService.getDataSourceConfig(table.getDataSourceConfigId());
+        DbType dbType = JdbcUtils.getDbType(dataSourceConfig.getUrl());
         // 执行生成
-        return codegenEngine.execute(table, columns, subTables, subColumnsList);
+        return codegenEngine.execute(dbType, table, columns, subTables, subColumnsList);
     }
 
     @Override

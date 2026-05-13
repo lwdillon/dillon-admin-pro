@@ -2,8 +2,11 @@ package com.dillon.lw.framework.mybatis.config;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.framework.common.util.json.JsonUtils;
+import com.dillon.lw.framework.mybatis.core.handler.DefaultDBFieldHandler;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
+import com.baomidou.mybatisplus.core.handlers.IJsonTypeHandler;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
@@ -12,8 +15,6 @@ import com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal;
 import com.baomidou.mybatisplus.extension.parser.cache.JdkSerialCaffeineJsqlParseCache;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
-import com.dillon.lw.framework.common.util.json.JsonUtils;
-import com.dillon.lw.framework.mybatis.core.handler.DefaultDBFieldHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.mybatis.spring.annotation.MapperScan;
@@ -28,10 +29,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * MyBaits 配置类
  *
- * @author liwen
+ * @author 芋道源码
  */
-@AutoConfiguration(before = MybatisPlusAutoConfiguration.class)
-// 目的：先于 MyBatis Plus 自动配置，避免 @MapperScan 可能扫描不到 Mapper 打印 warn 日志
+@AutoConfiguration(before = MybatisPlusAutoConfiguration.class) // 目的：先于 MyBatis Plus 自动配置，避免 @MapperScan 可能扫描不到 Mapper 打印 warn 日志
 @MapperScan(value = "${dillon.info.base-package}", annotationClass = Mapper.class,
         lazyInitialization = "${mybatis.lazy-initialization:false}") // Mapper 懒加载，目前仅用于单元测试
 public class DillonMybatisAutoConfiguration {

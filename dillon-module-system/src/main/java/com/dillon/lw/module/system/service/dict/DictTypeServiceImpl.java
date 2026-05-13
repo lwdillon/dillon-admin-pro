@@ -9,9 +9,9 @@ import com.dillon.lw.module.system.controller.admin.dict.vo.type.DictTypeSaveReq
 import com.dillon.lw.module.system.dal.dataobject.dict.DictTypeDO;
 import com.dillon.lw.module.system.dal.mysql.dict.DictTypeMapper;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,7 +21,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * 字典类型 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class DictTypeServiceImpl implements DictTypeService {

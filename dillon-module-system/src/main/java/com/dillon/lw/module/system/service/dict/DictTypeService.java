@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 字典类型 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface DictTypeService {
 

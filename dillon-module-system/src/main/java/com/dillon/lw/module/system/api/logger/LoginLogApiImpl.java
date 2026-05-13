@@ -5,12 +5,12 @@ import com.dillon.lw.module.system.service.logger.LoginLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 登录日志的 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

@@ -4,8 +4,8 @@ import com.dillon.lw.module.system.framework.sms.core.enums.SmsChannelEnum;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 短信渠道配置类
@@ -29,7 +29,7 @@ public class SmsChannelProperties {
     private String signature;
     /**
      * 渠道编码
-     * <p>
+     *
      * 枚举 {@link SmsChannelEnum}
      */
     @NotEmpty(message = "渠道编码不能为空")

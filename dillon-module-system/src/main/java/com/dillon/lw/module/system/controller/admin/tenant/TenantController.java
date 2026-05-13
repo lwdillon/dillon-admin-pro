@@ -16,13 +16,15 @@ import com.dillon.lw.module.system.service.tenant.TenantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
@@ -33,6 +35,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 @Tag(name = "管理后台 - 租户")
 @RestController
 @RequestMapping("/system/tenant")
+@Validated
 public class TenantController {
 
     @Resource
@@ -48,7 +51,7 @@ public class TenantController {
         return success(tenant != null ? tenant.getId() : null);
     }
 
-    @GetMapping({"simple-list"})
+    @GetMapping({ "simple-list" })
     @PermitAll
     @TenantIgnore
     @Operation(summary = "获取租户精简信息列表", description = "只包含被开启的租户，用于【首页】功能的选择租户选项")
@@ -63,7 +66,8 @@ public class TenantController {
     @TenantIgnore
     @Operation(summary = "使用域名，获得租户信息", description = "登录界面，根据用户的域名，获得租户信息")
     @Parameter(name = "website", description = "域名", required = true, example = "www.iocoder.cn")
-    public CommonResult<TenantRespVO> getTenantByWebsite(@RequestParam("website") String website) {
+    public CommonResult<TenantRespVO> getTenantByWebsite(
+            @RequestParam("website") @Pattern(regexp = "^[a-zA-Z0-9.-]+(:\\d{1,5})?$", message = "网站域名格式不正确") String website) {
         TenantDO tenant = tenantService.getTenantByWebsite(website);
         if (tenant == null || CommonStatusEnum.isDisable(tenant.getStatus())) {
             return success(null);

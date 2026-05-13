@@ -10,13 +10,13 @@ import com.dillon.lw.module.system.dal.dataobject.notify.NotifyTemplateDO;
 import com.dillon.lw.module.system.dal.mysql.notify.NotifyTemplateMapper;
 import com.dillon.lw.module.system.dal.redis.RedisKeyConstants;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -104,7 +104,7 @@ public class NotifyTemplateServiceImpl implements NotifyTemplateService {
     }
 
     @Override
-    @Cacheable(cacheNames = RedisKeyConstants.NOTIFY_TEMPLATE, key = "#code",
+    @Cacheable(cacheNames = RedisKeyConstants.NOTIFY_TEMPLATE, key = "#p0",
             unless = "#result == null")
     public NotifyTemplateDO getNotifyTemplateByCodeFromCache(String code) {
         return notifyTemplateMapper.selectByCode(code);

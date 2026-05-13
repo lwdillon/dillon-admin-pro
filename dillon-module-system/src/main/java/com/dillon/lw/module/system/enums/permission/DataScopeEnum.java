@@ -8,10 +8,10 @@ import java.util.Arrays;
 
 /**
  * 数据范围枚举类
- * <p>
+ *
  * 用于实现数据级别的权限
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Getter
 @AllArgsConstructor

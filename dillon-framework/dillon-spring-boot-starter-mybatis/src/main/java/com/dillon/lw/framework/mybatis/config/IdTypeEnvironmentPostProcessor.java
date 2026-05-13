@@ -1,21 +1,24 @@
 package com.dillon.lw.framework.mybatis.config;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.annotation.DbType;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.dillon.lw.framework.common.util.collection.SetUtils;
 import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.annotation.IdType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * 当 IdType 为 {@link IdType#NONE} 时，根据 PRIMARY 数据源所使用的数据库，自动设置
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class IdTypeEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -56,11 +59,19 @@ public class IdTypeEnvironmentPostProcessor implements EnvironmentPostProcessor 
     }
 
     public IdType getIdType(ConfigurableEnvironment environment) {
-        return environment.getProperty(ID_TYPE_KEY, IdType.class);
+        String value = environment.getProperty(ID_TYPE_KEY);
+        try {
+            return StrUtil.isNotBlank(value) ? IdType.valueOf(value) : IdType.NONE;
+        } catch (IllegalArgumentException ex) {
+            log.error("[getIdType][无法解析 id-type 配置值({})]", value, ex);
+            return IdType.NONE;
+        }
     }
 
     public void setIdType(ConfigurableEnvironment environment, IdType idType) {
-        environment.getSystemProperties().put(ID_TYPE_KEY, idType);
+        Map<String, Object> map = new HashMap<>();
+        map.put(ID_TYPE_KEY, idType);
+        environment.getPropertySources().addFirst(new MapPropertySource("mybatisPlusIdType", map));
         log.info("[setIdType][修改 MyBatis Plus 的 idType 为({})]", idType);
     }
 

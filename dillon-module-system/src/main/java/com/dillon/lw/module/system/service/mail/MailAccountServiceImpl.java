@@ -7,13 +7,13 @@ import com.dillon.lw.module.system.controller.admin.mail.vo.account.MailAccountS
 import com.dillon.lw.module.system.dal.dataobject.mail.MailAccountDO;
 import com.dillon.lw.module.system.dal.mysql.mail.MailAccountMapper;
 import com.dillon.lw.module.system.dal.redis.RedisKeyConstants;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -45,7 +45,7 @@ public class MailAccountServiceImpl implements MailAccountService {
     }
 
     @Override
-    @CacheEvict(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#updateReqVO.id")
+    @CacheEvict(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#p0.id")
     public void updateMailAccount(MailAccountSaveReqVO updateReqVO) {
         // 校验是否存在
         validateMailAccountExists(updateReqVO.getId());
@@ -56,7 +56,7 @@ public class MailAccountServiceImpl implements MailAccountService {
     }
 
     @Override
-    @CacheEvict(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#id")
+    @CacheEvict(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#p0")
     public void deleteMailAccount(Long id) {
         // 校验是否存在账号
         validateMailAccountExists(id);
@@ -96,7 +96,7 @@ public class MailAccountServiceImpl implements MailAccountService {
     }
 
     @Override
-    @Cacheable(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#id", unless = "#result == null")
+    @Cacheable(value = RedisKeyConstants.MAIL_ACCOUNT, key = "#p0", unless = "#result == null")
     public MailAccountDO getMailAccountFromCache(Long id) {
         return getMailAccount(id);
     }

@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 短信模板 Response DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class SmsTemplateRespDTO {
@@ -21,7 +21,7 @@ public class SmsTemplateRespDTO {
     private String content;
     /**
      * 审核状态
-     * <p>
+     *
      * 枚举 {@link SmsTemplateAuditStatusEnum}
      */
     private Integer auditStatus;

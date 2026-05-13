@@ -14,6 +14,7 @@ import com.dillon.lw.module.system.enums.permission.MenuTypeEnum;
 import com.dillon.lw.module.system.service.tenant.TenantService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,7 +22,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -33,7 +33,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * 菜单 Service 实现
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Slf4j
@@ -48,8 +48,8 @@ public class MenuServiceImpl implements MenuService {
     private TenantService tenantService;
 
     @Override
-    @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#createReqVO.permission",
-            condition = "#createReqVO.permission != null")
+    @CacheEvict(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#p0.permission",
+            condition = "#p0.permission != null")
     public Long createMenu(MenuSaveVO createReqVO) {
         // 校验父菜单存在
         validateParentMenu(createReqVO.getParentId(), null);
@@ -138,7 +138,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public List<MenuDO> filterDisableMenus(List<MenuDO> menuList) {
-        if (CollUtil.isEmpty(menuList)) {
+        if (CollUtil.isEmpty(menuList)){
             return Collections.emptyList();
         }
         Map<Long, MenuDO> menuMap = convertMap(menuList, MenuDO::getId);
@@ -188,7 +188,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    @Cacheable(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#permission")
+    @Cacheable(value = RedisKeyConstants.PERMISSION_MENU_ID_LIST, key = "#p0")
     public List<Long> getMenuIdListByPermissionFromCache(String permission) {
         List<MenuDO> menus = menuMapper.selectListByPermission(permission);
         return convertList(menus, MenuDO::getId);
@@ -255,6 +255,9 @@ public class MenuServiceImpl implements MenuService {
             return;
         }
         // 如果 id 为空，说明不用比较是否为相同 id 的菜单
+        if (id == null) {
+            throw exception(MENU_NAME_DUPLICATE);
+        }
         if (!menu.getId().equals(id)) {
             throw exception(MENU_NAME_DUPLICATE);
         }
@@ -277,7 +280,7 @@ public class MenuServiceImpl implements MenuService {
         }
         // 如果 id 为空，说明不用比较是否为相同 id 的菜单
         if (id == null) {
-            return;
+            throw exception(MENU_COMPONENT_NAME_DUPLICATE);
         }
         if (!menu.getId().equals(id)) {
             throw exception(MENU_COMPONENT_NAME_DUPLICATE);
@@ -296,6 +299,8 @@ public class MenuServiceImpl implements MenuService {
         if (MenuTypeEnum.BUTTON.getType().equals(menu.getType())) {
             menu.setComponent("");
             menu.setComponentName("");
+            menu.setComponentSwing("");
+            menu.setComponentFx("");
             menu.setIcon("");
             menu.setPath("");
         }

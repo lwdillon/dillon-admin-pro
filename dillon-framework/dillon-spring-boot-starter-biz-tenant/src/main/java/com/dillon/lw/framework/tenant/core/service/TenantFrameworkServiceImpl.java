@@ -14,12 +14,12 @@ import java.util.List;
 /**
  * Tenant 框架 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @RequiredArgsConstructor
 public class TenantFrameworkServiceImpl implements TenantFrameworkService {
 
-    private static final ServiceException SERVICE_EXCEPTION_NULL = new ServiceException();
+    private static final ServiceException SERVICE_EXCEPTION_NULL = new ServiceException(401, "账号未登录\n" );
 
     private final TenantCommonApi tenantApi;
 

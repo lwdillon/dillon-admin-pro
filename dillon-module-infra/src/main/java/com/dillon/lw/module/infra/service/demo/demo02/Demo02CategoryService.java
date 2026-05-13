@@ -3,14 +3,14 @@ package com.dillon.lw.module.infra.service.demo.demo02;
 import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02CategoryListReqVO;
 import com.dillon.lw.module.infra.controller.admin.demo.demo02.vo.Demo02CategorySaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo02.Demo02CategoryDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 示例分类 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface Demo02CategoryService {
 

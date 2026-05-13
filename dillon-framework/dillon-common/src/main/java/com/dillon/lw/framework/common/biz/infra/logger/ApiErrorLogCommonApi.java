@@ -1,14 +1,14 @@
 package com.dillon.lw.framework.common.biz.infra.logger;
 
 import com.dillon.lw.framework.common.biz.infra.logger.dto.ApiErrorLogCreateReqDTO;
-import org.springframework.scheduling.annotation.Async;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * API 错误日志的 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface ApiErrorLogCommonApi {
 

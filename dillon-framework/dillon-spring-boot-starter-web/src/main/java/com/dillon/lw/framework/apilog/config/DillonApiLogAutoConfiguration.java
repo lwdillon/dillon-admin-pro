@@ -4,8 +4,9 @@ import com.dillon.lw.framework.apilog.core.filter.ApiAccessLogFilter;
 import com.dillon.lw.framework.apilog.core.interceptor.ApiAccessLogInterceptor;
 import com.dillon.lw.framework.common.biz.infra.logger.ApiAccessLogCommonApi;
 import com.dillon.lw.framework.common.enums.WebFilterOrderEnum;
-import com.dillon.lw.framework.web.config.DillonWebAutoConfiguration;
 import com.dillon.lw.framework.web.config.WebProperties;
+import com.dillon.lw.framework.web.config.DillonWebAutoConfiguration;
+import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,8 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.servlet.Filter;
-
 @AutoConfiguration(after = DillonWebAutoConfiguration.class)
 public class DillonApiLogAutoConfiguration implements WebMvcConfigurer {
 
@@ -23,8 +22,7 @@ public class DillonApiLogAutoConfiguration implements WebMvcConfigurer {
      * 创建 ApiAccessLogFilter Bean，记录 API 请求日志
      */
     @Bean
-    @ConditionalOnProperty(prefix = "dillon.access-log", value = "enable", matchIfMissing = true)
-    // 允许使用 dillon.access-log.enable=false 禁用访问日志
+    @ConditionalOnProperty(prefix = "dillon.access-log", value = "enable", matchIfMissing = true) // 允许使用 dillon.access-log.enable=false 禁用访问日志
     public FilterRegistrationBean<ApiAccessLogFilter> apiAccessLogFilter(WebProperties webProperties,
                                                                          @Value("${spring.application.name}") String applicationName,
                                                                          ApiAccessLogCommonApi apiAccessLogApi) {

@@ -7,14 +7,11 @@ import com.dillon.lw.module.system.framework.sms.core.enums.SmsChannelEnum;
 import com.dillon.lw.module.system.service.sms.SmsSendService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static com.dillon.lw.framework.common.pojo.CommonResult.success;
 

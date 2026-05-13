@@ -11,13 +11,13 @@ import com.dillon.lw.framework.common.exception.enums.GlobalErrorCodeConstants;
 import com.dillon.lw.framework.common.util.servlet.ServletUtils;
 import com.dillon.lw.framework.signature.core.annotation.ApiSignature;
 import com.dillon.lw.framework.signature.core.redis.ApiSignatureRedisDAO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;

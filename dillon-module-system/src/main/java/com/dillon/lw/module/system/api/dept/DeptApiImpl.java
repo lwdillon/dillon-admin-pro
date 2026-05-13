@@ -6,14 +6,14 @@ import com.dillon.lw.module.system.dal.dataobject.dept.DeptDO;
 import com.dillon.lw.module.system.service.dept.DeptService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * 部门 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class DeptApiImpl implements DeptApi {

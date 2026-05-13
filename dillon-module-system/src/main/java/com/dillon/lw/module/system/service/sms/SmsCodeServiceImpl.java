@@ -13,7 +13,7 @@ import com.dillon.lw.module.system.framework.sms.config.SmsCodeProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 
 import static cn.hutool.core.util.RandomUtil.randomInt;
@@ -24,7 +24,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * 短信验证码 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

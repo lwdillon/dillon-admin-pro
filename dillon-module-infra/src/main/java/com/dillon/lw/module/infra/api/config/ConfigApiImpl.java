@@ -2,15 +2,14 @@ package com.dillon.lw.module.infra.api.config;
 
 import com.dillon.lw.module.infra.dal.dataobject.config.ConfigDO;
 import com.dillon.lw.module.infra.service.config.ConfigService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-
-import javax.annotation.Resource;
 
 /**
  * 参数配置 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

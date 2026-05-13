@@ -5,7 +5,7 @@ import java.util.Collection;
 /**
  * 角色 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface RoleApi {
 

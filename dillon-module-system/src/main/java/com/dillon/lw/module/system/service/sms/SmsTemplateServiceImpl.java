@@ -17,12 +17,12 @@ import com.dillon.lw.module.system.framework.sms.core.client.SmsClient;
 import com.dillon.lw.module.system.framework.sms.core.client.dto.SmsTemplateRespDTO;
 import com.dillon.lw.module.system.framework.sms.core.enums.SmsTemplateAuditStatusEnum;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,7 +119,7 @@ public class SmsTemplateServiceImpl implements SmsTemplateService {
     }
 
     @Override
-    @Cacheable(cacheNames = RedisKeyConstants.SMS_TEMPLATE, key = "#code",
+    @Cacheable(cacheNames = RedisKeyConstants.SMS_TEMPLATE, key = "#p0",
             unless = "#result == null")
     public SmsTemplateDO getSmsTemplateByCodeFromCache(String code) {
         return smsTemplateMapper.selectByCode(code);
@@ -165,7 +165,7 @@ public class SmsTemplateServiceImpl implements SmsTemplateService {
     /**
      * 校验 API 短信平台的模板是否有效
      *
-     * @param channelId     渠道编号
+     * @param channelId 渠道编号
      * @param apiTemplateId API 模板编号
      */
     @VisibleForTesting

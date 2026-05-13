@@ -1,17 +1,17 @@
 package com.dillon.lw.module.infra.dal.dataobject.job;
 
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.dillon.lw.module.infra.enums.job.JobStatusEnum;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 /**
  * 定时任务 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName("infra_job")
 @KeySequence("infra_job_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -35,7 +35,7 @@ public class JobDO extends BaseDO {
     private String name;
     /**
      * 任务状态
-     * <p>
+     *
      * 枚举 {@link JobStatusEnum}
      */
     private Integer status;
@@ -68,7 +68,7 @@ public class JobDO extends BaseDO {
     /**
      * 监控超时时间，单位：毫秒
      * 为空时，表示不监控
-     * <p>
+     *
      * 注意，这里的超时的目的，不是进行任务的取消，而是告警任务的执行时间过长
      */
     private Integer monitorTimeout;

@@ -14,7 +14,7 @@ import static com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils.
 /**
  * 默认的 {@link SecurityFrameworkService} 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @AllArgsConstructor
 public class SecurityFrameworkServiceImpl implements SecurityFrameworkService {

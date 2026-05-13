@@ -1,13 +1,13 @@
 package com.dillon.lw.module.system.dal.dataobject.user;
 
+import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.tenant.core.db.TenantBaseDO;
+import com.dillon.lw.module.system.enums.common.SexEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.tenant.core.db.TenantBaseDO;
-import com.dillon.lw.module.system.enums.common.SexEnum;
 import lombok.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * 管理后台的用户 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName(value = "system_users", autoResultMap = true) // 由于 SQL Server 的 system_user 是关键字，所以使用 system_users
 @KeySequence("system_users_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -39,7 +39,7 @@ public class AdminUserDO extends TenantBaseDO {
     private String username;
     /**
      * 加密后的密码
-     * <p>
+     *
      * 因为目前使用 {@link BCryptPasswordEncoder} 加密器，所以无需自己处理 salt 盐
      */
     private String password;
@@ -70,7 +70,7 @@ public class AdminUserDO extends TenantBaseDO {
     private String mobile;
     /**
      * 用户性别
-     * <p>
+     *
      * 枚举类 {@link SexEnum}
      */
     private Integer sex;
@@ -80,7 +80,7 @@ public class AdminUserDO extends TenantBaseDO {
     private String avatar;
     /**
      * 帐号状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

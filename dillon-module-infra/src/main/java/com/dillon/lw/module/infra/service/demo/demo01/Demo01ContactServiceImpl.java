@@ -7,10 +7,10 @@ import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactP
 import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo01.Demo01ContactDO;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo01.Demo01ContactMapper;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -19,7 +19,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.DEMO01_CONTACT
 /**
  * 示例联系人 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

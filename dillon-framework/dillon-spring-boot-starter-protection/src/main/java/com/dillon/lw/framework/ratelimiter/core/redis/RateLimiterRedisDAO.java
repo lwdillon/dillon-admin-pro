@@ -1,10 +1,7 @@
 package com.dillon.lw.framework.ratelimiter.core.redis;
 
 import lombok.AllArgsConstructor;
-import org.redisson.api.RRateLimiter;
-import org.redisson.api.RateLimiterConfig;
-import org.redisson.api.RateType;
-import org.redisson.api.RedissonClient;
+import org.redisson.api.*;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -13,14 +10,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * 限流 Redis DAO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @AllArgsConstructor
 public class RateLimiterRedisDAO {
 
     /**
      * 限流操作
-     * <p>
+     *
      * KEY 格式：rate_limiter:%s // 参数为 uuid
      * VALUE 格式：String
      * 过期时间：不固定

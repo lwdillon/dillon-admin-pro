@@ -4,14 +4,14 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigPageReqVO;
 import com.dillon.lw.module.infra.controller.admin.config.vo.ConfigSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.config.ConfigDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 参数配置 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface ConfigService {
 

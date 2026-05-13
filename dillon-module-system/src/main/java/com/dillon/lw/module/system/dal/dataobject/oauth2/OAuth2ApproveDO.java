@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.dal.dataobject.oauth2;
 
+import com.dillon.lw.framework.common.enums.UserTypeEnum;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dillon.lw.framework.common.enums.UserTypeEnum;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 
 /**
  * OAuth2 批准 DO
- * <p>
+ *
  * 用户在 sso.vue 界面时，记录接受的 scope 列表
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName(value = "system_oauth2_approve", autoResultMap = true)
 @KeySequence("system_oauth2_approve_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -34,13 +34,13 @@ public class OAuth2ApproveDO extends BaseDO {
     private Long userId;
     /**
      * 用户类型
-     * <p>
+     *
      * 枚举 {@link UserTypeEnum}
      */
     private Integer userType;
     /**
      * 客户端编号
-     * <p>
+     *
      * 关联 {@link OAuth2ClientDO#getId()}
      */
     private String clientId;
@@ -50,7 +50,7 @@ public class OAuth2ApproveDO extends BaseDO {
     private String scope;
     /**
      * 是否接受
-     * <p>
+     *
      * true - 接受
      * false - 拒绝
      */

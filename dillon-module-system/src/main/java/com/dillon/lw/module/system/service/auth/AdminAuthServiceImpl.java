@@ -1,18 +1,18 @@
 package com.dillon.lw.module.system.service.auth;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.anji.captcha.model.common.ResponseModel;
-import com.anji.captcha.model.vo.CaptchaVO;
-import com.anji.captcha.service.CaptchaService;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
 import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.framework.common.util.monitor.TracerUtils;
+import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.framework.common.util.servlet.ServletUtils;
 import com.dillon.lw.framework.common.util.validation.ValidationUtils;
 import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
 import com.dillon.lw.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import com.dillon.lw.module.system.api.sms.SmsCodeApi;
 import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeUseReqDTO;
+import com.dillon.lw.module.system.api.social.dto.SocialUserBindReqDTO;
+import com.dillon.lw.module.system.api.social.dto.SocialUserRespDTO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.*;
 import com.dillon.lw.module.system.convert.auth.AuthConvert;
 import com.dillon.lw.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
@@ -24,16 +24,20 @@ import com.dillon.lw.module.system.enums.sms.SmsSceneEnum;
 import com.dillon.lw.module.system.service.logger.LoginLogService;
 import com.dillon.lw.module.system.service.member.MemberService;
 import com.dillon.lw.module.system.service.oauth2.OAuth2TokenService;
+import com.dillon.lw.module.system.service.social.SocialUserService;
 import com.dillon.lw.module.system.service.user.AdminUserService;
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
+import jakarta.validation.Validator;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import javax.validation.Validator;
 import java.util.Objects;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -43,7 +47,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * Auth Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Slf4j
@@ -55,6 +59,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     private LoginLogService loginLogService;
     @Resource
     private OAuth2TokenService oauth2TokenService;
+    @Resource
+    private SocialUserService socialUserService;
     @Resource
     private MemberService memberService;
     @Resource
@@ -103,7 +109,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
         // 如果 socialType 非空，说明需要绑定社交用户
         if (reqVO.getSocialType() != null) {
-
+            socialUserService.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
+                    reqVO.getSocialType(), reqVO.getSocialCode(), reqVO.getSocialState()));
         }
         // 创建 Token 令牌，记录登录日志
         return createTokenAfterLoginSuccess(user.getId(), reqVO.getUsername(), LoginLogTypeEnum.LOGIN_USERNAME);
@@ -163,10 +170,21 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Override
     public AuthLoginRespVO socialLogin(AuthSocialLoginReqVO reqVO) {
+        // 使用 code 授权码，进行登录。然后，获得到绑定的用户编号
+        SocialUserRespDTO socialUser = socialUserService.getSocialUserByCode(UserTypeEnum.ADMIN.getValue(), reqVO.getType(),
+                reqVO.getCode(), reqVO.getState());
+        if (socialUser == null || socialUser.getUserId() == null) {
+            throw exception(AUTH_THIRD_LOGIN_NOT_BIND);
+        }
 
+        // 获得用户
+        AdminUserDO user = userService.getUser(socialUser.getUserId());
+        if (user == null) {
+            throw exception(USER_NOT_EXISTS);
+        }
 
         // 创建 Token 令牌，记录登录日志
-        return null;
+        return createTokenAfterLoginSuccess(user.getId(), user.getUsername(), LoginLogTypeEnum.LOGIN_SOCIAL);
     }
 
     @VisibleForTesting
@@ -198,13 +216,13 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(userId, getUserType().getValue(),
                 OAuth2ClientConstants.CLIENT_ID_DEFAULT, null);
         // 构建返回结果
-        return AuthConvert.INSTANCE.convert(accessTokenDO);
+        return BeanUtils.toBean(accessTokenDO, AuthLoginRespVO.class);
     }
 
     @Override
     public AuthLoginRespVO refreshToken(String refreshToken) {
         OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.refreshAccessToken(refreshToken, OAuth2ClientConstants.CLIENT_ID_DEFAULT);
-        return AuthConvert.INSTANCE.convert(accessTokenDO);
+        return BeanUtils.toBean(accessTokenDO, AuthLoginRespVO.class);
     }
 
     @Override

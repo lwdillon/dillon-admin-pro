@@ -1,13 +1,12 @@
 package com.dillon.lw.module.infra.controller.app.file.vo;
 
-import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileUploadReqVO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
 
 @Schema(description = "用户 App - 上传文件 Request VO")
 @Data
@@ -23,7 +22,7 @@ public class AppFileUploadReqVO {
     @AssertTrue(message = "文件目录不正确")
     @JsonIgnore
     public boolean isDirectoryValid() {
-        return !StrUtil.containsAny(directory, "..", "/", "\\");
+        return FileUploadReqVO.isDirectoryValid(directory);
     }
 
 }

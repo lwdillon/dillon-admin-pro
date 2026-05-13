@@ -2,6 +2,7 @@ package com.dillon.lw.module.infra.service.file;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.json.JsonUtils;
 import com.dillon.lw.framework.common.util.validation.ValidationUtils;
@@ -16,14 +17,14 @@ import com.dillon.lw.module.infra.framework.file.core.client.FileClientFactory;
 import com.dillon.lw.module.infra.framework.file.core.enums.FileStorageEnum;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jakarta.annotation.Resource;
+import jakarta.validation.Validator;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
-import javax.validation.Validator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.FILE_CONFIG_NO
 /**
  * 文件配置 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated
@@ -93,7 +94,7 @@ public class FileConfigServiceImpl implements FileConfigService {
         fileConfigMapper.updateById(updateObj);
 
         // 清空缓存
-        clearCache(config.getId(), null);
+        clearCache(config.getId(), config.getMaster());
     }
 
     @Override
@@ -132,7 +133,7 @@ public class FileConfigServiceImpl implements FileConfigService {
         fileConfigMapper.deleteById(id);
 
         // 清空缓存
-        clearCache(id, null);
+        clearCache(id, config.getMaster());
     }
 
     @Override
@@ -149,7 +150,7 @@ public class FileConfigServiceImpl implements FileConfigService {
         fileConfigMapper.deleteByIds(ids);
 
         // 清空缓存
-        ids.forEach(id -> clearCache(id, null));
+        ids.forEach(id -> clearCache(id, false));
     }
 
     /**
@@ -191,7 +192,7 @@ public class FileConfigServiceImpl implements FileConfigService {
         validateFileConfigExists(id);
         // 上传文件
         byte[] content = ResourceUtil.readBytes("file/erweima.jpg");
-        return getFileClient(id).upload(content, IdUtil.fastSimpleUUID() + ".jpg", "image/jpeg");
+        return getFileClient(id).upload(content, "public" + StrUtil.SLASH + IdUtil.fastSimpleUUID() + ".jpg", "image/jpeg");
     }
 
     @Override

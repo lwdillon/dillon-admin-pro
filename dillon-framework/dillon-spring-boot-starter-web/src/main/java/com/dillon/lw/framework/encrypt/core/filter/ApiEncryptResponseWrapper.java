@@ -4,11 +4,11 @@ import cn.hutool.crypto.asymmetric.AsymmetricEncryptor;
 import cn.hutool.crypto.asymmetric.KeyType;
 import cn.hutool.crypto.symmetric.SymmetricEncryptor;
 import com.dillon.lw.framework.encrypt.config.ApiEncryptProperties;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 /**
  * 加密响应 {@link HttpServletResponseWrapper} 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class ApiEncryptResponseWrapper extends HttpServletResponseWrapper {
 
@@ -42,15 +42,16 @@ public class ApiEncryptResponseWrapper extends HttpServletResponseWrapper {
         this.flushBuffer();
         byte[] body = byteArrayOutputStream.toByteArray();
 
-        // 2. 加密 body
-        String encryptedBody = symmetricEncryptor != null ? symmetricEncryptor.encryptBase64(body)
-                : asymmetricEncryptor.encryptBase64(body, KeyType.PublicKey);
-        response.getWriter().write(encryptedBody);
-
-        // 3. 添加加密 header 标识
+        // 2. 添加加密 header 标识
         this.addHeader(properties.getHeader(), "true");
         // 特殊：特殊：https://juejin.cn/post/6867327674675625992
         this.addHeader("Access-Control-Expose-Headers", properties.getHeader());
+
+        // 3.1 加密 body
+        String encryptedBody = symmetricEncryptor != null ? symmetricEncryptor.encryptBase64(body)
+                : asymmetricEncryptor.encryptBase64(body, KeyType.PublicKey);
+        // 3.2 输出加密后的 body：（设置 header 要放在 response 的 write 之前）
+        response.getWriter().write(encryptedBody);
     }
 
     @Override

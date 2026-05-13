@@ -12,11 +12,11 @@ import com.dillon.lw.module.infra.dal.dataobject.demo.demo03.Demo03StudentDO;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.erp.Demo03CourseErpMapper;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.erp.Demo03GradeErpMapper;
 import com.dillon.lw.module.infra.dal.mysql.demo.demo03.erp.Demo03StudentErpMapper;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -25,7 +25,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.*;
 /**
  * 学生 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

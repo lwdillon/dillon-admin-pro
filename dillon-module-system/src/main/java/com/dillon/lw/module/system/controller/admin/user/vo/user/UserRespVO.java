@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.controller.admin.user.vo.user;
 
-import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
-import cn.idev.excel.annotation.ExcelProperty;
 import com.dillon.lw.framework.excel.core.annotations.DictFormat;
 import com.dillon.lw.framework.excel.core.convert.DictConvert;
 import com.dillon.lw.module.system.enums.DictTypeConstants;
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -14,7 +14,7 @@ import java.util.Set;
 @Schema(description = "管理后台 - 用户信息 Response VO")
 @Data
 @ExcelIgnoreUnannotated
-public class UserRespVO {
+public class UserRespVO{
 
     @Schema(description = "用户编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("用户编号")

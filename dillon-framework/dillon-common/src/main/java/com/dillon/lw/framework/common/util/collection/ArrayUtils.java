@@ -13,16 +13,16 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * Array 工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class ArrayUtils {
 
     /**
      * 将 object 和 newElements 合并成一个数组
      *
-     * @param object      对象
+     * @param object 对象
      * @param newElements 数组
-     * @param <T>         泛型
+     * @param <T> 泛型
      * @return 结果数组
      */
     @SafeVarargs

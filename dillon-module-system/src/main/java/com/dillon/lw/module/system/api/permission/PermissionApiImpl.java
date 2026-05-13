@@ -4,14 +4,14 @@ import com.dillon.lw.framework.common.biz.system.permission.dto.DeptDataPermissi
 import com.dillon.lw.module.system.service.permission.PermissionService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collection;
 import java.util.Set;
 
 /**
  * 权限 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class PermissionApiImpl implements PermissionApi {

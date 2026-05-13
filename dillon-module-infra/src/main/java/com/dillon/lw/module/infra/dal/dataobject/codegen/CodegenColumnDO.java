@@ -1,19 +1,19 @@
 package com.dillon.lw.module.infra.dal.dataobject.codegen;
 
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.dillon.lw.module.infra.enums.codegen.CodegenColumnHtmlTypeEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenColumnListConditionEnum;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
 import lombok.Data;
 
 /**
  * 代码生成 column 字段定义
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName(value = "infra_codegen_column", autoResultMap = true)
 @KeySequence("infra_codegen_column_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -37,31 +37,31 @@ public class CodegenColumnDO extends BaseDO {
 
     /**
      * 字段名
-     * <p>
+     *
      * 关联 {@link TableField#getName()}
      */
     private String columnName;
     /**
      * 数据库字段类型
-     * <p>
+     *
      * 关联 {@link TableField.MetaInfo#getJdbcType()}
      */
     private String dataType;
     /**
      * 字段描述
-     * <p>
+     *
      * 关联 {@link TableField#getComment()}
      */
     private String columnComment;
     /**
      * 是否允许为空
-     * <p>
+     *
      * 关联 {@link TableField.MetaInfo#isNullable()}
      */
     private Boolean nullable;
     /**
      * 是否主键
-     * <p>
+     *
      * 关联 {@link TableField#isKeyFlag()}
      */
     private Boolean primaryKey;
@@ -74,15 +74,15 @@ public class CodegenColumnDO extends BaseDO {
 
     /**
      * Java 属性类型
-     * <p>
+     *
      * 例如说 String、Boolean 等等
-     * <p>
+     *
      * 关联 {@link TableField#getColumnType()}
      */
     private String javaType;
     /**
      * Java 属性名
-     * <p>
+     *
      * 关联 {@link TableField#getPropertyName()}
      */
     private String javaField;

@@ -8,7 +8,7 @@ import com.dillon.lw.module.infra.dal.dataobject.logger.ApiAccessLogDO;
 /**
  * API 访问日志 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface ApiAccessLogService {
 
@@ -18,6 +18,14 @@ public interface ApiAccessLogService {
      * @param createReqDTO API 访问日志
      */
     void createApiAccessLog(ApiAccessLogCreateReqDTO createReqDTO);
+
+    /**
+     * 获得 API 访问日志
+     *
+     * @param id 编号
+     * @return API 访问日志
+     */
+    ApiAccessLogDO getApiAccessLog(Long id);
 
     /**
      * 获得 API 访问日志分页

@@ -1,16 +1,16 @@
 package com.dillon.lw.module.infra.service.db;
 
-import com.baomidou.dynamic.datasource.creator.DataSourceProperty;
-import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceProperties;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
 import com.dillon.lw.module.infra.controller.admin.db.vo.DataSourceConfigSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
 import com.dillon.lw.module.infra.dal.mysql.db.DataSourceConfigMapper;
+import com.baomidou.dynamic.datasource.creator.DataSourceProperty;
+import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceProperties;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.DATA_SOURCE_CO
 /**
  * 数据源配置 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

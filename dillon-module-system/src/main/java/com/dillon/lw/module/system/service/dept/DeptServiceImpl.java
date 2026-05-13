@@ -17,7 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.*;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -27,7 +27,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * 部门 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated
@@ -210,7 +210,7 @@ public class DeptServiceImpl implements DeptService {
 
     @Override
     @DataPermission(enable = false) // 禁用数据权限，避免建立不正确的缓存
-    @Cacheable(cacheNames = RedisKeyConstants.DEPT_CHILDREN_ID_LIST, key = "#id")
+    @Cacheable(cacheNames = RedisKeyConstants.DEPT_CHILDREN_ID_LIST, key = "#p0")
     public Set<Long> getChildDeptIdListFromCache(Long id) {
         List<DeptDO> children = getChildDeptList(id);
         return convertSet(children, DeptDO::getId);

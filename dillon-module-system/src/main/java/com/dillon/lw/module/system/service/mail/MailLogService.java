@@ -7,6 +7,7 @@ import com.dillon.lw.module.system.dal.dataobject.mail.MailLogDO;
 import com.dillon.lw.module.system.dal.dataobject.mail.MailTemplateDO;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,7 +57,7 @@ public interface MailLogService {
     /**
      * 更新邮件发送结果
      *
-     * @param logId     日志编号
+     * @param logId  日志编号
      * @param messageId 发送后的消息编号
      * @param exception 发送异常
      */

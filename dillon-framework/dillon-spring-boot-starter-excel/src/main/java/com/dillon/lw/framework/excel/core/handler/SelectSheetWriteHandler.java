@@ -6,16 +6,16 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.poi.excel.ExcelUtil;
+import com.dillon.lw.framework.common.core.KeyValue;
+import com.dillon.lw.framework.dict.core.DictFrameworkUtils;
+import com.dillon.lw.framework.excel.core.annotations.ExcelColumnSelect;
+import com.dillon.lw.framework.excel.core.function.ExcelColumnSelectFunction;
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
 import cn.idev.excel.annotation.ExcelProperty;
 import cn.idev.excel.write.handler.SheetWriteHandler;
 import cn.idev.excel.write.metadata.holder.WriteSheetHolder;
 import cn.idev.excel.write.metadata.holder.WriteWorkbookHolder;
-import com.dillon.lw.framework.common.core.KeyValue;
-import com.dillon.lw.framework.dict.core.DictFrameworkUtils;
-import com.dillon.lw.framework.excel.core.annotations.ExcelColumnSelect;
-import com.dillon.lw.framework.excel.core.function.ExcelColumnSelectFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFDataValidation;
 import org.apache.poi.ss.usermodel.*;
@@ -40,7 +40,7 @@ public class SelectSheetWriteHandler implements SheetWriteHandler {
 
     /**
      * 数据起始行从 0 开始
-     * <p>
+     *
      * 约定：本项目第一行有标题所以从 1 开始如果您的 Excel 有多行标题请自行更改
      */
     public static final int FIRST_ROW = 1;
@@ -63,7 +63,7 @@ public class SelectSheetWriteHandler implements SheetWriteHandler {
         for (Field field : head.getDeclaredFields()) {
             // 关联 https://github.com/YunaiV/ruoyi-vue-pro/pull/853
             // 1.1 忽略 static final 或 transient 的字段
-            if (isStaticFinalOrTransient(field)) {
+            if (isStaticFinalOrTransient(field) ) {
                 continue;
             }
             // 1.2 忽略的字段跳过

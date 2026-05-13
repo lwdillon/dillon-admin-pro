@@ -15,8 +15,9 @@ import java.util.List;
  * Redis Stream 消息清理任务
  * 用于定期清理已消费的消息，防止内存占用过大
  *
- * @author liwen
  * @see <a href="https://www.cnblogs.com/nanxiang/p/16179519.html">记一次 redis stream 数据类型内存不释放问题</a>
+ *
+ * @author 芋道源码
  */
 @Slf4j
 @AllArgsConstructor

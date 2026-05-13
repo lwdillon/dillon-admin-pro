@@ -9,14 +9,14 @@ import java.io.InputStream;
 /**
  * IO 工具类，用于 {@link cn.hutool.core.io.IoUtil} 缺失的方法
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class IoUtils {
 
     /**
      * 从流中读取 UTF8 编码的内容
      *
-     * @param in      输入流
+     * @param in 输入流
      * @param isClose 是否关闭
      * @return 内容
      * @throws IORuntimeException IO 异常

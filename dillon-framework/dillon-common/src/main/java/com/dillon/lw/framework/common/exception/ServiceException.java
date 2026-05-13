@@ -25,7 +25,10 @@ public final class ServiceException extends RuntimeException {
     /**
      * 空构造方法，避免反序列化问题
      */
-    public ServiceException() {
+    public ServiceException(Integer code, String message, Throwable cause) {
+        super(cause);
+        this.code = code;
+        this.message = message;
     }
 
     public ServiceException(ErrorCode errorCode) {
@@ -34,12 +37,6 @@ public final class ServiceException extends RuntimeException {
     }
 
     public ServiceException(Integer code, String message) {
-        this.code = code;
-        this.message = message;
-    }
-
-    public ServiceException(Integer code, String message, Throwable cause) {
-        super(cause);
         this.code = code;
         this.message = message;
     }

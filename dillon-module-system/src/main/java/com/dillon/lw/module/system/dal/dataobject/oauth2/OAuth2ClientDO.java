@@ -1,14 +1,14 @@
 package com.dillon.lw.module.system.dal.dataobject.oauth2;
 
+import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
+import com.dillon.lw.module.system.enums.oauth2.OAuth2GrantTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
-import com.dillon.lw.module.system.enums.oauth2.OAuth2GrantTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * OAuth2 客户端 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName(value = "system_oauth2_client", autoResultMap = true)
 @KeySequence("system_oauth2_client_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -28,7 +28,7 @@ public class OAuth2ClientDO extends BaseDO {
 
     /**
      * 编号，数据库自增
-     * <p>
+     *
      * 由于 SQL Server 在存储 String 主键有点问题，所以暂时使用 Long 类型
      */
     @TableId
@@ -55,7 +55,7 @@ public class OAuth2ClientDO extends BaseDO {
     private String description;
     /**
      * 状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;
@@ -74,7 +74,7 @@ public class OAuth2ClientDO extends BaseDO {
     private List<String> redirectUris;
     /**
      * 授权类型（模式）
-     * <p>
+     *
      * 枚举 {@link OAuth2GrantTypeEnum}
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
@@ -86,7 +86,7 @@ public class OAuth2ClientDO extends BaseDO {
     private List<String> scopes;
     /**
      * 自动授权的 Scope
-     * <p>
+     *
      * code 授权时，如果 scope 在这个范围内，则自动通过
      */
     @TableField(typeHandler = JacksonTypeHandler.class)

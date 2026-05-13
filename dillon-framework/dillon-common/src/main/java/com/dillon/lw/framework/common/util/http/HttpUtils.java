@@ -1,19 +1,17 @@
 package com.dillon.lw.framework.common.util.http;
 
 import cn.hutool.core.codec.Base64;
-import cn.hutool.core.map.TableMap;
 import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
-import lombok.SneakyThrows;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +20,7 @@ import java.util.Map;
 /**
  * HTTP 工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class HttpUtils {
 
@@ -32,19 +30,40 @@ public class HttpUtils {
      * @param value 参数
      * @return 编码后的参数
      */
-    @SneakyThrows
     public static String encodeUtf8(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * 解码 URL 参数（query parameter）
+     * 注意：此方法会将 + 解码为空格，适用于 query parameter，不适用于 URL path
+     *
+     * @see #decodeUrlPath(String)
+     * @param value 参数
+     * @return 解码后的参数
+     */
+    public static String decodeUtf8(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 解码 URL 路径
+     * 与 {@link #decodeUtf8(String)} 不同，此方法不会将 + 解码为空格，保持 + 为字面字符
+     * 适用于 URL path 部分的解码
+     *
+     * @param path URL 路径
+     * @return 解码后的路径
+     */
+    public static String decodeUrlPath(String path) {
+        // 先将 + 替换为 %2B，避免被 URLDecoder 解码为空格
+        String encoded = path.replace("+", "%2B");
+        return URLDecoder.decode(encoded, StandardCharsets.UTF_8);
+    }
+
     public static String replaceUrlQuery(String url, String key, String value) {
         UrlBuilder builder = UrlBuilder.of(url, Charset.defaultCharset());
-        // 先移除
-        TableMap<CharSequence, CharSequence> query = (TableMap<CharSequence, CharSequence>)
-                ReflectUtil.getFieldValue(builder.getQuery(), "query");
-        query.remove(key);
-        // 后添加
+        // 先移除；再添加
+        builder.getQuery().remove(key);
         builder.addQuery(key, value);
         return builder.build();
     }
@@ -62,12 +81,12 @@ public class HttpUtils {
 
     /**
      * 拼接 URL
-     * <p>
+     *
      * copy from Spring Security OAuth2 的 AuthorizationEndpoint 类的 append 方法
      *
-     * @param base     基础 URL
-     * @param query    查询参数
-     * @param keys     query 的 key，对应的原本的 key 的映射。例如说 query 里有个 key 是 xx，实际它的 key 是 extra_xx，则通过 keys 里添加这个映射
+     * @param base 基础 URL
+     * @param query 查询参数
+     * @param keys query 的 key，对应的原本的 key 的映射。例如说 query 里有个 key 是 xx，实际它的 key 是 extra_xx，则通过 keys 里添加这个映射
      * @param fragment URL 的 fragment，即拼接到 # 中
      * @return 拼接后的 URL
      */
@@ -147,11 +166,11 @@ public class HttpUtils {
 
     /**
      * HTTP post 请求，基于 {@link cn.hutool.http.HttpUtil} 实现
-     * <p>
+     *
      * 为什么要封装该方法，因为 HttpUtil 默认封装的方法，没有允许传递 headers 参数
      *
-     * @param url         URL
-     * @param headers     请求头
+     * @param url URL
+     * @param headers 请求头
      * @param requestBody 请求体
      * @return 请求结果
      */
@@ -166,10 +185,10 @@ public class HttpUtils {
 
     /**
      * HTTP get 请求，基于 {@link cn.hutool.http.HttpUtil} 实现
-     * <p>
+     *
      * 为什么要封装该方法，因为 HttpUtil 默认封装的方法，没有允许传递 headers 参数
      *
-     * @param url     URL
+     * @param url URL
      * @param headers 请求头
      * @return 请求结果
      */

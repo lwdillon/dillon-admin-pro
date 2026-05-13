@@ -8,10 +8,10 @@ import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostPageReqVO;
 import com.dillon.lw.module.system.controller.admin.dept.vo.post.PostSaveReqVO;
 import com.dillon.lw.module.system.dal.dataobject.dept.PostDO;
 import com.dillon.lw.module.system.dal.mysql.dept.PostMapper;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +24,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 /**
  * 岗位 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

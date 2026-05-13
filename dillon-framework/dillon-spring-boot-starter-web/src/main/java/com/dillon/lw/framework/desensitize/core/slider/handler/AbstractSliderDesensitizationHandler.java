@@ -1,6 +1,5 @@
 package com.dillon.lw.framework.desensitize.core.slider.handler;
 
-import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.util.spring.SpringExpressionUtils;
 import com.dillon.lw.framework.desensitize.core.base.handler.DesensitizationHandler;
 
@@ -48,7 +47,7 @@ public abstract class AbstractSliderDesensitizationHandler<T extends Annotation>
      * @return 构建后的替换符
      */
     private String buildReplacerByLength(String replacer, int length) {
-        return StrUtil.repeat(replacer, length);
+        return replacer.repeat(length);
     }
 
     /**

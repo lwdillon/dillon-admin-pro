@@ -1,12 +1,12 @@
 package com.dillon.lw.framework.tenant.core.context;
 
-import com.alibaba.ttl.TransmittableThreadLocal;
 import com.dillon.lw.framework.common.enums.DocumentEnum;
+import com.alibaba.ttl.TransmittableThreadLocal;
 
 /**
  * 多租户上下文 Holder
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class TenantContextHolder {
 
@@ -38,7 +38,7 @@ public class TenantContextHolder {
         Long tenantId = getTenantId();
         if (tenantId == null) {
             throw new NullPointerException("TenantContextHolder 不存在租户编号！可参考文档："
-                    + DocumentEnum.TENANT.getUrl());
+                + DocumentEnum.TENANT.getUrl());
         }
         return tenantId;
     }

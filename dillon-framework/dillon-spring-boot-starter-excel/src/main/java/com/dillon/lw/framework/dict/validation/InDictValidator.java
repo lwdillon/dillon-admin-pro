@@ -2,9 +2,9 @@ package com.dillon.lw.framework.dict.validation;
 
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.dict.core.DictFrameworkUtils;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.List;
 
 public class InDictValidator implements ConstraintValidator<InDict, Object> {

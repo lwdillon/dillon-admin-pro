@@ -5,6 +5,8 @@ import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.module.infra.controller.admin.client.vo.ClientUpdateRespVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -14,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 

@@ -1,7 +1,5 @@
 package com.dillon.lw.framework.tenant.config;
 
-import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
-import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.dillon.lw.framework.common.biz.system.tenant.TenantCommonApi;
 import com.dillon.lw.framework.common.enums.WebFilterOrderEnum;
 import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
@@ -22,6 +20,9 @@ import com.dillon.lw.framework.tenant.core.web.TenantContextWebFilter;
 import com.dillon.lw.framework.tenant.core.web.TenantVisitContextInterceptor;
 import com.dillon.lw.framework.web.config.WebProperties;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -43,17 +44,12 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.pattern.PathPattern;
 
-import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.dillon.lw.framework.common.util.collection.CollectionUtils.convertList;
 
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "dillon.tenant", value = "enable", matchIfMissing = true)
-// 允许使用 dillon.tenant.enable=false 禁用多租户
+@ConditionalOnProperty(prefix = "dillon.tenant", value = "enable", matchIfMissing = true) // 允许使用 dillon.tenant.enable=false 禁用多租户
 @EnableConfigurationProperties(TenantProperties.class)
 public class DillonTenantAutoConfiguration {
 
@@ -142,7 +138,7 @@ public class DillonTenantAutoConfiguration {
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethodMap.entrySet()) {
             HandlerMethod handlerMethod = entry.getValue();
             if (!handlerMethod.hasMethodAnnotation(TenantIgnore.class) // 方法级
-                    && !handlerMethod.getBeanType().isAnnotationPresent(TenantIgnore.class)) { // 接口级
+                && !handlerMethod.getBeanType().isAnnotationPresent(TenantIgnore.class)) { // 接口级
                 continue;
             }
             // 添加到忽略的 URL 中

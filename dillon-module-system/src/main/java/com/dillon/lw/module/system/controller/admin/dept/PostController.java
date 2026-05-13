@@ -16,13 +16,13 @@ import com.dillon.lw.module.system.service.dept.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,6 +61,14 @@ public class PostController {
     @PreAuthorize("@ss.hasPermission('system:post:delete')")
     public CommonResult<Boolean> deletePost(@RequestParam("id") Long id) {
         postService.deletePost(id);
+        return success(true);
+    }
+
+    @DeleteMapping("delete-list")
+    @Operation(summary = "批量删除岗位")
+    @PreAuthorize("@ss.hasPermission('system:post:delete')")
+    public CommonResult<Boolean> deletePostList(@RequestParam("ids") List<Long> ids) {
+        postService.deletePostList(ids);
         return success(true);
     }
 

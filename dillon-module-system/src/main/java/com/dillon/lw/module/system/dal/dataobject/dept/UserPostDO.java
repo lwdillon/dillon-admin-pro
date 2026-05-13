@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.dal.dataobject.dept;
 
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -26,13 +26,13 @@ public class UserPostDO extends BaseDO {
     private Long id;
     /**
      * 用户 ID
-     * <p>
+     *
      * 关联 {@link AdminUserDO#getId()}
      */
     private Long userId;
     /**
      * 角色 ID
-     * <p>
+     *
      * 关联 {@link PostDO#getId()}
      */
     private Long postId;

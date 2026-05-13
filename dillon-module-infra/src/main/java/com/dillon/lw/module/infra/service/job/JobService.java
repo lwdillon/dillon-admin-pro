@@ -4,15 +4,15 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobPageReqVO;
 import com.dillon.lw.module.infra.controller.admin.job.vo.job.JobSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.job.JobDO;
+import jakarta.validation.Valid;
 import org.quartz.SchedulerException;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 定时任务 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface JobService {
 
@@ -48,7 +48,7 @@ public interface JobService {
 
     /**
      * 同步定时任务
-     * <p>
+     *
      * 目的：自己存储的 Job 信息，强制同步到 Quartz 中
      */
     void syncJob() throws SchedulerException;

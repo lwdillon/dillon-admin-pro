@@ -4,8 +4,8 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplatePageReqVO;
 import com.dillon.lw.module.system.controller.admin.notify.vo.template.NotifyTemplateSaveReqVO;
 import com.dillon.lw.module.system.dal.dataobject.notify.NotifyTemplateDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +73,7 @@ public interface NotifyTemplateService {
      * 格式化站内信内容
      *
      * @param content 站内信模板的内容
-     * @param params  站内信内容的参数
+     * @param params 站内信内容的参数
      * @return 格式化后的内容
      */
     String formatNotifyTemplateContent(String content, Map<String, Object> params);

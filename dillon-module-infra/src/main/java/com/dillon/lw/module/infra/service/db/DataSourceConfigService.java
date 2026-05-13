@@ -2,14 +2,14 @@ package com.dillon.lw.module.infra.service.db;
 
 import com.dillon.lw.module.infra.controller.admin.db.vo.DataSourceConfigSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 数据源配置 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface DataSourceConfigService {
 

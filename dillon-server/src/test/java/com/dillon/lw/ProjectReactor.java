@@ -20,7 +20,7 @@ import static java.io.File.separator;
  * <p>
  * 通过修改 groupIdNew、artifactIdNew、projectBaseDirNew 三个变量
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class ProjectReactor {
@@ -47,7 +47,7 @@ public class ProjectReactor {
         String artifactIdNew = "dillon";
         String packageNameNew = "com.dillon.lw";
         String titleNew = "Dillon管理系统";
-        String projectBaseDirNew = projectBaseDir + "-new"; // 一键改名后，“新”项目所在的目录
+        String projectBaseDirNew = projectBaseDir + "-new-jdk17"; // 一键改名后，“新”项目所在的目录
         log.info("[main][检测新项目目录 ({})是否存在]", projectBaseDirNew);
         if (FileUtil.exist(projectBaseDirNew)) {
             log.error("[main][新项目目录检测 ({})已存在，请更改新的目录！程序退出]", projectBaseDirNew);

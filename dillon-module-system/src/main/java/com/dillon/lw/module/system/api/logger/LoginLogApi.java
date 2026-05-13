@@ -2,12 +2,12 @@ package com.dillon.lw.module.system.api.logger;
 
 import com.dillon.lw.module.system.api.logger.dto.LoginLogCreateReqDTO;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * 登录日志的 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface LoginLogApi {
 

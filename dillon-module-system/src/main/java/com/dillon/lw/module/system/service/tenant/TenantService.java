@@ -7,15 +7,15 @@ import com.dillon.lw.module.system.controller.admin.tenant.vo.tenant.TenantSaveR
 import com.dillon.lw.module.system.dal.dataobject.tenant.TenantDO;
 import com.dillon.lw.module.system.service.tenant.handler.TenantInfoHandler;
 import com.dillon.lw.module.system.service.tenant.handler.TenantMenuHandler;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
 /**
  * 租户 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface TenantService {
 

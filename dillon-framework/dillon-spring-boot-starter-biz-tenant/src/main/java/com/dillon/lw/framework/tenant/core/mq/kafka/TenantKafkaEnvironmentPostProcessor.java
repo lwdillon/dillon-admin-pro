@@ -8,10 +8,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * 多租户的 Kafka 的 {@link EnvironmentPostProcessor} 实现类
- * <p>
+ *
  * Kafka Producer 发送消息时，增加 {@link TenantKafkaProducerInterceptor} 拦截器
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class TenantKafkaEnvironmentPostProcessor implements EnvironmentPostProcessor {

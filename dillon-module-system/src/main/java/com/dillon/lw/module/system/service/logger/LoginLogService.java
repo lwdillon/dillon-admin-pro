@@ -5,12 +5,20 @@ import com.dillon.lw.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import com.dillon.lw.module.system.controller.admin.logger.vo.loginlog.LoginLogPageReqVO;
 import com.dillon.lw.module.system.dal.dataobject.logger.LoginLogDO;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * 登录日志 Service 接口
  */
 public interface LoginLogService {
+
+    /**
+     * 获得登录日志
+     *
+     * @param id 编号
+     * @return 登录日志
+     */
+    LoginLogDO getLoginLog(Long id);
 
     /**
      * 获得登录日志分页

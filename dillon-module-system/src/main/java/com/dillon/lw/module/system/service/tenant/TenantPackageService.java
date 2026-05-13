@@ -4,14 +4,14 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.system.controller.admin.tenant.vo.packages.TenantPackagePageReqVO;
 import com.dillon.lw.module.system.controller.admin.tenant.vo.packages.TenantPackageSaveReqVO;
 import com.dillon.lw.module.system.dal.dataobject.tenant.TenantPackageDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 租户套餐 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface TenantPackageService {
 

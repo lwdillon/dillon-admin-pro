@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 部门 Response DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class DeptRespDTO {
@@ -29,7 +29,7 @@ public class DeptRespDTO {
     private Long leaderUserId;
     /**
      * 部门状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

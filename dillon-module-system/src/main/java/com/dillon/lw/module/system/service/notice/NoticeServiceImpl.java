@@ -7,9 +7,9 @@ import com.dillon.lw.module.system.controller.admin.notice.vo.NoticeSaveReqVO;
 import com.dillon.lw.module.system.dal.dataobject.notice.NoticeDO;
 import com.dillon.lw.module.system.dal.mysql.notice.NoticeMapper;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -18,7 +18,7 @@ import static com.dillon.lw.module.system.enums.ErrorCodeConstants.NOTICE_NOT_FO
 /**
  * 通知公告 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class NoticeServiceImpl implements NoticeService {

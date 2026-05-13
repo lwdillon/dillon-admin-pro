@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 学生课程 Mapper
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Mapper
 public interface Demo03CourseNormalMapper extends BaseMapperX<Demo03CourseDO> {

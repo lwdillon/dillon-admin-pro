@@ -3,12 +3,12 @@ package com.dillon.lw.module.infra.enums.codegen;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import static cn.hutool.core.util.ArrayUtil.firstMatch;
+import static cn.hutool.core.util.ArrayUtil.*;
 
 /**
  * 代码生成的场景枚举
  *
- * @author liwen
+ * @author 芋道源码
  */
 @AllArgsConstructor
 @Getter

@@ -4,24 +4,24 @@ import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.util.servlet.ServletUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
  * Request Body 缓存 Filter，实现它的可重复读取
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class CacheRequestBodyFilter extends OncePerRequestFilter {
 
     /**
      * 需要排除的 URI
-     * <p>
+     *
      * 1. 排除 Spring Boot Admin 相关请求，避免客户端连接中断导致的异常。
-     * 例如说：<a href="https://github.com/YunaiV/ruoyi-vue-pro/issues/795">795 ISSUE</a>
+     *    例如说：<a href="https://github.com/YunaiV/ruoyi-vue-pro/issues/795">795 ISSUE</a>
      */
     private static final String[] IGNORE_URIS = {"/admin/", "/actuator/"};
 

@@ -10,11 +10,11 @@ import com.dillon.lw.module.infra.controller.admin.logger.vo.apierrorlog.ApiErro
 import com.dillon.lw.module.infra.dal.dataobject.logger.ApiErrorLogDO;
 import com.dillon.lw.module.infra.dal.mysql.logger.ApiErrorLogMapper;
 import com.dillon.lw.module.infra.enums.logger.ApiErrorLogProcessStatusEnum;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -25,7 +25,7 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.API_ERROR_LOG_
 /**
  * API 错误日志 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated
@@ -56,6 +56,11 @@ public class ApiErrorLogServiceImpl implements ApiErrorLogService {
     @Override
     public PageResult<ApiErrorLogDO> getApiErrorLogPage(ApiErrorLogPageReqVO pageReqVO) {
         return apiErrorLogMapper.selectPage(pageReqVO);
+    }
+
+    @Override
+    public ApiErrorLogDO getApiErrorLog(Long id) {
+        return apiErrorLogMapper.selectById(id);
     }
 
     @Override

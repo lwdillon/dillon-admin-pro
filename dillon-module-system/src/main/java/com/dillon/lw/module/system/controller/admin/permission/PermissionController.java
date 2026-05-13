@@ -7,15 +7,15 @@ import com.dillon.lw.module.system.controller.admin.permission.vo.permission.Per
 import com.dillon.lw.module.system.controller.admin.permission.vo.permission.PermissionAssignUserRoleReqVO;
 import com.dillon.lw.module.system.service.permission.PermissionService;
 import com.dillon.lw.module.system.service.tenant.TenantService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.validation.Valid;
+import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import java.util.Set;
 
 import static com.dillon.lw.framework.common.pojo.CommonResult.success;
@@ -23,7 +23,7 @@ import static com.dillon.lw.framework.common.pojo.CommonResult.success;
 /**
  * 权限 Controller，提供赋予用户、角色的权限的 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Tag(name = "管理后台 - 权限")
 @RestController

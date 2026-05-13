@@ -12,21 +12,21 @@ import com.dillon.lw.framework.security.core.LoginUser;
 import com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
 import com.dillon.lw.framework.web.core.util.WebFrameworkUtils;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
  * Token 过滤器，验证 token 的有效性
  * 验证通过后，获得 {@link LoginUser} 信息，并加入到 Spring Security 上下文
  *
- * @author liwen
+ * @author 芋道源码
  */
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
@@ -94,11 +94,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 模拟登录用户，方便日常开发调试
-     * <p>
+     *
      * 注意，在线上环境下，一定要关闭该功能！！！
      *
-     * @param request  请求
-     * @param token    模拟的 token，格式为 {@link SecurityProperties#getMockSecret()} + 用户编号
+     * @param request 请求
+     * @param token 模拟的 token，格式为 {@link SecurityProperties#getMockSecret()} + 用户编号
      * @param userType 用户类型
      * @return 模拟的 LoginUser
      */

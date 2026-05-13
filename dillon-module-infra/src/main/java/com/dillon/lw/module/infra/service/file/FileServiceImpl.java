@@ -3,6 +3,7 @@ package com.dillon.lw.module.infra.service.file;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.dillon.lw.framework.common.pojo.PageResult;
@@ -16,10 +17,10 @@ import com.dillon.lw.module.infra.dal.mysql.file.FileMapper;
 import com.dillon.lw.module.infra.framework.file.core.client.FileClient;
 import com.dillon.lw.module.infra.framework.file.core.utils.FileTypeUtils;
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static cn.hutool.core.date.DatePattern.PURE_DATE_PATTERN;
@@ -29,24 +30,31 @@ import static com.dillon.lw.module.infra.enums.ErrorCodeConstants.FILE_NOT_EXIST
 /**
  * 文件 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class FileServiceImpl implements FileService {
 
     /**
      * 上传文件的前缀，是否包含日期（yyyyMMdd）
-     * <p>
+     *
      * 目的：按照日期，进行分目录
      */
     static boolean PATH_PREFIX_DATE_ENABLE = true;
     /**
-     * 上传文件的后缀，是否包含时间戳
-     * <p>
-     * 目的：保证文件的唯一性，避免覆盖
+     * 上传文件的后缀，是否启用
+     *
+     * 算法：当前时间戳（毫秒）+ 5 位随机数；目的是保证文件的唯一性，避免覆盖
      * 定制：可按需调整成 UUID、或者其他方式
      */
-    static boolean PATH_SUFFIX_TIMESTAMP_ENABLE = true;
+    static boolean PATH_SUFFIX_TIMESTAMP_ENABLE = false;
+    /**
+     * 后缀是否作为上级目录
+     *
+     * true：{@code yyyyMMdd/<后缀>/原文件名.ext}；保留原文件名
+     * false：{@code yyyyMMdd/原文件名_<后缀>.ext}；后缀拼到文件名
+     */
+    static boolean PATH_SUFFIX_AS_DIRECTORY = true;
 
     @Resource
     private FileConfigService fileConfigService;
@@ -88,7 +96,7 @@ public class FileServiceImpl implements FileService {
         // 3. 保存到数据库
         fileMapper.insert(new FileDO().setConfigId(client.getId())
                 .setName(name).setPath(path).setUrl(url)
-                .setType(type).setSize(content.length));
+                .setType(type).setSize((long) content.length));
         return url;
     }
 
@@ -101,16 +109,21 @@ public class FileServiceImpl implements FileService {
         }
         String suffix = null;
         if (PATH_SUFFIX_TIMESTAMP_ENABLE) {
-            suffix = String.valueOf(System.currentTimeMillis());
+            // 5 位随机数，避免同一毫秒内的重复
+            suffix = String.valueOf(System.currentTimeMillis()) + RandomUtil.randomInt(10000, 100000);
         }
 
         // 2.1 先拼接 suffix 后缀
         if (StrUtil.isNotEmpty(suffix)) {
-            String ext = FileUtil.extName(name);
-            if (StrUtil.isNotEmpty(ext)) {
-                name = FileUtil.mainName(name) + StrUtil.C_UNDERLINE + suffix + StrUtil.DOT + ext;
+            if (PATH_SUFFIX_AS_DIRECTORY) {
+                name = suffix + StrUtil.SLASH + name;
             } else {
-                name = name + StrUtil.C_UNDERLINE + suffix;
+                String ext = FileUtil.extName(name);
+                if (StrUtil.isNotEmpty(ext)) {
+                    name = FileUtil.mainName(name) + StrUtil.C_UNDERLINE + suffix + StrUtil.DOT + ext;
+                } else {
+                    name = name + StrUtil.C_UNDERLINE + suffix;
+                }
             }
         }
         // 2.2 再拼接 prefix 前缀
@@ -150,6 +163,11 @@ public class FileServiceImpl implements FileService {
         FileDO file = BeanUtils.toBean(createReqVO, FileDO.class);
         fileMapper.insert(file);
         return file.getId();
+    }
+
+    @Override
+    public FileDO getFile(Long id) {
+        return validateFileExists(id);
     }
 
     @Override

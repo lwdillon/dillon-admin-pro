@@ -3,6 +3,8 @@ package com.dillon.lw.module.infra.service.db;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
+import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
@@ -10,11 +12,9 @@ import com.baomidou.mybatisplus.generator.config.builder.ConfigBuilder;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.query.SQLQuery;
-import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
-import com.dillon.lw.module.infra.dal.dataobject.db.DataSourceConfigDO;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * 数据库表 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class DatabaseTableServiceImpl implements DatabaseTableService {
@@ -59,9 +59,9 @@ public class DatabaseTableServiceImpl implements DatabaseTableService {
             strategyConfig.addInclude(name);
         } else {
             // 移除工作流和定时任务前缀的表名
-            strategyConfig.addExclude("ACT_[\\S\\s]+|QRTZ_[\\S\\s]+|FLW_[\\S\\s]+");
+            strategyConfig.addExclude("ACT_[\\S\\s]+|QRTZ_[\\S\\s]+|FLW_[\\S\\s]+|act_[\\S\\s]+|qrtz_[\\S\\s]+|flw_[\\S\\s]+");
             // 移除 ORACLE 相关的系统表
-            strategyConfig.addExclude("IMPDP_[\\S\\s]+|ALL_[\\S\\s]+|HS_[\\S\\\\s]+");
+            strategyConfig.addExclude("IMPDP_[\\S\\s]+|ALL_[\\S\\s]+|HS_[\\S\\s]+|impdp_[\\S\\s]+|all_[\\S\\s]+|hs_[\\S\\s]+");
             strategyConfig.addExclude("[\\S\\s]+\\$[\\S\\s]+|[\\S\\s]+\\$"); // 表里不能有 $，一般有都是系统的表
         }
 

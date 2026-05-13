@@ -2,13 +2,15 @@ package com.dillon.lw.module.system.api.logger.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * 登录日志创建 Request DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class LoginLogCreateReqDTO {
@@ -34,7 +36,7 @@ public class LoginLogCreateReqDTO {
     private Integer userType;
     /**
      * 用户账号
-     * <p>
+     *
      * 不再强制校验 username 非空，因为 Member 社交登录时，此时暂时没有 username(mobile）！
      */
     private String username;
@@ -52,7 +54,7 @@ public class LoginLogCreateReqDTO {
     private String userIp;
     /**
      * 浏览器 UserAgent
-     * <p>
+     *
      * 允许空，原因：Job 过期登出时，是无法传递 UserAgent 的
      */
     private String userAgent;

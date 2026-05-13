@@ -5,7 +5,7 @@ import com.dillon.lw.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
 /**
  * System Redis Key 枚举类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface RedisKeyConstants {
 
@@ -36,7 +36,7 @@ public interface RedisKeyConstants {
     /**
      * 拥有指定菜单的角色编号的缓存
      * <p>
-     * KEY 格式：menu_role_ids:{menuId}
+     * KEY 格式：user_role_ids:{menuId}
      * VALUE 数据类型：String 角色编号集合
      */
     String MENU_ROLE_ID_LIST = "menu_role_ids";
@@ -101,7 +101,7 @@ public interface RedisKeyConstants {
 
     /**
      * 小程序订阅模版的缓存
-     * <p>
+     *
      * KEY 格式：wxa_subscribe_template:{userType}
      * VALUE 数据格式 String, 模版信息
      */

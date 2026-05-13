@@ -3,13 +3,13 @@ package com.dillon.lw.module.system.mq.message.sms;
 import com.dillon.lw.framework.common.core.KeyValue;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
  * 短信发送消息
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class SmsSendMessage {

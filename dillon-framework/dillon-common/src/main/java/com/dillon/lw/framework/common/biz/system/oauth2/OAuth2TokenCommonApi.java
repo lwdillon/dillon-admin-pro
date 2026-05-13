@@ -4,12 +4,12 @@ import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenChe
 import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenCreateReqDTO;
 import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenRespDTO;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * OAuth2.0 Token API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface OAuth2TokenCommonApi {
 
@@ -41,7 +41,7 @@ public interface OAuth2TokenCommonApi {
      * 刷新访问令牌
      *
      * @param refreshToken 刷新令牌
-     * @param clientId     客户端编号
+     * @param clientId 客户端编号
      * @return 访问令牌的信息
      */
     OAuth2AccessTokenRespDTO refreshAccessToken(String refreshToken, String clientId);

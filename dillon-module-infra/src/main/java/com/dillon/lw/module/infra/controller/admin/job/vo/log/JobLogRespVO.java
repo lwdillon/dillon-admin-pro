@@ -1,10 +1,10 @@
 package com.dillon.lw.module.infra.controller.admin.job.vo.log;
 
-import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
-import cn.idev.excel.annotation.ExcelProperty;
 import com.dillon.lw.framework.excel.core.annotations.DictFormat;
 import com.dillon.lw.framework.excel.core.convert.DictConvert;
 import com.dillon.lw.module.infra.enums.DictTypeConstants;
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -49,7 +49,7 @@ public class JobLogRespVO {
 
     @Schema(description = "任务状态，参见 JobLogStatusEnum 枚举", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty(value = "任务状态", converter = DictConvert.class)
-    @DictFormat(DictTypeConstants.JOB_STATUS)
+    @DictFormat(DictTypeConstants.JOB_LOG_STATUS)
     private Integer status;
 
     @Schema(description = "结果数据", example = "执行成功")

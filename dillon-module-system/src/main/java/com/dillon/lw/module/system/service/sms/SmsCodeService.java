@@ -1,16 +1,16 @@
 package com.dillon.lw.module.system.service.sms;
 
 import com.dillon.lw.framework.common.exception.ServiceException;
+import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeValidateReqDTO;
 import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeSendReqDTO;
 import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeUseReqDTO;
-import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeValidateReqDTO;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * 短信验证码 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface SmsCodeService {
 

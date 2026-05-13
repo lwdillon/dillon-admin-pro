@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 限流注解
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -27,7 +27,6 @@ public @interface RateLimiter {
      * 限流的时间，默认为 1 秒
      */
     int time() default 1;
-
     /**
      * 时间单位，默认为 SECONDS 秒
      */
@@ -55,7 +54,6 @@ public @interface RateLimiter {
      * @see ExpressionIdempotentKeyResolver 自定义表达式，通过 {@link #keyArg()} 计算
      */
     Class<? extends RateLimiterKeyResolver> keyResolver() default DefaultRateLimiterKeyResolver.class;
-
     /**
      * 使用的 Key 参数
      */

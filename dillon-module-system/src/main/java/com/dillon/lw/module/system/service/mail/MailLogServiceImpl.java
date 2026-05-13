@@ -11,11 +11,9 @@ import com.dillon.lw.module.system.enums.mail.MailSendStatusEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static cn.hutool.core.exceptions.ExceptionUtil.getRootCauseMessage;
 
@@ -50,7 +48,7 @@ public class MailLogServiceImpl implements MailLogService {
         MailLogDO.MailLogDOBuilder logDOBuilder = MailLogDO.builder();
         // 根据是否要发送，设置状态
         logDOBuilder.sendStatus(Objects.equals(isSend, true) ? MailSendStatusEnum.INIT.getStatus()
-                        : MailSendStatusEnum.IGNORE.getStatus())
+                : MailSendStatusEnum.IGNORE.getStatus())
                 // 用户信息
                 .userId(userId).userType(userType)
                 .toMails(ListUtil.toList(toMails)).ccMails(ListUtil.toList(ccMails)).bccMails(ListUtil.toList(bccMails))

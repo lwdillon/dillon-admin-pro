@@ -12,13 +12,13 @@ import com.dillon.lw.framework.tenant.core.service.TenantFrameworkService;
 import com.dillon.lw.framework.web.config.WebProperties;
 import com.dillon.lw.framework.web.core.filter.ApiRequestFilter;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
@@ -29,7 +29,7 @@ import java.util.Set;
  * 2. 如果请求未带租户的编号，检查是否是忽略的 URL，否则也不允许访问。
  * 3. 校验租户是合法，例如说被禁用、到期
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class TenantSecurityWebFilter extends ApiRequestFilter {
@@ -38,7 +38,7 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
 
     /**
      * 允许忽略租户的 URL 列表
-     * <p>
+     *
      * 目的：解决 <a href="https://gitee.com/zhijiantianya/dillon-cloud/issues/ICUQL9">修改配置会导致 @TenantIgnore Controller 接口过滤失效</>
      */
     private final Set<String> ignoreUrls;
@@ -72,7 +72,7 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
             if (tenantId == null) {
                 tenantId = user.getTenantId();
                 TenantContextHolder.setTenantId(tenantId);
-                // 如果传递了租户编号，则进行比对租户编号，避免越权问题
+            // 如果传递了租户编号，则进行比对租户编号，避免越权问题
             } else if (!Objects.equals(user.getTenantId(), TenantContextHolder.getTenantId())) {
                 log.error("[doFilterInternal][租户({}) User({}/{}) 越权访问租户({}) URL({}/{})]",
                         user.getTenantId(), user.getId(), user.getUserType(),
@@ -114,7 +114,7 @@ public class TenantSecurityWebFilter extends ApiRequestFilter {
         String apiUri = request.getRequestURI().substring(request.getContextPath().length());
         // 快速匹配，保证性能
         if (CollUtil.contains(tenantProperties.getIgnoreUrls(), apiUri)
-                || CollUtil.contains(ignoreUrls, apiUri)) {
+            || CollUtil.contains(ignoreUrls, apiUri)) {
             return true;
         }
         // 逐个 Ant 路径匹配

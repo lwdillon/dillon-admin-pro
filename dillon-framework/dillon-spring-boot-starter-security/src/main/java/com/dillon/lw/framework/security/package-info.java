@@ -2,6 +2,6 @@
  * 基于 Spring Security 框架
  * 实现安全认证功能
  *
- * @author liwen
+ * @author 芋道源码
  */
 package com.dillon.lw.framework.security;

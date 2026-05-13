@@ -5,13 +5,13 @@ import com.dillon.lw.framework.common.validation.Mobile;
 import com.dillon.lw.module.system.enums.sms.SmsSceneEnum;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 短信验证码的校验 Request DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class SmsCodeValidateReqDTO {

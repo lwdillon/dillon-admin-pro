@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.enums.UserTypeEnum;
+import com.dillon.lw.framework.common.exception.ServiceException;
 import com.dillon.lw.framework.common.exception.enums.GlobalErrorCodeConstants;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.date.DateUtils;
@@ -22,11 +23,11 @@ import com.dillon.lw.module.system.dal.mysql.oauth2.OAuth2AccessTokenMapper;
 import com.dillon.lw.module.system.dal.mysql.oauth2.OAuth2RefreshTokenMapper;
 import com.dillon.lw.module.system.dal.redis.oauth2.OAuth2AccessTokenRedisDAO;
 import com.dillon.lw.module.system.service.user.AdminUserService;
+import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +39,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * OAuth2.0 Token Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class OAuth2TokenServiceImpl implements OAuth2TokenService {
@@ -68,7 +69,7 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(noRollbackFor = ServiceException.class)
     public OAuth2AccessTokenDO refreshAccessToken(String refreshToken, String clientId) {
         // 查询访问令牌
         OAuth2RefreshTokenDO refreshTokenDO = oauth2RefreshTokenMapper.selectByRefreshToken(refreshToken);
@@ -150,7 +151,24 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
         oauth2AccessTokenRedisDAO.delete(accessToken);
         // 删除刷新令牌
         oauth2RefreshTokenMapper.deleteByRefreshToken(accessTokenDO.getRefreshToken());
+        oauth2AccessTokenRedisDAO.delete(accessTokenDO.getRefreshToken());
         return accessTokenDO;
+    }
+
+    @Override
+    public void removeAccessToken(Long userId, Integer userType) {
+        List<OAuth2AccessTokenDO> accessTokens = oauth2AccessTokenMapper.selectListByUserIdAndUserType(userId, userType);
+        if (CollUtil.isEmpty(accessTokens)) {
+            return;
+        }
+        accessTokens.forEach(accessToken -> {
+            // 删除访问令牌
+            oauth2AccessTokenMapper.deleteById(accessToken.getId());
+            oauth2AccessTokenRedisDAO.delete(accessToken.getAccessToken());
+            // 删除刷新令牌
+            oauth2RefreshTokenMapper.deleteByRefreshToken(accessToken.getRefreshToken());
+            oauth2AccessTokenRedisDAO.delete(accessToken.getRefreshToken());
+        });
     }
 
     @Override
@@ -165,7 +183,13 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
                 .setClientId(clientDO.getClientId()).setScopes(refreshTokenDO.getScopes())
                 .setRefreshToken(refreshTokenDO.getRefreshToken())
                 .setExpiresTime(LocalDateTime.now().plusSeconds(clientDO.getAccessTokenValiditySeconds()));
-        accessTokenDO.setTenantId(TenantContextHolder.getTenantId()); // 手动设置租户编号，避免缓存到 Redis 的时候，无对应的租户编号
+        // 优先从 refreshToken 获取租户编号，避免 ThreadLocal 被污染时导致 tenantId 为 null
+        // 可能关联的 issue：https://t.zsxq.com/JIi5G
+        Long tenantId = refreshTokenDO.getTenantId();
+        if (tenantId == null) {
+            tenantId = TenantContextHolder.getTenantId();
+        }
+        accessTokenDO.setTenantId(tenantId);
         oauth2AccessTokenMapper.insert(accessTokenDO);
         // 记录到 Redis 中
         oauth2AccessTokenRedisDAO.set(accessTokenDO);
@@ -185,14 +209,14 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
         OAuth2AccessTokenDO accessTokenDO = BeanUtils.toBean(refreshTokenDO, OAuth2AccessTokenDO.class)
                 .setAccessToken(refreshTokenDO.getRefreshToken());
         TenantUtils.execute(refreshTokenDO.getTenantId(),
-                () -> accessTokenDO.setUserInfo(buildUserInfo(refreshTokenDO.getUserId(), refreshTokenDO.getUserType())));
+                        () -> accessTokenDO.setUserInfo(buildUserInfo(refreshTokenDO.getUserId(), refreshTokenDO.getUserType())));
         return accessTokenDO;
     }
 
     /**
      * 加载用户信息，方便 {@link com.dillon.lw.framework.security.core.LoginUser} 获取到昵称、部门等信息
      *
-     * @param userId   用户编号
+     * @param userId 用户编号
      * @param userType 用户类型
      * @return 用户信息
      */
@@ -219,4 +243,35 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
         return IdUtil.fastSimpleUUID();
     }
 
+    @Override
+    public Integer cleanRefreshToken(Integer exceedDay, Integer deleteLimit) {
+        int count = 0;
+        LocalDateTime expireDate = LocalDateTime.now().minusDays(exceedDay);
+        // 循环删除，直到没有满足条件的数据
+        for (int i = 0; i < Short.MAX_VALUE; i++) {
+            int deleteCount = oauth2RefreshTokenMapper.deleteByExpiresTimeLt(expireDate, deleteLimit);
+            count += deleteCount;
+            // 达到删除预期条数，说明到底了
+            if (deleteCount < deleteLimit) {
+                break;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public Integer cleanAccessToken(Integer exceedDay, Integer deleteLimit) {
+        int count = 0;
+        LocalDateTime expireDate = LocalDateTime.now().minusDays(exceedDay);
+        // 循环删除，直到没有满足条件的数据
+        for (int i = 0; i < Short.MAX_VALUE; i++) {
+            int deleteCount = oauth2AccessTokenMapper.deleteByExpiresTimeLt(expireDate, deleteLimit);
+            count += deleteCount;
+            // 达到删除预期条数，说明到底了
+            if (deleteCount < deleteLimit) {
+                break;
+            }
+        }
+        return count;
+    }
 }

@@ -1,6 +1,12 @@
 package com.dillon.lw.framework.mybatis.core.mapper;
 
 import cn.hutool.core.collection.CollUtil;
+import com.dillon.lw.framework.common.pojo.PageParam;
+import com.dillon.lw.framework.common.pojo.PageResult;
+import com.dillon.lw.framework.common.pojo.SortablePageParam;
+import com.dillon.lw.framework.common.pojo.SortingField;
+import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
+import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,12 +15,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.toolkit.Db;
-import com.dillon.lw.framework.common.pojo.PageParam;
-import com.dillon.lw.framework.common.pojo.PageResult;
-import com.dillon.lw.framework.common.pojo.SortablePageParam;
-import com.dillon.lw.framework.common.pojo.SortingField;
-import com.dillon.lw.framework.mybatis.core.util.JdbcUtils;
-import com.dillon.lw.framework.mybatis.core.util.MyBatisUtils;
 import com.github.yulichang.base.MPJBaseMapper;
 import com.github.yulichang.interfaces.MPJBaseJoin;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
@@ -25,7 +25,7 @@ import java.util.List;
 
 /**
  * 在 MyBatis Plus 的 BaseMapper 的基础上拓展，提供更多的能力
- * <p>
+ *
  * 1. {@link BaseMapper} 为 MyBatis Plus 的基础接口，提供基础的 CRUD 能力
  * 2. {@link MPJBaseMapper} 为 MyBatis Plus Join 的基础接口，提供连表 Join 能力
  */
@@ -68,6 +68,29 @@ public interface BaseMapperX<T> extends MPJBaseMapper<T> {
         return new PageResult<>(mpPage.getRecords(), mpPage.getTotal());
     }
 
+    /**
+     * 执行分页查询并返回结果。
+     *
+     * @param pageParam 分页参数，包含页码、每页条数和排序字段信息。如果 pageSize 为 {@link PageParam#PAGE_SIZE_NONE}，则不分页，直接查询所有数据。
+     * @param clazz     结果集的类类型
+     * @param lambdaWrapper MyBatis Plus Join 查询条件包装器
+     * @param <D>       结果集的泛型类型
+     * @return 返回分页查询的结果，包括总记录数和当前页的数据列表
+     */
+    default <D> PageResult<D> selectJoinPage(SortablePageParam pageParam, Class<D> clazz, MPJLambdaWrapper<T> lambdaWrapper) {
+        // 特殊：不分页，直接查询全部
+        if (PageParam.PAGE_SIZE_NONE.equals(pageParam.getPageSize())) {
+            List<D> list = selectJoinList(clazz, lambdaWrapper);
+            return new PageResult<>(list, (long) list.size());
+        }
+
+        // MyBatis Plus Join 查询
+        IPage<D> mpPage = MyBatisUtils.buildPage(pageParam, pageParam.getSortingFields());
+        mpPage = selectJoinPage(mpPage, clazz, lambdaWrapper);
+        // 转换返回
+        return new PageResult<>(mpPage.getRecords(), mpPage.getTotal());
+    }
+
     default <DTO> PageResult<DTO> selectJoinPage(PageParam pageParam, Class<DTO> resultTypeClass, MPJBaseJoin<T> joinQueryWrapper) {
         IPage<DTO> mpPage = MyBatisUtils.buildPage(pageParam);
         selectJoinPage(mpPage, resultTypeClass, joinQueryWrapper);
@@ -98,7 +121,7 @@ public interface BaseMapperX<T> extends MPJBaseMapper<T> {
 
     /**
      * 获取满足条件的第 1 条记录
-     * <p>
+     *
      * 目的：解决并发场景下，插入多条记录后，使用 selectOne 会报错的问题
      *
      * @param field 字段名
@@ -116,8 +139,8 @@ public interface BaseMapperX<T> extends MPJBaseMapper<T> {
         return CollUtil.getFirst(list);
     }
 
-    default T selectFirstOne(SFunction<T, ?> field1, Object value1, SFunction<T, ?> field2, Object value2,
-                             SFunction<T, ?> field3, Object value3) {
+    default T selectFirstOne(SFunction<T,?> field1, Object value1, SFunction<T,?> field2, Object value2,
+                             SFunction<T,?> field3, Object value3) {
         List<T> list = selectList(new LambdaQueryWrapper<T>().eq(field1, value1).eq(field2, value2).eq(field3, value3));
         return CollUtil.getFirst(list);
     }

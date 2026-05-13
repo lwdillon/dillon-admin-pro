@@ -11,7 +11,7 @@ import com.dillon.lw.module.system.enums.ErrorCodeConstants;
 import com.dillon.lw.module.system.service.auth.AdminAuthService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -19,7 +19,7 @@ import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil
 /**
  * OAuth2 授予 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class OAuth2GrantServiceImpl implements OAuth2GrantService {

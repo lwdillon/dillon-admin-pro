@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.dal.dataobject.dept;
 
+import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -38,7 +38,7 @@ public class PostDO extends BaseDO {
     private Integer sort;
     /**
      * 状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

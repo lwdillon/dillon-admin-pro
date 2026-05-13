@@ -1,20 +1,20 @@
 package com.dillon.lw.module.system.api.oauth2;
 
 import com.dillon.lw.framework.common.biz.system.oauth2.OAuth2TokenCommonApi;
+import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenCheckRespDTO;
 import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenCreateReqDTO;
 import com.dillon.lw.framework.common.biz.system.oauth2.dto.OAuth2AccessTokenRespDTO;
-import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
 import com.dillon.lw.module.system.service.oauth2.OAuth2TokenService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * OAuth2.0 Token API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class OAuth2TokenApiImpl implements OAuth2TokenCommonApi {

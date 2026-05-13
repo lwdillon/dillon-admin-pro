@@ -22,14 +22,14 @@ import com.dillon.lw.framework.web.core.util.WebFrameworkUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -41,10 +41,10 @@ import static com.dillon.lw.framework.common.util.json.JsonUtils.toJsonString;
 
 /**
  * API 访问日志 Filter
- * <p>
+ *
  * 目的：记录 API 访问日志到数据库中
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class ApiAccessLogFilter extends ApiRequestFilter {
@@ -162,8 +162,7 @@ public class ApiAccessLogFilter extends ApiRequestFilter {
     // ========== 解析 @ApiAccessLog、@Swagger 注解  ==========
 
     private static OperateTypeEnum parseOperateLogType(HttpServletRequest request) {
-        RequestMethod requestMethod = ArrayUtil.firstMatch(method ->
-                StrUtil.equalsAnyIgnoreCase(method.name(), request.getMethod()), RequestMethod.values());
+        RequestMethod requestMethod = RequestMethod.resolve(request.getMethod());
         if (requestMethod == null) {
             return OperateTypeEnum.OTHER;
         }
@@ -238,11 +237,11 @@ public class ApiAccessLogFilter extends ApiRequestFilter {
             return;
         }
         //  情况三：Object，遍历处理
-        Iterator<Map.Entry<String, JsonNode>> iterator = node.fields();
+        Iterator<Map.Entry<String, JsonNode>> iterator = node.properties().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
             if (ArrayUtil.contains(sanitizeKeys, entry.getKey())
-                    || ArrayUtil.contains(SANITIZE_KEYS, entry.getKey())) {
+                || ArrayUtil.contains(SANITIZE_KEYS, entry.getKey())) {
                 iterator.remove();
                 continue;
             }

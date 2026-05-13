@@ -3,7 +3,7 @@ package com.dillon.lw.module.system.enums;
 /**
  * System 字典类型的枚举类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface DictTypeConstants {
 

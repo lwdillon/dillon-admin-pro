@@ -7,7 +7,7 @@ import com.dillon.lw.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -19,7 +19,7 @@ import static com.dillon.lw.module.system.dal.redis.RedisKeyConstants.OAUTH2_ACC
 /**
  * {@link OAuth2AccessTokenDO} 的 RedisDAO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Repository
 public class OAuth2AccessTokenRedisDAO {

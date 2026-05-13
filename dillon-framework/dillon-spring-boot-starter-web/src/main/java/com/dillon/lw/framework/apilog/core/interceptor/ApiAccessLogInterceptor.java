@@ -6,13 +6,13 @@ import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.util.servlet.ServletUtils;
 import com.dillon.lw.framework.common.util.spring.SpringUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StopWatch;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +21,10 @@ import java.util.stream.IntStream;
 
 /**
  * API 访问日志 Interceptor
- * <p>
+ *
  * 目的：在非 prod 环境时，打印 request 和 response 两条日志到日志文件（控制台）中。
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class ApiAccessLogInterceptor implements HandlerInterceptor {

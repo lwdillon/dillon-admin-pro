@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 岗位 Response DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class PostRespDTO {
@@ -29,7 +29,7 @@ public class PostRespDTO {
     private Integer sort;
     /**
      * 状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

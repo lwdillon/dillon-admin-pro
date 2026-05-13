@@ -1,19 +1,19 @@
 package com.dillon.lw.module.system.dal.dataobject.sms;
 
-import com.baomidou.mybatisplus.annotation.KeySequence;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
  * 手机验证码 DO
- * <p>
+ *
  * idx_mobile 索引：基于 {@link #mobile} 字段
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName("system_sms_code")
 @KeySequence("system_sms_code_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -39,7 +39,7 @@ public class SmsCodeDO extends BaseDO {
     private String code;
     /**
      * 发送场景
-     * <p>
+     *
      * 枚举 {@link SmsCodeDO}
      */
     private Integer scene;

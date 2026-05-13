@@ -2,8 +2,8 @@ package com.dillon.lw.framework.mybatis.core.query;
 
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.dillon.lw.framework.common.util.collection.ArrayUtils;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.springframework.util.StringUtils;
 
@@ -120,6 +120,12 @@ public class MPJLambdaWrapperX<T> extends MPJLambdaWrapper<T> {
     @Override
     public <X> MPJLambdaWrapperX<T> orderByDesc(SFunction<X, ?> column) {
         super.orderByDesc(true, column);
+        return this;
+    }
+
+    @Override
+    public <X> MPJLambdaWrapperX<T> orderByAsc(SFunction<X, ?> column) {
+        super.orderByAsc(true, column);
         return this;
     }
 

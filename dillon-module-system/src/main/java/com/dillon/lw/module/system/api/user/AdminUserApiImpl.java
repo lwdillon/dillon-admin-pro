@@ -3,15 +3,16 @@ package com.dillon.lw.module.system.api.user;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
+import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
 import com.dillon.lw.framework.datapermission.core.util.DataPermissionUtils;
 import com.dillon.lw.module.system.api.user.dto.AdminUserRespDTO;
 import com.dillon.lw.module.system.dal.dataobject.dept.DeptDO;
 import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
 import com.dillon.lw.module.system.service.dept.DeptService;
 import com.dillon.lw.module.system.service.user.AdminUserService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +23,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * Admin 用户 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class AdminUserApiImpl implements AdminUserApi {
@@ -33,6 +34,7 @@ public class AdminUserApiImpl implements AdminUserApi {
     private DeptService deptService;
 
     @Override
+    @DataPermission(enable = false) // 忽略数据权限，避免因为过滤，导致无法查询用户。类似：https://github.com/YunaiV/ruoyi-vue-pro/issues/1051
     public AdminUserRespDTO getUser(Long id) {
         AdminUserDO user = userService.getUser(id);
         return BeanUtils.toBean(user, AdminUserRespDTO.class);

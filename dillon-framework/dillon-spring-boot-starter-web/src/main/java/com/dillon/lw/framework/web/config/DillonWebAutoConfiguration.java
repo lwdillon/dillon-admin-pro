@@ -9,6 +9,7 @@ import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
 import com.dillon.lw.framework.web.core.handler.GlobalResponseBodyHandler;
 import com.dillon.lw.framework.web.core.util.WebFrameworkUtils;
 import com.google.common.collect.Maps;
+import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -19,6 +20,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -27,7 +29,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import javax.servlet.Filter;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -103,6 +104,7 @@ public class DillonWebAutoConfiguration {
      * 创建 CorsFilter Bean，解决跨域问题
      */
     @Bean
+    @Order(value = WebFilterOrderEnum.CORS_FILTER) // 特殊：修复因执行顺序影响到跨域配置不生效问题
     public FilterRegistrationBean<CorsFilter> corsFilterBean() {
         // 创建 CorsConfiguration 对象
         CorsConfiguration config = new CorsConfiguration();

@@ -91,10 +91,10 @@ public class AliyunSmsClient extends AbstractSmsClient {
     @Override
     public SmsTemplateRespDTO getSmsTemplate(String apiTemplateId) throws Throwable {
         // 1. 执行请求
-        // 参考链接 https://api.aliyun.com/document/Dysmsapi/2017-05-25/QuerySmsTemplate
+        // 参考链接 https://api.aliyun.com/document/Dysmsapi/2017-05-25/GetSmsTemplate
         TreeMap<String, Object> queryParam = new TreeMap<>();
         queryParam.put("TemplateCode", apiTemplateId);
-        JSONObject response = request("QuerySmsTemplate", queryParam);
+        JSONObject response = request("GetSmsTemplate", queryParam);
 
         // 2.1 请求失败
         String code = response.getStr("Code");
@@ -114,24 +114,20 @@ public class AliyunSmsClient extends AbstractSmsClient {
     @SuppressWarnings("EnhancedSwitchMigration")
     Integer convertSmsTemplateAuditStatus(Integer templateStatus) {
         switch (templateStatus) {
-            case 0:
-                return SmsTemplateAuditStatusEnum.CHECKING.getStatus();
-            case 1:
-                return SmsTemplateAuditStatusEnum.SUCCESS.getStatus();
-            case 2:
-                return SmsTemplateAuditStatusEnum.FAIL.getStatus();
-            default:
-                throw new IllegalArgumentException(String.format("未知审核状态(%d)", templateStatus));
+            case 0: return SmsTemplateAuditStatusEnum.CHECKING.getStatus();
+            case 1: return SmsTemplateAuditStatusEnum.SUCCESS.getStatus();
+            case 2: return SmsTemplateAuditStatusEnum.FAIL.getStatus();
+            default: throw new IllegalArgumentException(String.format("未知审核状态(%d)", templateStatus));
         }
     }
 
     /**
      * 请求阿里云短信
      *
-     * @param apiName     请求的 API 名称
+     * @see <a href="https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature">V3 版本请求体&签名机制</>
+     * @param apiName 请求的 API 名称
      * @param queryParams 请求参数
      * @return 请求结果
-     * @see <a href="https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature">V3 版本请求体&签名机制</>
      */
     private JSONObject request(String apiName, TreeMap<String, Object> queryParams) {
         // 1. 请求参数

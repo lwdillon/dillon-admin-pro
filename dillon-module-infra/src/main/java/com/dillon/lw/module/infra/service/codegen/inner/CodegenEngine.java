@@ -33,16 +33,17 @@ import com.dillon.lw.module.infra.enums.codegen.CodegenSceneEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenTemplateTypeEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenVOTypeEnum;
 import com.dillon.lw.module.infra.framework.codegen.config.CodegenProperties;
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.*;
 
 import static cn.hutool.core.map.MapUtil.getStr;
@@ -51,17 +52,17 @@ import static cn.hutool.core.text.CharSequenceUtil.*;
 /**
  * 代码生成的引擎，用于具体生成代码
  * 目前基于 {@link org.apache.velocity.app.Velocity} 模板引擎实现
- * <p>
+ *
  * 考虑到 Java 模板引擎的框架非常多，Freemarker、Velocity、Thymeleaf 等等，所以我们采用 hutool 封装的 {@link cn.hutool.extra.template.Template} 抽象
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Component
 public class CodegenEngine {
 
     /**
      * 后端的模板配置
-     * <p>
+     *
      * key：模板在 resources 的地址
      * value：生成的路径
      */
@@ -71,6 +72,8 @@ public class CodegenEngine {
             .put(javaTemplatePath("controller/vo/listReqVO"), javaModuleImplVOFilePath("ListReqVO"))
             .put(javaTemplatePath("controller/vo/respVO"), javaModuleImplVOFilePath("RespVO"))
             .put(javaTemplatePath("controller/vo/saveReqVO"), javaModuleImplVOFilePath("SaveReqVO"))
+            .put(javaTemplatePath("controller/vo/importExcelVO"), javaModuleImplVOFilePath("ImportExcelVO"))
+            .put(javaTemplatePath("controller/vo/importRespVO"), javaModuleImplVOFilePath("ImportRespVO"))
             .put(javaTemplatePath("controller/controller"), javaModuleImplControllerFilePath())
             .put(javaTemplatePath("dal/do"),
                     javaModuleImplMainFilePath("dal/dataobject/${table.businessName}/${table.className}DO"))
@@ -96,8 +99,8 @@ public class CodegenEngine {
             .build();
 
     /**
-     * 后端的配置模版
-     * <p>
+     * 前端的配置模版
+     *
      * key1：UI 模版的类型 {@link CodegenFrontTypeEnum#getType()}
      * key2：模板在 resources 的地址
      * value：生成的路径
@@ -125,6 +128,8 @@ public class CodegenEngine {
                     vue3FilePath("views/${table.moduleName}/${table.businessName}/index.vue"))
             .put(CodegenFrontTypeEnum.VUE3_ELEMENT_PLUS.getType(), vue3TemplatePath("views/form.vue"),
                     vue3FilePath("views/${table.moduleName}/${table.businessName}/${simpleClassName}Form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_ELEMENT_PLUS.getType(), vue3TemplatePath("views/import.vue"),
+                    vue3FilePath("views/${table.moduleName}/${table.businessName}/${simpleClassName}ImportForm.vue"))
             .put(CodegenFrontTypeEnum.VUE3_ELEMENT_PLUS.getType(), vue3TemplatePath("views/components/form_sub_normal.vue"),  // 特殊：主子表专属逻辑
                     vue3FilePath("views/${table.moduleName}/${table.businessName}/components/${subSimpleClassName}Form.vue"))
             .put(CodegenFrontTypeEnum.VUE3_ELEMENT_PLUS.getType(), vue3TemplatePath("views/components/form_sub_inner.vue"),  // 特殊：主子表专属逻辑
@@ -137,6 +142,16 @@ public class CodegenEngine {
                     vue3FilePath("views/${table.moduleName}/${table.businessName}/components/${subSimpleClassName}List.vue"))
             .put(CodegenFrontTypeEnum.VUE3_ELEMENT_PLUS.getType(), vue3TemplatePath("api/api.ts"),
                     vue3FilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
+            .put(CodegenFrontTypeEnum.VUE3_ADMIN_UNIAPP_WOT.getType(), vue3AdminUniappTemplatePath("api/api.ts"),
+                    vue3UniappFilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
+            .put(CodegenFrontTypeEnum.VUE3_ADMIN_UNIAPP_WOT.getType(), vue3AdminUniappTemplatePath("views/index.vue"),
+                    vue3UniappFilePath("pages-${table.moduleName}/${table.businessName}/index.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_ADMIN_UNIAPP_WOT.getType(), vue3AdminUniappTemplatePath("components/search-form.vue"),
+                    vue3UniappFilePath("pages-${table.moduleName}/${table.businessName}/components/search-form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_ADMIN_UNIAPP_WOT.getType(), vue3AdminUniappTemplatePath("views/form/index.vue"),
+                    vue3UniappFilePath("pages-${table.moduleName}/${table.businessName}/form/index.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_ADMIN_UNIAPP_WOT.getType(), vue3AdminUniappTemplatePath("views/detail/index.vue"),
+                    vue3UniappFilePath("pages-${table.moduleName}/${table.businessName}/detail/index.vue"))
             // VUE3_VBEN2_ANTD_SCHEMA
             .put(CodegenFrontTypeEnum.VUE3_VBEN2_ANTD_SCHEMA.getType(), vue3VbenTemplatePath("views/data.ts"),
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/${classNameVar}.data.ts"))
@@ -153,6 +168,8 @@ public class CodegenEngine {
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/index.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_SCHEMA.getType(), vue3Vben5AntdSchemaTemplatePath("views/form.vue"),
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_SCHEMA.getType(), vue3Vben5AntdSchemaTemplatePath("views/import.vue"),
+                    vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/import-form.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_SCHEMA.getType(), vue3Vben5AntdSchemaTemplatePath("api/api.ts"),
                     vue3VbenFilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_SCHEMA.getType(), vue3Vben5AntdSchemaTemplatePath("views/modules/form_sub_normal.vue"),  // 特殊：主子表专属逻辑
@@ -170,6 +187,8 @@ public class CodegenEngine {
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/index.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_GENERAL.getType(), vue3Vben5AntdGeneralTemplatePath("views/form.vue"),
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_GENERAL.getType(), vue3Vben5AntdGeneralTemplatePath("views/import.vue"),
+                    vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/import-form.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_GENERAL.getType(), vue3Vben5AntdGeneralTemplatePath("api/api.ts"),
                     vue3VbenFilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_ANTD_GENERAL.getType(), vue3Vben5AntdGeneralTemplatePath("views/modules/form_sub_normal.vue"),  // 特殊：主子表专属逻辑
@@ -189,6 +208,8 @@ public class CodegenEngine {
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/index.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_SCHEMA.getType(), vue3Vben5EpSchemaTemplatePath("views/form.vue"),
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_SCHEMA.getType(), vue3Vben5EpSchemaTemplatePath("views/import.vue"),
+                    vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/import-form.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_SCHEMA.getType(), vue3Vben5EpSchemaTemplatePath("api/api.ts"),
                     vue3VbenFilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_SCHEMA.getType(), vue3Vben5EpSchemaTemplatePath("views/modules/form_sub_normal.vue"),  // 特殊：主子表专属逻辑
@@ -206,6 +227,8 @@ public class CodegenEngine {
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/index.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_GENERAL.getType(), vue3Vben5EpGeneralTemplatePath("views/form.vue"),
                     vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/form.vue"))
+            .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_GENERAL.getType(), vue3Vben5EpGeneralTemplatePath("views/import.vue"),
+                    vue3VbenFilePath("views/${table.moduleName}/${table.businessName}/modules/import-form.vue"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_GENERAL.getType(), vue3Vben5EpGeneralTemplatePath("api/api.ts"),
                     vue3VbenFilePath("api/${table.moduleName}/${table.businessName}/index.ts"))
             .put(CodegenFrontTypeEnum.VUE3_VBEN5_EP_GENERAL.getType(), vue3Vben5EpGeneralTemplatePath("views/modules/form_sub_normal.vue"),  // 特殊：主子表专属逻辑
@@ -225,7 +248,7 @@ public class CodegenEngine {
 
     /**
      * 是否使用 jakarta 包，用于解决 Spring Boot 2.X 和 3.X 的兼容性问题
-     * <p>
+     *
      * true  - 使用 jakarta.validation.constraints.*
      * false - 使用 javax.validation.constraints.*
      */
@@ -234,7 +257,7 @@ public class CodegenEngine {
 
     /**
      * 是否为 dillon-cloud 项目，用于解决 Boot 和 Cloud 的 api 模块兼容性问题
-     * <p>
+     *
      * true  - 需要有 dillon-module-xxx-api 模块
      * false - 不需要有，使用 api、enum 包即可
      */
@@ -273,6 +296,7 @@ public class CodegenEngine {
         globalBindingMap.put("jakartaPackage", jakartaEnable ? "jakarta" : "javax");
         globalBindingMap.put("voType", codegenProperties.getVoType());
         globalBindingMap.put("deleteBatchEnable", codegenProperties.getDeleteBatchEnable());
+        globalBindingMap.put("importEnable", codegenProperties.getImportEnable());
         // 全局 Java Bean
         globalBindingMap.put("CommonResultClassName", CommonResult.class.getName());
         globalBindingMap.put("PageResultClassName", PageResult.class.getName());
@@ -300,16 +324,17 @@ public class CodegenEngine {
     /**
      * 生成代码
      *
+     * @param dbType         数据库类型
      * @param table          表定义
      * @param columns        table 的字段定义数组
      * @param subTables      子表数组，当且仅当主子表时使用
      * @param subColumnsList subTables 的字段定义数组
      * @return 生成的代码，key 是路径，value 是对应代码
      */
-    public Map<String, String> execute(CodegenTableDO table, List<CodegenColumnDO> columns,
+    public Map<String, String> execute(DbType dbType, CodegenTableDO table, List<CodegenColumnDO> columns,
                                        List<CodegenTableDO> subTables, List<List<CodegenColumnDO>> subColumnsList) {
         // 1.1 初始化 bindMap 上下文
-        Map<String, Object> bindingMap = initBindingMap(table, columns, subTables, subColumnsList);
+        Map<String, Object> bindingMap = initBindingMap(dbType, table, columns, subTables, subColumnsList);
         // 1.2 获得模版
         Map<String, String> templates = getTemplates(table.getFrontType());
 
@@ -329,6 +354,11 @@ public class CodegenEngine {
             } else if (isListReqVOTemplate(vmPath)) {
                 // 减少多余的类生成，例如说 ListVO.java 类
                 if (!CodegenTemplateTypeEnum.isTree(table.getTemplateType())) {
+                    return;
+                }
+            } else if (isImportTemplate(vmPath)) {
+                // 关闭 import 时，跳过 ImportExcelVO / ImportRespVO 的生成
+                if (!Boolean.TRUE.equals(codegenProperties.getImportEnable())) {
                     return;
                 }
             }
@@ -378,17 +408,17 @@ public class CodegenEngine {
 
     /**
      * 格式化生成后的代码
-     * <p>
+     *
      * 因为尽量让 vm 模版简单，所以统一的处理都在这个方法。
      * 如果不处理，Vue 的 Pretty 格式校验可能会报错
      *
      * @param content 格式化前的代码
-     * @param vmPath  模板路径
+     * @param vmPath 模板路径
      * @return 格式化后的代码
      */
     private String prettyCode(String content, String vmPath) {
-        // Vue 界面：去除字段后面多余的 , 逗号，解决前端的 Pretty 代码格式检查的报错（需要排除 vben5）
-        if (!StrUtil.contains(vmPath, "vben5")) {
+        // Vue 界面：去除字段后面多余的 , 逗号，解决前端的 Pretty 代码格式检查的报错（需要排除 vben5、vue3_admin_uniapp）
+        if (!StrUtil.containsAny(vmPath, "vben5", "vue3_admin_uniapp")) {
             content = content.replaceAll(",\n}", "\n}").replaceAll(",\n  }", "\n  }");
         }
         // Vue 界面：去除多的 dateFormatter，只有一个的情况下，说明没使用到
@@ -415,10 +445,11 @@ public class CodegenEngine {
         return content;
     }
 
-    private Map<String, Object> initBindingMap(CodegenTableDO table, List<CodegenColumnDO> columns,
+    private Map<String, Object> initBindingMap(DbType dbType, CodegenTableDO table, List<CodegenColumnDO> columns,
                                                List<CodegenTableDO> subTables, List<List<CodegenColumnDO>> subColumnsList) {
         // 创建 bindingMap
         Map<String, Object> bindingMap = new HashMap<>(globalBindingMap);
+        bindingMap.put("dbType", dbType);
         bindingMap.put("table", table);
         bindingMap.put("columns", columns);
         bindingMap.put("primaryColumn", CollectionUtils.findFirst(columns, CodegenColumnDO::getPrimaryKey)); // 主键字段
@@ -617,6 +648,15 @@ public class CodegenEngine {
                 "src/" + path;
     }
 
+    private static String vue3AdminUniappTemplatePath(String path) {
+        return "codegen/vue3_admin_uniapp/" + path + ".vm";
+    }
+
+    private static String vue3UniappFilePath(String path) {
+        return "dillon-ui-${sceneEnum.basePackage}-uniapp/" + // 顶级目录
+                "src/" + path;
+    }
+
     private static String vue3VbenFilePath(String path) {
         return "dillon-ui-${sceneEnum.basePackage}-vben/" + // 顶级目录
                 "src/" + path;
@@ -652,6 +692,11 @@ public class CodegenEngine {
 
     private static boolean isListReqVOTemplate(String path) {
         return path.contains("listReqVO");
+    }
+
+    private static boolean isImportTemplate(String path) {
+        return path.contains("importExcelVO") || path.contains("importRespVO")
+                || path.contains("views/import.vue");
     }
 
 }

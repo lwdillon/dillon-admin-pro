@@ -1,7 +1,7 @@
 package com.dillon.lw.framework.datapermission.core.aop;
 
-import com.alibaba.ttl.TransmittableThreadLocal;
 import com.dillon.lw.framework.datapermission.core.annotation.DataPermission;
+import com.alibaba.ttl.TransmittableThreadLocal;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * {@link DataPermission} 注解的 Context 上下文
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class DataPermissionContextHolder {
 
@@ -62,7 +62,7 @@ public class DataPermissionContextHolder {
 
     /**
      * 清空上下文
-     * <p>
+     *
      * 目前仅仅用于单测
      */
     public static void clear() {

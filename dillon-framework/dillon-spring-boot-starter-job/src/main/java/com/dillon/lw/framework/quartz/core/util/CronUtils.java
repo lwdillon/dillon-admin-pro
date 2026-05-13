@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Quartz Cron 表达式的工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class CronUtils {
 
@@ -30,7 +30,7 @@ public class CronUtils {
      * 基于 CRON 表达式，获得下 n 个满足执行的时间
      *
      * @param cronExpression CRON 表达式
-     * @param n              数量
+     * @param n 数量
      * @return 满足条件的执行时间
      */
     public static List<LocalDateTime> getNextTimes(String cronExpression, int n) {

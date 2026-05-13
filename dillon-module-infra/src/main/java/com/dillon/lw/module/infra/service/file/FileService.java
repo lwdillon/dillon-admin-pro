@@ -5,14 +5,14 @@ import com.dillon.lw.module.infra.controller.admin.file.vo.file.FileCreateReqVO;
 import com.dillon.lw.module.infra.controller.admin.file.vo.file.FilePageReqVO;
 import com.dillon.lw.module.infra.controller.admin.file.vo.file.FilePresignedUrlRespVO;
 import com.dillon.lw.module.infra.dal.dataobject.file.FileDO;
+import jakarta.validation.constraints.NotEmpty;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
  * 文件 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface FileService {
 
@@ -45,11 +45,10 @@ public interface FileService {
      */
     FilePresignedUrlRespVO presignPutUrl(@NotEmpty(message = "文件名不能为空") String name,
                                          String directory);
-
     /**
      * 生成文件预签名地址信息，用于读取
      *
-     * @param url               完整的文件访问地址
+     * @param url 完整的文件访问地址
      * @param expirationSeconds 访问有效期，单位秒
      * @return 文件预签名地址
      */
@@ -62,6 +61,7 @@ public interface FileService {
      * @return 编号
      */
     Long createFile(FileCreateReqVO createReqVO);
+    FileDO getFile(Long id);
 
     /**
      * 删除文件

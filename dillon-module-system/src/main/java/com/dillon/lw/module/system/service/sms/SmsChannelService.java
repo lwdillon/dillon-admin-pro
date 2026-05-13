@@ -5,8 +5,8 @@ import com.dillon.lw.module.system.controller.admin.sms.vo.channel.SmsChannelPag
 import com.dillon.lw.module.system.controller.admin.sms.vo.channel.SmsChannelSaveReqVO;
 import com.dillon.lw.module.system.dal.dataobject.sms.SmsChannelDO;
 import com.dillon.lw.module.system.framework.sms.core.client.SmsClient;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**

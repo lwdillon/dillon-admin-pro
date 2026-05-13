@@ -1,14 +1,14 @@
 package com.dillon.lw.framework.common.biz.infra.logger.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
  * API 访问日志
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class ApiAccessLogCreateReqDTO {
@@ -70,7 +70,7 @@ public class ApiAccessLogCreateReqDTO {
     private String operateName;
     /**
      * 操作分类
-     * <p>
+     *
      * 枚举，参见 OperateTypeEnum 类
      */
     private Integer operateType;

@@ -1,14 +1,15 @@
 package com.dillon.lw.module.system.convert.auth;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjUtil;
 import com.dillon.lw.framework.common.util.object.BeanUtils;
 import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeSendReqDTO;
 import com.dillon.lw.module.system.api.sms.dto.code.SmsCodeUseReqDTO;
-import com.dillon.lw.module.system.controller.admin.auth.vo.AuthLoginRespVO;
+import com.dillon.lw.module.system.api.social.dto.SocialUserBindReqDTO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthPermissionInfoRespVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthSmsLoginReqVO;
 import com.dillon.lw.module.system.controller.admin.auth.vo.AuthSmsSendReqVO;
-import com.dillon.lw.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
+import com.dillon.lw.module.system.controller.admin.auth.vo.AuthSocialLoginReqVO;
 import com.dillon.lw.module.system.dal.dataobject.permission.MenuDO;
 import com.dillon.lw.module.system.dal.dataobject.permission.RoleDO;
 import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
@@ -28,8 +29,6 @@ public interface AuthConvert {
 
     AuthConvert INSTANCE = Mappers.getMapper(AuthConvert.class);
 
-    AuthLoginRespVO convert(OAuth2AccessTokenDO bean);
-
     default AuthPermissionInfoRespVO convert(AdminUserDO user, List<RoleDO> roleList, List<MenuDO> menuList) {
         return AuthPermissionInfoRespVO.builder()
                 .user(BeanUtils.toBean(user, AuthPermissionInfoRespVO.UserVO.class))
@@ -40,8 +39,6 @@ public interface AuthConvert {
                 .menus(buildMenuTree(menuList))
                 .build();
     }
-
-    AuthPermissionInfoRespVO.MenuVO convertTreeNode(MenuDO menu);
 
     /**
      * 将菜单列表，构建成菜单树
@@ -61,9 +58,10 @@ public interface AuthConvert {
         // 构建菜单树
         // 使用 LinkedHashMap 的原因，是为了排序 。实际也可以用 Stream API ，就是太丑了。
         Map<Long, AuthPermissionInfoRespVO.MenuVO> treeNodeMap = new LinkedHashMap<>();
-        menuList.forEach(menu -> treeNodeMap.put(menu.getId(), AuthConvert.INSTANCE.convertTreeNode(menu)));
+        menuList.forEach(menu -> treeNodeMap.put(menu.getId(),
+                BeanUtils.toBean(menu, AuthPermissionInfoRespVO.MenuVO.class)));
         // 处理父子关系
-        treeNodeMap.values().stream().filter(node -> !node.getParentId().equals(ID_ROOT)).forEach(childNode -> {
+        treeNodeMap.values().stream().filter(node -> ObjUtil.notEqual(node.getParentId(), ID_ROOT)).forEach(childNode -> {
             // 获得父节点
             AuthPermissionInfoRespVO.MenuVO parentNode = treeNodeMap.get(childNode.getParentId());
             if (parentNode == null) {
@@ -81,6 +79,7 @@ public interface AuthConvert {
         return filterList(treeNodeMap.values(), node -> ID_ROOT.equals(node.getParentId()));
     }
 
+    SocialUserBindReqDTO convert(Long userId, Integer userType, AuthSocialLoginReqVO reqVO);
 
     SmsCodeSendReqDTO convert(AuthSmsSendReqVO reqVO);
 

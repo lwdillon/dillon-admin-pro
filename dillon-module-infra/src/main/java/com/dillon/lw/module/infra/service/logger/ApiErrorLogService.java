@@ -8,7 +8,7 @@ import com.dillon.lw.module.infra.dal.dataobject.logger.ApiErrorLogDO;
 /**
  * API 错误日志 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface ApiErrorLogService {
 
@@ -18,6 +18,14 @@ public interface ApiErrorLogService {
      * @param createReqDTO API 错误日志
      */
     void createApiErrorLog(ApiErrorLogCreateReqDTO createReqDTO);
+
+    /**
+     * 获得 API 错误日志
+     *
+     * @param id 编号
+     * @return API 错误日志
+     */
+    ApiErrorLogDO getApiErrorLog(Long id);
 
     /**
      * 获得 API 错误日志分页

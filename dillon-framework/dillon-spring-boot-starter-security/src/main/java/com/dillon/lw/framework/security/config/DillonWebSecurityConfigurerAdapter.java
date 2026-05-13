@@ -5,6 +5,9 @@ import com.dillon.lw.framework.security.core.filter.TokenAuthenticationFilter;
 import com.dillon.lw.framework.web.config.WebProperties;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.DispatcherType;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.context.ApplicationContext;
@@ -28,9 +31,6 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.pattern.PathPattern;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.DispatcherType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ import static com.dillon.lw.framework.common.util.collection.CollectionUtils.con
 /**
  * 自定义的 Spring Security 配置适配器实现
  *
- * @author liwen
+ * @author 芋道源码
  */
 @AutoConfiguration
 @AutoConfigureOrder(-1) // 目的：先于 Spring Security 自动配置，避免一键改包后，org.* 基础包无法生效
@@ -91,7 +91,7 @@ public class DillonWebSecurityConfigurerAdapter {
 
     /**
      * 配置 URL 的安全配置
-     * <p>
+     *
      * anyRequest          |   匹配所有请求路径
      * access              |   SpringEl表达式结果为true时可以访问
      * anonymous           |   匿名可以访问
@@ -128,17 +128,17 @@ public class DillonWebSecurityConfigurerAdapter {
         httpSecurity
                 // ①：全局共享规则
                 .authorizeHttpRequests(c -> c
-                        // 1.1 静态资源，可匿名访问
-                        .requestMatchers(HttpMethod.GET, "/*.html", "/*.css", "/*.js").permitAll()
-                        // 1.2 设置 @PermitAll 无需认证
-                        .requestMatchers(HttpMethod.GET, permitAllUrls.get(HttpMethod.GET).toArray(new String[0])).permitAll()
-                        .requestMatchers(HttpMethod.POST, permitAllUrls.get(HttpMethod.POST).toArray(new String[0])).permitAll()
-                        .requestMatchers(HttpMethod.PUT, permitAllUrls.get(HttpMethod.PUT).toArray(new String[0])).permitAll()
-                        .requestMatchers(HttpMethod.DELETE, permitAllUrls.get(HttpMethod.DELETE).toArray(new String[0])).permitAll()
-                        .requestMatchers(HttpMethod.HEAD, permitAllUrls.get(HttpMethod.HEAD).toArray(new String[0])).permitAll()
-                        .requestMatchers(HttpMethod.PATCH, permitAllUrls.get(HttpMethod.PATCH).toArray(new String[0])).permitAll()
-                        // 1.3 基于 dillon.security.permit-all-urls 无需认证
-                        .requestMatchers(securityProperties.getPermitAllUrls().toArray(new String[0])).permitAll()
+                    // 1.1 静态资源，可匿名访问
+                    .requestMatchers(HttpMethod.GET, "/*.html", "/*.css", "/*.js").permitAll()
+                    // 1.2 设置 @PermitAll 无需认证
+                    .requestMatchers(HttpMethod.GET, permitAllUrls.get(HttpMethod.GET).toArray(new String[0])).permitAll()
+                    .requestMatchers(HttpMethod.POST, permitAllUrls.get(HttpMethod.POST).toArray(new String[0])).permitAll()
+                    .requestMatchers(HttpMethod.PUT, permitAllUrls.get(HttpMethod.PUT).toArray(new String[0])).permitAll()
+                    .requestMatchers(HttpMethod.DELETE, permitAllUrls.get(HttpMethod.DELETE).toArray(new String[0])).permitAll()
+                    .requestMatchers(HttpMethod.HEAD, permitAllUrls.get(HttpMethod.HEAD).toArray(new String[0])).permitAll()
+                    .requestMatchers(HttpMethod.PATCH, permitAllUrls.get(HttpMethod.PATCH).toArray(new String[0])).permitAll()
+                    // 1.3 基于 dillon.security.permit-all-urls 无需认证
+                    .requestMatchers(securityProperties.getPermitAllUrls().toArray(new String[0])).permitAll()
                 )
                 // ②：每个项目的自定义规则
                 .authorizeHttpRequests(c -> authorizeRequestsCustomizers.forEach(customizer -> customizer.customize(c)))
@@ -166,7 +166,7 @@ public class DillonWebSecurityConfigurerAdapter {
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethodMap.entrySet()) {
             HandlerMethod handlerMethod = entry.getValue();
             if (!handlerMethod.hasMethodAnnotation(PermitAll.class) // 方法级
-                    && !handlerMethod.getBeanType().isAnnotationPresent(PermitAll.class)) { // 接口级
+                && !handlerMethod.getBeanType().isAnnotationPresent(PermitAll.class)) { // 接口级
                 continue;
             }
             Set<String> urls = new HashSet<>();

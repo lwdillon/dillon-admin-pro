@@ -3,12 +3,12 @@ package com.dillon.lw.framework.swagger.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * Swagger 配置属性
  *
- * @author liwen
+ * @author 芋道源码
  */
 @ConfigurationProperties("dillon.swagger")
 @Data

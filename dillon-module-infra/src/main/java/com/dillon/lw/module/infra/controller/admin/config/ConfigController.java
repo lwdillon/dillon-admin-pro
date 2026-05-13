@@ -15,13 +15,13 @@ import com.dillon.lw.module.infra.service.config.ConfigService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
@@ -91,14 +91,6 @@ public class ConfigController {
             throw exception(ErrorCodeConstants.CONFIG_GET_VALUE_ERROR_IF_VISIBLE);
         }
         return success(config.getValue());
-    }
-
-    @GetMapping(value = "/get-by-key")
-    @Operation(summary = "根据参数键名查询参数值", description = "不可见的配置，不允许返回给前端")
-    @Parameter(name = "key", description = "参数键", required = true, example = "yunai.biz.username")
-    public CommonResult<ConfigRespVO> getConfigByKey(@RequestParam("key") String key) {
-        ConfigDO config = configService.getConfigByKey(key);
-        return success(ConfigConvert.INSTANCE.convert(config));
     }
 
     @GetMapping("/page")

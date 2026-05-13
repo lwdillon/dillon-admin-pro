@@ -1,16 +1,15 @@
 package com.dillon.lw.module.infra.framework.file.core.client.ftp;
 
 import com.dillon.lw.module.infra.framework.file.core.client.FileClientConfig;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 /**
  * Ftp 文件客户端的配置类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class FtpFileClientConfig implements FileClientConfig {
@@ -50,7 +49,7 @@ public class FtpFileClientConfig implements FileClientConfig {
     private String password;
     /**
      * 连接模式
-     * <p>
+     *
      * 使用 {@link  cn.hutool.extra.ftp.FtpMode} 对应的字符串
      */
     @NotEmpty(message = "连接模式不能为空")

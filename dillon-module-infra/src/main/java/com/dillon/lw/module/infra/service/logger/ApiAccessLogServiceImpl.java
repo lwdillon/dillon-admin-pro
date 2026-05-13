@@ -9,11 +9,11 @@ import com.dillon.lw.framework.tenant.core.util.TenantUtils;
 import com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog.ApiAccessLogPageReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.logger.ApiAccessLogDO;
 import com.dillon.lw.module.infra.dal.mysql.logger.ApiAccessLogMapper;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 import static com.dillon.lw.module.infra.dal.dataobject.logger.ApiAccessLogDO.REQUEST_PARAMS_MAX_LENGTH;
@@ -22,7 +22,7 @@ import static com.dillon.lw.module.infra.dal.dataobject.logger.ApiAccessLogDO.RE
 /**
  * API 访问日志 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 @Service
@@ -43,6 +43,11 @@ public class ApiAccessLogServiceImpl implements ApiAccessLogService {
             // 极端情况下，上下文中没有租户时，此时忽略租户上下文，避免插入失败！
             TenantUtils.executeIgnore(() -> apiAccessLogMapper.insert(apiAccessLog));
         }
+    }
+
+    @Override
+    public ApiAccessLogDO getApiAccessLog(Long id) {
+        return apiAccessLogMapper.selectById(id);
     }
 
     @Override

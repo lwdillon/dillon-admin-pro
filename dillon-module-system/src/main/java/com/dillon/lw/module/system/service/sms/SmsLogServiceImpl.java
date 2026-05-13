@@ -10,7 +10,8 @@ import com.dillon.lw.module.system.enums.sms.SmsSendStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
@@ -76,6 +77,11 @@ public class SmsLogServiceImpl implements SmsLogService {
         }
         smsLogMapper.updateById(SmsLogDO.builder().id(id).receiveStatus(receiveStatus.getStatus())
                 .receiveTime(receiveTime).apiReceiveCode(apiReceiveCode).apiReceiveMsg(apiReceiveMsg).build());
+    }
+
+    @Override
+    public SmsLogDO getSmsLog(Long id) {
+        return smsLogMapper.selectById(id);
     }
 
     @Override

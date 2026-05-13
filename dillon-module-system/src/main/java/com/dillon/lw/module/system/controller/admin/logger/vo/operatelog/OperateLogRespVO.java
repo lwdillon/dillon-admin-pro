@@ -1,15 +1,17 @@
 package com.dillon.lw.module.system.controller.admin.logger.vo.operatelog;
 
+import com.dillon.lw.framework.excel.core.annotations.DictFormat;
+import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
 import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
 import cn.idev.excel.annotation.ExcelProperty;
-import com.dillon.lw.module.system.dal.dataobject.user.AdminUserDO;
+import com.dillon.lw.module.system.enums.DictTypeConstants;
 import com.fhs.core.trans.anno.Trans;
 import com.fhs.core.trans.constant.TransType;
 import com.fhs.core.trans.vo.VO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 
 @Schema(description = "管理后台 - 操作日志 Response VO")
@@ -30,6 +32,11 @@ public class OperateLogRespVO implements VO {
     @Schema(description = "用户昵称", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋艿")
     @ExcelProperty("操作人")
     private String userName;
+
+    @Schema(description = "用户类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "1", implementation = Integer.class)
+    @ExcelProperty("用户类型")
+    @DictFormat(DictTypeConstants.USER_TYPE)
+    private Integer userType;
 
     @Schema(description = "操作模块类型", requiredMode = Schema.RequiredMode.REQUIRED, example = "订单")
     @ExcelProperty("操作模块类型")

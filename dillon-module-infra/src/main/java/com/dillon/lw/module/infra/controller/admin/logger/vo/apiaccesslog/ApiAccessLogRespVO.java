@@ -1,10 +1,10 @@
 package com.dillon.lw.module.infra.controller.admin.logger.vo.apiaccesslog;
 
-import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
-import cn.idev.excel.annotation.ExcelProperty;
 import com.dillon.lw.framework.excel.core.annotations.DictFormat;
 import com.dillon.lw.framework.excel.core.convert.DictConvert;
 import com.dillon.lw.module.infra.enums.DictTypeConstants;
+import cn.idev.excel.annotation.ExcelIgnoreUnannotated;
+import cn.idev.excel.annotation.ExcelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -70,7 +70,7 @@ public class ApiAccessLogRespVO {
 
     @Schema(description = "操作分类", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty(value = "操作分类", converter = DictConvert.class)
-    @DictFormat(com.dillon.lw.module.infra.enums.DictTypeConstants.OPERATE_TYPE)
+    @DictFormat(DictTypeConstants.OPERATE_TYPE)
     private Integer operateType;
 
     @Schema(description = "开始请求时间", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -89,7 +89,7 @@ public class ApiAccessLogRespVO {
     @ExcelProperty("结果码")
     private Integer resultCode;
 
-    @Schema(description = "结果提示", example = "dillon，牛逼！")
+    @Schema(description = "结果提示", example = "芋道源码，牛逼！")
     @ExcelProperty("结果提示")
     private String resultMsg;
 

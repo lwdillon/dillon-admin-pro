@@ -1,15 +1,14 @@
 package com.dillon.lw.module.infra.api.file;
 
 import com.dillon.lw.module.infra.service.file.FileService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-
-import javax.annotation.Resource;
 
 /**
  * 文件 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

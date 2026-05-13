@@ -6,8 +6,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 
 @ConfigurationProperties(prefix = "dillon.codegen")
@@ -29,7 +29,7 @@ public class CodegenProperties {
 
     /**
      * 代码生成的前端类型（默认）
-     * <p>
+     *
      * 枚举 {@link CodegenFrontTypeEnum#getType()}
      */
     @NotNull(message = "代码生成的前端类型不能为空")
@@ -37,7 +37,7 @@ public class CodegenProperties {
 
     /**
      * 代码生成的 VO 类型
-     * <p>
+     *
      * 枚举 {@link CodegenVOTypeEnum#getType()}
      */
     @NotNull(message = "代码生成的 VO 类型不能为空")
@@ -54,5 +54,11 @@ public class CodegenProperties {
      */
     @NotNull(message = "是否生成单元测试不能为空")
     private Boolean unitTestEnable;
+
+    /**
+     * 是否生成 Excel 导入接口
+     */
+    @NotNull(message = "是否生成 Excel 导入接口不能为空")
+    private Boolean importEnable;
 
 }

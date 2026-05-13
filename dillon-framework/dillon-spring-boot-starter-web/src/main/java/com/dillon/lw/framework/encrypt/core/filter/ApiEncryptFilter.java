@@ -14,6 +14,10 @@ import com.dillon.lw.framework.encrypt.core.annotation.ApiEncrypt;
 import com.dillon.lw.framework.web.config.WebProperties;
 import com.dillon.lw.framework.web.core.filter.ApiRequestFilter;
 import com.dillon.lw.framework.web.core.handler.GlobalExceptionHandler;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.method.HandlerMethod;
@@ -21,24 +25,20 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.ServletRequestPathUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.invalidParamException;
 
 /**
  * API 加密过滤器，处理 {@link ApiEncrypt} 注解。
- * <p>
+ *
  * 1. 解密请求参数
  * 2. 加密响应结果
- * <p>
+ *
  * 疑问：为什么不使用 SpringMVC 的 RequestBodyAdvice 或 ResponseBodyAdvice 机制呢？
  * 回答：考虑到项目中会记录访问日志、异常日志，以及 HTTP API 签名等场景，最好是全局级、且提前做解析！！！
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class ApiEncryptFilter extends ApiRequestFilter {
@@ -88,7 +88,7 @@ public class ApiEncryptFilter extends ApiRequestFilter {
         boolean requestEnable = apiEncrypt != null && apiEncrypt.request();
         boolean responseEnable = apiEncrypt != null && apiEncrypt.response();
         String encryptHeader = request.getHeader(apiEncryptProperties.getHeader());
-        if (!requestEnable && !responseEnable && StrUtil.isBlank(encryptHeader)) {
+        if (!requestEnable && !responseEnable && StrUtil.isBlank(encryptHeader))  {
             chain.doFilter(request, response);
             return;
         }

@@ -8,13 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.dillon.lw.module.system.enums.ErrorCodeConstants.NOTICE_NOT_FOUND;
-import static com.dillon.lw.module.system.enums.ErrorCodeConstants.NOTIFY_SEND_TEMPLATE_PARAM_MISS;
+import static com.dillon.lw.module.system.enums.ErrorCodeConstants.*;
 
 /**
  * 站内信发送 Service 实现类
@@ -72,7 +71,7 @@ public class NotifySendServiceImpl implements NotifySendService {
     /**
      * 校验站内信模版参数是否确实
      *
-     * @param template       邮箱模板
+     * @param template 邮箱模板
      * @param templateParams 参数列表
      */
     @VisibleForTesting

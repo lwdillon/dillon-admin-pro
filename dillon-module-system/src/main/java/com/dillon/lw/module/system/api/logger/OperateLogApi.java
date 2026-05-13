@@ -8,7 +8,7 @@ import com.dillon.lw.module.system.api.logger.dto.OperateLogRespDTO;
 /**
  * 操作日志 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface OperateLogApi extends OperateLogCommonApi {
 

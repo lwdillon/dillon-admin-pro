@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * 消息接收 Response DTO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class SmsReceiveRespDTO {
@@ -40,7 +40,7 @@ public class SmsReceiveRespDTO {
     private String serialNo;
     /**
      * 短信日志编号
-     * <p>
+     *
      * 对应 SysSmsLogDO 的编号
      */
     private Long logId;

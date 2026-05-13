@@ -5,10 +5,9 @@ import com.dillon.lw.module.infra.enums.codegen.CodegenSceneEnum;
 import com.dillon.lw.module.infra.enums.codegen.CodegenTemplateTypeEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
 
 @Schema(description = "管理后台 - 代码生成表定义创建/修改 Response VO")
 @Data
@@ -48,7 +47,7 @@ public class CodegenTableSaveReqVO {
     @NotNull(message = "类描述不能为空")
     private String classComment;
 
-    @Schema(description = "作者", requiredMode = Schema.RequiredMode.REQUIRED, example = "dillon")
+    @Schema(description = "作者", requiredMode = Schema.RequiredMode.REQUIRED, example = "芋道源码")
     @NotNull(message = "作者不能为空")
     private String author;
 

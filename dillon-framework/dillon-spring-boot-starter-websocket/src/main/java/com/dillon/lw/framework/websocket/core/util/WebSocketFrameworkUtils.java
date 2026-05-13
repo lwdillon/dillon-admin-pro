@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * 专属于 web 包的工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class WebSocketFrameworkUtils {
 
@@ -17,7 +17,7 @@ public class WebSocketFrameworkUtils {
     /**
      * 设置当前用户
      *
-     * @param loginUser  登录用户
+     * @param loginUser 登录用户
      * @param attributes Session
      */
     public static void setLoginUser(LoginUser loginUser, Map<String, Object> attributes) {

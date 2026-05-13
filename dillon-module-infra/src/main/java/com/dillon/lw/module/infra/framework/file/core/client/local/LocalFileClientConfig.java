@@ -4,12 +4,12 @@ import com.dillon.lw.module.infra.framework.file.core.client.FileClientConfig;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * 本地文件客户端的配置类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Data
 public class LocalFileClientConfig implements FileClientConfig {

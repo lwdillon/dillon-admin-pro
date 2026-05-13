@@ -6,7 +6,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * 纯 Mockito 的单元测试
  *
- * @author liwen
+ * @author 芋道源码
  */
 @ExtendWith(MockitoExtension.class)
 public class BaseMockitoUnitTest {

@@ -3,7 +3,6 @@ package com.dillon.lw.module.system.service.tenant;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.dynamic.datasource.annotation.DSTransactional;
 import com.dillon.lw.framework.common.enums.CommonStatusEnum;
 import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.framework.common.util.collection.CollectionUtils;
@@ -30,13 +29,14 @@ import com.dillon.lw.module.system.service.permission.RoleService;
 import com.dillon.lw.module.system.service.tenant.handler.TenantInfoHandler;
 import com.dillon.lw.module.system.service.tenant.handler.TenantMenuHandler;
 import com.dillon.lw.module.system.service.user.AdminUserService;
+import com.baomidou.dynamic.datasource.annotation.DSTransactional;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -48,7 +48,7 @@ import static java.util.Collections.singleton;
 /**
  * 租户 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Validated

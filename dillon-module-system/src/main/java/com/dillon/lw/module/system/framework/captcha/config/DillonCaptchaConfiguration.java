@@ -1,10 +1,10 @@
 package com.dillon.lw.module.system.framework.captcha.config;
 
+import com.dillon.lw.module.system.framework.captcha.core.RedisCaptchaServiceImpl;
 import com.anji.captcha.config.AjCaptchaAutoConfiguration;
 import com.anji.captcha.properties.AjCaptchaProperties;
 import com.anji.captcha.service.CaptchaCacheService;
 import com.anji.captcha.service.impl.CaptchaServiceFactory;
-import com.dillon.lw.module.system.framework.captcha.core.RedisCaptchaServiceImpl;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * 验证码的配置类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Configuration(proxyBeanMethods = false)
 @ImportAutoConfiguration(AjCaptchaAutoConfiguration.class) // 目的：解决 aj-captcha 针对 SpringBoot 3.X 自动配置不生效的问题

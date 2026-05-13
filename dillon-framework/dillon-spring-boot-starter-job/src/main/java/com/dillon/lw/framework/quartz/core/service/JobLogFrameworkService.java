@@ -1,13 +1,13 @@
 package com.dillon.lw.framework.quartz.core.service;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
  * Job 日志 Framework Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface JobLogFrameworkService {
 

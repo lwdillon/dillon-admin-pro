@@ -5,16 +5,16 @@ import com.dillon.lw.framework.common.util.json.JsonUtils;
 /**
  * WebSocket 消息的发送器接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface WebSocketMessageSender {
 
     /**
      * 发送消息给指定用户
      *
-     * @param userType       用户类型
-     * @param userId         用户编号
-     * @param messageType    消息类型
+     * @param userType 用户类型
+     * @param userId 用户编号
+     * @param messageType 消息类型
      * @param messageContent 消息内容，JSON 格式
      */
     void send(Integer userType, Long userId, String messageType, String messageContent);
@@ -22,8 +22,8 @@ public interface WebSocketMessageSender {
     /**
      * 发送消息给指定用户类型
      *
-     * @param userType       用户类型
-     * @param messageType    消息类型
+     * @param userType 用户类型
+     * @param messageType 消息类型
      * @param messageContent 消息内容，JSON 格式
      */
     void send(Integer userType, String messageType, String messageContent);
@@ -31,8 +31,8 @@ public interface WebSocketMessageSender {
     /**
      * 发送消息给指定 Session
      *
-     * @param sessionId      Session 编号
-     * @param messageType    消息类型
+     * @param sessionId Session 编号
+     * @param messageType 消息类型
      * @param messageContent 消息内容，JSON 格式
      */
     void send(String sessionId, String messageType, String messageContent);

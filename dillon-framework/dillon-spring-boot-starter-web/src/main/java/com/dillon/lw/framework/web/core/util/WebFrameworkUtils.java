@@ -5,17 +5,16 @@ import com.dillon.lw.framework.common.enums.TerminalEnum;
 import com.dillon.lw.framework.common.enums.UserTypeEnum;
 import com.dillon.lw.framework.common.pojo.CommonResult;
 import com.dillon.lw.framework.web.config.WebProperties;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * 专属于 web 包的工具类
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class WebFrameworkUtils {
 
@@ -61,7 +60,7 @@ public class WebFrameworkUtils {
      */
     public static Long getVisitTenantId(HttpServletRequest request) {
         String tenantId = request.getHeader(HEADER_VISIT_TENANT_ID);
-        return NumberUtil.isNumber(tenantId) ? Long.valueOf(tenantId) : null;
+        return NumberUtil.isNumber(tenantId)? Long.valueOf(tenantId) : null;
     }
 
     public static void setLoginUserId(ServletRequest request, Long userId) {
@@ -71,7 +70,7 @@ public class WebFrameworkUtils {
     /**
      * 设置用户类型
      *
-     * @param request  请求
+     * @param request 请求
      * @param userType 用户类型
      */
     public static void setLoginUserType(ServletRequest request, Integer userType) {

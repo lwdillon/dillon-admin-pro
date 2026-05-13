@@ -1,9 +1,10 @@
 package com.dillon.lw.module.system.api.mail.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class MailSendSingleToUserReqDTO {
 
     /**
      * 用户编号
-     * <p>
+     *
      * 如果非空，则加载对应用户的邮箱，添加到 {@link #toMails} 中
      */
     private Long userId;
@@ -45,5 +46,10 @@ public class MailSendSingleToUserReqDTO {
      * 邮件模板参数
      */
     private Map<String, Object> templateParams;
+
+    /**
+     * 附件
+     */
+    private File[] attachments;
 
 }

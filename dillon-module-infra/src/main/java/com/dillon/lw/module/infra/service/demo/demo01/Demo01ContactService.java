@@ -4,14 +4,14 @@ import com.dillon.lw.framework.common.pojo.PageResult;
 import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactPageReqVO;
 import com.dillon.lw.module.infra.controller.admin.demo.demo01.vo.Demo01ContactSaveReqVO;
 import com.dillon.lw.module.infra.dal.dataobject.demo.demo01.Demo01ContactDO;
+import jakarta.validation.Valid;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
  * 示例联系人 Service 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface Demo01ContactService {
 

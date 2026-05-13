@@ -13,7 +13,13 @@ import com.dillon.lw.module.infra.service.file.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,11 +27,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -44,6 +45,8 @@ public class FileController {
 
     @PostMapping("/upload")
     @Operation(summary = "上传文件", description = "模式一：后端上传文件")
+    @Parameter(name = "file", description = "文件附件", required = true,
+            schema = @Schema(type = "string", format = "binary"))
     public CommonResult<String> uploadFile(@Valid FileUploadReqVO uploadReqVO) throws Exception {
         MultipartFile file = uploadReqVO.getFile();
         byte[] content = IoUtil.readBytes(file.getInputStream());
@@ -67,6 +70,14 @@ public class FileController {
     @Operation(summary = "创建文件", description = "模式二：前端上传文件：配合 presigned-url 接口，记录上传了上传的文件")
     public CommonResult<Long> createFile(@Valid @RequestBody FileCreateReqVO createReqVO) {
         return success(fileService.createFile(createReqVO));
+    }
+
+    @GetMapping("/get")
+    @Operation(summary = "获得文件")
+    @Parameter(name = "id", description = "编号", required = true)
+    @PreAuthorize("@ss.hasPermission('infra:file:query')")
+    public CommonResult<FileRespVO> getFile(@RequestParam("id") Long id) {
+        return success(BeanUtils.toBean(fileService.getFile(id), FileRespVO.class));
     }
 
     @DeleteMapping("/delete")

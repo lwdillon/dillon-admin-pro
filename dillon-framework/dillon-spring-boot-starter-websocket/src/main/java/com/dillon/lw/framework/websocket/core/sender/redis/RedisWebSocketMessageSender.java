@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 基于 Redis 的 {@link WebSocketMessageSender} 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Slf4j
 public class RedisWebSocketMessageSender extends AbstractWebSocketMessageSender {
@@ -40,10 +40,10 @@ public class RedisWebSocketMessageSender extends AbstractWebSocketMessageSender 
     /**
      * 通过 Redis 广播消息
      *
-     * @param sessionId      Session 编号
-     * @param userId         用户编号
-     * @param userType       用户类型
-     * @param messageType    消息类型
+     * @param sessionId Session 编号
+     * @param userId 用户编号
+     * @param userType 用户类型
+     * @param messageType 消息类型
      * @param messageContent 消息内容
      */
     private void sendRedisMessage(String sessionId, Long userId, Integer userType,

@@ -1,9 +1,9 @@
 package com.dillon.lw.framework.common.validation;
 
 import com.dillon.lw.framework.common.core.ArrayValuable;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

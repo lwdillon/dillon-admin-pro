@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.service.impl.DiffParseFunction;
 import com.mzt.logapi.starter.annotation.LogRecord;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -39,7 +39,7 @@ import static com.dillon.lw.module.system.enums.LogRecordConstants.*;
 /**
  * 角色 Service 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 @Slf4j
@@ -72,7 +72,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#updateReqVO.id")
+    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#p0.id")
     @LogRecord(type = SYSTEM_ROLE_TYPE, subType = SYSTEM_ROLE_UPDATE_SUB_TYPE, bizNo = "{{#updateReqVO.id}}",
             success = SYSTEM_ROLE_UPDATE_SUCCESS)
     public void updateRole(RoleSaveReqVO updateReqVO) {
@@ -91,7 +91,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#id")
+    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#p0")
     public void updateRoleDataScope(Long id, Integer dataScope, Set<Long> dataScopeDeptIds) {
         // 校验是否可以更新
         validateRoleForUpdate(id);
@@ -106,7 +106,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#id")
+    @CacheEvict(value = RedisKeyConstants.ROLE, key = "#p0")
     @LogRecord(type = SYSTEM_ROLE_TYPE, subType = SYSTEM_ROLE_DELETE_SUB_TYPE, bizNo = "{{#id}}",
             success = SYSTEM_ROLE_DELETE_SUCCESS)
     public void deleteRole(Long id) {
@@ -136,13 +136,13 @@ public class RoleServiceImpl implements RoleService {
 
     /**
      * 校验角色的唯一字段是否重复
-     * <p>
+     *
      * 1. 是否存在相同名字的角色
      * 2. 是否存在相同编码的角色
      *
      * @param name 角色名字
      * @param code 角色额编码
-     * @param id   角色编号
+     * @param id 角色编号
      */
     @VisibleForTesting
     void validateRoleDuplicate(String name, String code, Long id) {
@@ -190,7 +190,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Cacheable(value = RedisKeyConstants.ROLE, key = "#id",
+    @Cacheable(value = RedisKeyConstants.ROLE, key = "#p0",
             unless = "#result == null")
     public RoleDO getRoleFromCache(Long id) {
         return roleMapper.selectById(id);

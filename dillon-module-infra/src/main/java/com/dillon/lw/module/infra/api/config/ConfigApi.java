@@ -3,9 +3,10 @@ package com.dillon.lw.module.infra.api.config;
 /**
  * 参数配置 API 接口
  *
- * @author liwen
+ * @author 芋道源码
  */
 public interface ConfigApi {
+
 
     /**
      * 根据参数键查询参数值

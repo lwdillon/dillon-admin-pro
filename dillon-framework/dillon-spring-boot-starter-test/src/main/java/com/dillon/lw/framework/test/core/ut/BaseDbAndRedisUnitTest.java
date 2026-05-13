@@ -1,13 +1,13 @@
 package com.dillon.lw.framework.test.core.ut;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.dillon.lw.framework.datasource.config.DillonDataSourceAutoConfiguration;
 import com.dillon.lw.framework.mybatis.config.DillonMybatisAutoConfiguration;
 import com.dillon.lw.framework.redis.config.DillonRedisAutoConfiguration;
 import com.dillon.lw.framework.test.config.RedisTestConfiguration;
 import com.dillon.lw.framework.test.config.SqlInitializationTestConfiguration;
+import com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import org.redisson.spring.starter.RedissonAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -19,10 +19,10 @@ import org.springframework.test.context.jdbc.Sql;
 
 /**
  * 依赖内存 DB + Redis 的单元测试
- * <p>
+ *
  * 相比 {@link BaseDbUnitTest} 来说，额外增加了内存 Redis
  *
- * @author liwen
+ * @author 芋道源码
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = BaseDbAndRedisUnitTest.Application.class)
 @ActiveProfiles("unit-test") // 设置使用 application-unit-test 配置文件

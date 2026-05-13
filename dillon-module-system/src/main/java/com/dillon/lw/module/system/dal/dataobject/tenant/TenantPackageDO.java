@@ -1,12 +1,12 @@
 package com.dillon.lw.module.system.dal.dataobject.tenant;
 
+import com.dillon.lw.framework.common.enums.CommonStatusEnum;
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
+import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.dillon.lw.framework.common.enums.CommonStatusEnum;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
-import com.dillon.lw.framework.tenant.core.aop.TenantIgnore;
 import lombok.*;
 
 import java.util.Set;
@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * 租户套餐 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName(value = "system_tenant_package", autoResultMap = true)
 @KeySequence("system_tenant_package_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -37,7 +37,7 @@ public class TenantPackageDO extends BaseDO {
     private String name;
     /**
      * 租户套餐状态
-     * <p>
+     *
      * 枚举 {@link CommonStatusEnum}
      */
     private Integer status;

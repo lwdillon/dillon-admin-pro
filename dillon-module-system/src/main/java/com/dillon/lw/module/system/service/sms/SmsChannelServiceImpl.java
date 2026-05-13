@@ -9,10 +9,10 @@ import com.dillon.lw.module.system.dal.mysql.sms.SmsChannelMapper;
 import com.dillon.lw.module.system.framework.sms.core.client.SmsClient;
 import com.dillon.lw.module.system.framework.sms.core.client.SmsClientFactory;
 import com.dillon.lw.module.system.framework.sms.core.property.SmsChannelProperties;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 import static com.dillon.lw.framework.common.exception.util.ServiceExceptionUtil.exception;

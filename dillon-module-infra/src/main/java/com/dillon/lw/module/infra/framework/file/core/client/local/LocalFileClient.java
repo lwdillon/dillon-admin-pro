@@ -9,7 +9,7 @@ import java.io.File;
 /**
  * 本地文件客户端
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class LocalFileClient extends AbstractFileClient<LocalFileClientConfig> {
 

@@ -4,7 +4,7 @@ import com.dillon.lw.module.system.api.notify.dto.NotifySendSingleToUserReqDTO;
 import com.dillon.lw.module.system.service.notify.NotifySendService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 站内信发送 API 实现类

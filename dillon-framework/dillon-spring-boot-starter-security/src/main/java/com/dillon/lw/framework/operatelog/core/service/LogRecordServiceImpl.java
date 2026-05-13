@@ -8,15 +8,15 @@ import com.dillon.lw.framework.security.core.LoginUser;
 import com.dillon.lw.framework.security.core.util.SecurityFrameworkUtils;
 import com.mzt.logapi.beans.LogRecord;
 import com.mzt.logapi.service.ILogRecordService;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
  * 操作日志 ILogRecordService 实现类
- * <p>
+ *
  * 基于 {@link OperateLogCommonApi} 实现，记录操作日志
  *
  * @author HUIHUI

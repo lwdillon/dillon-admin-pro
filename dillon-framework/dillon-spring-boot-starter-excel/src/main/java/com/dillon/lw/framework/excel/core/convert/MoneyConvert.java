@@ -11,10 +11,10 @@ import java.math.RoundingMode;
 
 /**
  * 金额转换器
- * <p>
+ *
  * 金额单位：分
  *
- * @author liwen
+ * @author 芋道源码
  */
 public class MoneyConvert implements Converter<Integer> {
 

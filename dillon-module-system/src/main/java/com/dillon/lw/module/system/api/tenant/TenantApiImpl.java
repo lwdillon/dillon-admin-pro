@@ -4,13 +4,13 @@ import com.dillon.lw.framework.common.biz.system.tenant.TenantCommonApi;
 import com.dillon.lw.module.system.service.tenant.TenantService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 
 /**
  * 多租户的 API 实现类
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Service
 public class TenantApiImpl implements TenantCommonApi {

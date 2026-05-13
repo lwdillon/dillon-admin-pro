@@ -1,9 +1,9 @@
 package com.dillon.lw.module.infra.dal.dataobject.demo.demo01;
 
+import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.dillon.lw.framework.mybatis.core.dataobject.BaseDO;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 /**
  * 示例联系人 DO
  *
- * @author liwen
+ * @author 芋道源码
  */
 @TableName("dillon_demo01_contact")
 @KeySequence("dillon_demo01_contact_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -34,7 +34,7 @@ public class Demo01ContactDO extends BaseDO {
     private String name;
     /**
      * 性别
-     * <p>
+     *
      * 枚举 {@link TODO system_user_sex 对应的类}
      */
     private Integer sex;

@@ -9,7 +9,7 @@ import org.mapstruct.factory.Mappers;
 /**
  * 文件配置 Convert
  *
- * @author liwen
+ * @author 芋道源码
  */
 @Mapper
 public interface FileConfigConvert {

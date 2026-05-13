@@ -3,12 +3,12 @@ package com.dillon.lw.module.system.controller.admin.oauth2.vo.client;
 import cn.hutool.core.util.StrUtil;
 import com.dillon.lw.framework.common.util.json.JsonUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.validator.constraints.URL;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 @Schema(description = "管理后台 - OAuth2 客户端创建/修改 Request VO")
