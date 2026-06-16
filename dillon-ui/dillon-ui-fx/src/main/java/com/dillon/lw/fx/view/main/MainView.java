@@ -265,6 +265,7 @@ public class MainView extends BaseView<MainViewModel> {
 
 
         var crumbs = new Breadcrumbs<TreeItem<AuthPermissionInfoRespVO.MenuVO>>();
+        configureCrumbsLayout(crumbs);
         crumbs.setCrumbFactory(crumb -> {
             FontIcon icon = new FontIcon();
             if (crumb.isFirst()) {
@@ -386,6 +387,22 @@ public class MainView extends BaseView<MainViewModel> {
         WebSocketNoticeService.getInstance().start(com.dillon.lw.fx.store.AppStore.getToken());
         loadUnreadNoticeCount();
 
+    }
+
+
+    private void configureCrumbsLayout(Breadcrumbs<TreeItem<AuthPermissionInfoRespVO.MenuVO>> crumbs) {
+        crumbs.setMinHeight(50);
+        crumbs.setPrefHeight(50);
+        crumbs.setMaxHeight(50);
+        crumbs.setMinWidth(0);
+        crumbs.setMaxWidth(Double.MAX_VALUE);
+        crumbs.prefWidthProperty().bind(crumbsBox.widthProperty());
+        HBox.setHgrow(crumbs, Priority.ALWAYS);
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(crumbsBox.widthProperty());
+        clip.heightProperty().bind(crumbsBox.heightProperty());
+        crumbsBox.setClip(clip);
     }
 
 

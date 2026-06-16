@@ -71,7 +71,8 @@
                                         <FontIcon iconLiteral="fth-rotate-cw"/>
                                     </graphic>
                                 </Button>
-                                <HBox fx:id="crumbsBox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0"
+                                <HBox fx:id="crumbsBox" alignment="CENTER_LEFT" maxHeight="50.0" minHeight="50.0"
+                                      prefHeight="50.0" prefWidth="200.0" styleClass="main-crumbs-box"
                                       HBox.hgrow="ALWAYS"/>
                                 <HBox id="search-box" fx:id="searchBox" alignment="CENTER" maxHeight="32.0"
                                       maxWidth="120.0" minHeight="32.0" minWidth="120.0" prefHeight="32.0"
