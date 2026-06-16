@@ -265,6 +265,7 @@ public class MainView extends BaseView<MainViewModel> {
 
 
         var crumbs = new Breadcrumbs<TreeItem<AuthPermissionInfoRespVO.MenuVO>>();
+        configureBreadcrumbsLayout(crumbs);
         crumbs.setCrumbFactory(crumb -> {
             FontIcon icon = new FontIcon();
             if (crumb.isFirst()) {
@@ -276,6 +277,8 @@ public class MainView extends BaseView<MainViewModel> {
             btn.setStyle("-fx-font-weight: bold;");
             btn.getStyleClass().add(Styles.FLAT);
             btn.setFocusTraversable(false);
+            btn.setMinWidth(0);
+            btn.setTextOverrun(OverrunStyle.ELLIPSIS);
             return btn;
         });
         crumbs.setDividerFactory(item -> {
@@ -344,11 +347,6 @@ public class MainView extends BaseView<MainViewModel> {
                 Breadcrumbs.BreadCrumbItem<TreeItem<AuthPermissionInfoRespVO.MenuVO>> root = Breadcrumbs.buildTreeModel(list.toArray(TreeItem[]::new));
                 crumbs.setSelectedCrumb(root);
                 viewModel.selectedTreeItemProperty().set(newVal);
-                // 渐变动画：淡入
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(300), crumbs);
-                fadeIn.setFromValue(0);
-                fadeIn.setToValue(1);
-                fadeIn.play();
             }
 
         });
@@ -386,6 +384,25 @@ public class MainView extends BaseView<MainViewModel> {
         WebSocketNoticeService.getInstance().start(com.dillon.lw.fx.store.AppStore.getToken());
         loadUnreadNoticeCount();
 
+    }
+
+    private void configureBreadcrumbsLayout(Breadcrumbs<TreeItem<AuthPermissionInfoRespVO.MenuVO>> crumbs) {
+        crumbsBox.setMinWidth(0);
+        crumbsBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(crumbsBox, Priority.ALWAYS);
+
+        crumbs.setManaged(false);
+        crumbs.setMinWidth(0);
+        crumbs.setMaxWidth(Double.MAX_VALUE);
+        Runnable resizeCrumbs = () -> crumbs.resizeRelocate(0, 0, crumbsBox.getWidth(), crumbsBox.getHeight());
+        crumbsBox.widthProperty().addListener((obs, oldWidth, width) -> resizeCrumbs.run());
+        crumbsBox.heightProperty().addListener((obs, oldHeight, height) -> resizeCrumbs.run());
+        Platform.runLater(resizeCrumbs);
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(crumbsBox.widthProperty());
+        clip.heightProperty().bind(crumbsBox.heightProperty());
+        crumbsBox.setClip(clip);
     }
 
 
